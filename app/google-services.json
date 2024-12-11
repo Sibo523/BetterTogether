@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "313612783460",
+    "project_id": "bettertogether-d2864",
+    "storage_bucket": "bettertogether-d2864.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313612783460:android:c31a69569d662d88e2f471",
+        "android_client_info": {
+          "package_name": "com.example.bettertogether"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "313612783460-616vfqjkpne1bthq7i02i8cs2qfr73pi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bettertogether",
+            "certificate_hash": "0142bfc952144eca1bf9537b5ecafe5dc7199730"
+          }
+        },
+        {
+          "client_id": "313612783460-ffd44vjhaa1jmkfnt93h47g13atdpndj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn8S9BM256fXJS6DhEXsZQtcFXvLCkjkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "313612783460-ffd44vjhaa1jmkfnt93h47g13atdpndj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
