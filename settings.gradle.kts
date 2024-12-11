@@ -9,16 +9,27 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        plugins {
+            id("com.google.gms.google-services") version "4.4.0"
+        }
+        // If Gradle version is below 4.1:
+        maven {
+            url = uri("https://maven.google.com")
+        }
     }
 }
+
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+
+        // If Gradle version is below 4.1:
+        maven {
+            url = uri("https://maven.google.com")
+        }
     }
 }
 
 rootProject.name = "BetterTogether"
 include(":app")
- 

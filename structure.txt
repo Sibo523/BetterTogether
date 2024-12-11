@@ -1,0 +1,47 @@
+BETterTogether/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/bettertogether/
+│   │   │   │   ├── model/
+│   │   │   │   │   ├── User.kt
+│   │   │   │   │   ├── Room.kt
+│   │   │   │   │   ├── ChatMessage.kt
+│   │   │   │   │   └── Ranking.kt
+│   │   │   │   ├── view/
+│   │   │   │   │   ├── MainActivity.kt
+│   │   │   │   │   ├── fragments/
+│   │   │   │   │   │   ├── HomeFragment.kt
+│   │   │   │   │   │   ├── CreateRoomFragment.kt
+│   │   │   │   │   │   ├── JoinRoomFragment.kt
+│   │   │   │   │   │   ├── ChatFragment.kt
+│   │   │   │   │   │   └── ProfileFragment.kt
+│   │   │   │   ├── viewmodel/
+│   │   │   │   │   ├── HomeViewModel.kt
+│   │   │   │   │   ├── RoomViewModel.kt
+│   │   │   │   │   ├── ChatViewModel.kt
+│   │   │   │   │   └── ProfileViewModel.kt
+│   │   │   │   ├── repository/
+│   │   │   │   │   ├── FirebaseRepository.kt
+│   │   │   │   │   ├── RoomRepository.kt
+│   │   │   │   │   └── UserRepository.kt
+│   │   │   ├── res/
+│   │   │   │   ├── layout/
+│   │   │   │   │   ├── activity_main.xml
+│   │   │   │   │   ├── fragment_home.xml
+│   │   │   │   │   ├── fragment_create_room.xml
+│   │   │   │   │   ├── fragment_join_room.xml
+│   │   │   │   │   ├── fragment_chat.xml
+│   │   │   │   │   └── fragment_profile.xml
+│   │   │   │   ├── drawable/
+│   │   │   │   │   ├── icons (e.g., room_icon.png, chat_icon.png)
+│   │   │   │   ├── values/
+│   │   │   │   │   ├── colors.xml
+│   │   │   │   │   ├── strings.xml
+│   │   │   │   │   ├── themes.xml
+│   │   │   │   │   └── styles.xml
+│   │   │   ├── AndroidManifest.xml
+│   ├── build.gradle
+│   ├── proguard-rules.pro
+├── build.gradle
+├── settings.gradle

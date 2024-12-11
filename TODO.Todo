@@ -1,0 +1,118 @@
+Step-by-Step TODO
+1. Project Initialization
+ Open Android Studio and create a new project named BETterTogether.
+ Choose Empty Activity as the template.
+ Select Kotlin as the programming language.
+ Set the minimum SDK to match your target audience (e.g., Android 8.0 - API Level 26).
+ Set up the project structure in the src folder to match the provided directory layout.
+2. Firebase Setup
+ Create a Firebase project on Firebase Console.
+ Add your Android app to Firebase and download the google-services.json file.
+ Place the google-services.json file in the app/ directory.
+ Add Firebase dependencies to build.gradle:
+groovy
+Copy code
+implementation 'com.google.firebase:firebase-auth-ktx:22.1.1'
+implementation 'com.google.firebase:firebase-database-ktx:20.3.3'
+implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
+ Synchronize the project.
+3. UI Design
+ Create the activity_main.xml layout with a NavHostFragment for navigation.
+ Design fragments:
+ fragment_home.xml: Display list of betting rooms.
+ fragment_create_room.xml: Form for creating a new room.
+ fragment_join_room.xml: Input field for joining a room using a code.
+ fragment_chat.xml: Chat interface with messages and a message input box.
+ fragment_profile.xml: User profile page with editable details.
+4. Navigation Setup
+ Create a nav_graph.xml in the res/navigation folder.
+ Define navigation routes between fragments (e.g., Home → CreateRoom, Home → JoinRoom).
+ Add NavHostFragment to activity_main.xml for handling navigation.
+5. Model Layer
+ Create data models in the model directory:
+ User.kt: Represents user details.
+ Room.kt: Represents betting room details.
+ ChatMessage.kt: Represents messages in a room.
+ Ranking.kt: Stores user ranking or score.
+Example for User.kt:
+
+kotlin
+Copy code
+data class User(
+    val id: String = "",
+    val name: String = "",
+    val profilePictureUrl: String = "",
+    val ranking: Int = 0
+)
+6. Repository Layer
+ Create repositories in the repository directory:
+ FirebaseRepository.kt: Handles Firebase authentication and database operations.
+ RoomRepository.kt: Manages room-related data.
+ UserRepository.kt: Handles user-related data operations.
+Example for FirebaseRepository.kt:
+
+kotlin
+Copy code
+class FirebaseRepository {
+    private val auth = FirebaseAuth.getInstance()
+    private val database = FirebaseDatabase.getInstance().reference
+
+    fun registerUser(email: String, password: String, onComplete: (Boolean) -> Unit) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                onComplete(task.isSuccessful)
+            }
+    }
+}
+7. ViewModel Layer
+ Create ViewModel classes for fragments:
+ HomeViewModel.kt
+ RoomViewModel.kt
+ ChatViewModel.kt
+ ProfileViewModel.kt
+Example for HomeViewModel.kt:
+
+kotlin
+Copy code
+class HomeViewModel : ViewModel() {
+    val rooms = MutableLiveData<List<Room>>()
+
+    fun fetchRooms() {
+        // Fetch rooms from Firebase and update LiveData
+    }
+}
+8. Main Activity
+ Implement MainActivity.kt to initialize navigation and host the fragments.
+Example:
+
+kotlin
+Copy code
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var navController: NavController
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+    }
+}
+9. Implement Core Features
+ User Authentication:
+Add registration, login, and logout functionalities using Firebase Authentication.
+ Room Creation and Joining:
+Create rooms and allow users to join using a unique code.
+ Chat System:
+Enable real-time chat using Firebase Realtime Database.
+ Profile Management:
+Allow users to update their profile details and upload a profile picture.
+10. Testing
+ Write unit tests for ViewModel classes.
+ Test Firebase interactions using test accounts.
+ Verify navigation flows between fragments.
+11. Final Steps
+ Optimize UI for responsiveness.
+ Add app icon and splash screen.
+ Deploy the app to the Google Play Store.
