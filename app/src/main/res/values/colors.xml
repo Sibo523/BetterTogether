@@ -6,4 +6,16 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- New vibrant colors -->
+    <color name="gradient_blue">#FF4A90E2</color>
+    <color name="gradient_purple">#FFA14AE2</color>
+    <color name="button_glow">#FF00FFDD</color>
+    <color name="background_grey">#FF2E2E2E</color>
+
+    <!-- Missing colors -->
+    <color name="background_color">#FF2E2E2E</color> <!-- Dark background -->
+    <color name="primaryTextColor">#FFFFFFFF</color> <!-- White for primary text -->
+    <color name="secondaryTextColor">#FFB0B0B0</color> <!-- Light grey for secondary text -->
+    <color name="fabColor">#FF4A90E2</color> <!-- Blue for floating action button -->
 </resources>
