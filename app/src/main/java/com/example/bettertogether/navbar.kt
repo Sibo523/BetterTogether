@@ -31,7 +31,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_profile -> {
-                    navigateTo(HomeActivity::class.java)
+                    navigateTo(ProfileActivity::class.java)
                     true
                 }
                 else -> false

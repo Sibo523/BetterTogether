@@ -10,11 +10,11 @@ import android.app.DatePickerDialog
 import java.util.Calendar
 
 
-class HomeActivity : BaseActivity() {
+class ProfileActivity : BaseActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
+        setContentView(R.layout.activity_profile)
         auth = FirebaseAuth.getInstance()
 
         val signOutButton = findViewById<Button>(R.id.sign_out_button)
