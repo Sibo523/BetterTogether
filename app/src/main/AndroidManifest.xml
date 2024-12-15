@@ -21,5 +21,6 @@
         </activity>
 
         <activity android:name=".HomeActivity" />
+        <activity android:name=".ProfileActivity" />
     </application>
 </manifest>
