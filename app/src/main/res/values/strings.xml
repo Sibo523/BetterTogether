@@ -2,4 +2,9 @@
 <resources>
     <string name="app_name">Better Together</string>
     <string name="web_client_id">313612783460-ffd44vjhaa1jmkfnt93h47g13atdpndj.apps.googleusercontent.com</string>
+    <string name="profilephoto">profilePhoto</string>
+    <string name="new_room">new room</string>
+    <string name="inbox">Inbox</string>
+    <string name="button">Button</string>
+    <string name="what_is_the_bet">What is the bet?</string>
 </resources>
