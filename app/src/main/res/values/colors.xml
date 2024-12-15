@@ -18,4 +18,11 @@
     <color name="primaryTextColor">#FFFFFFFF</color> <!-- White for primary text -->
     <color name="secondaryTextColor">#FFB0B0B0</color> <!-- Light grey for secondary text -->
     <color name="fabColor">#FF4A90E2</color> <!-- Blue for floating action button -->
+    <!-- Bismila -->
+    <color name="grey">#F5F5F5</color>
+    <color name="blue">#3F51B5</color>
+    <color name="lightgrey">#D3D3D3</color>
+    <color name="goodgrey">#757575</color>
+    <color name="yellow">#FFCF66</color>
+
 </resources>

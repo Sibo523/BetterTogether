@@ -19,4 +19,15 @@
     <string name="add">Add</string>
     <string name="star">Star</string>
     <string name="profile">Profile</string>
+
+    <!-- roi doing stuff -->
+    <string name="job_success">Job Success</string>
+    <string name="ratings">Ratings</string>
+    <string name="about_me">About Me</string>
+    <string name="my_desc">Hi, I am Sanskar, an experienced Android developer.</string>
+    <string name="contact">Contact Details</string>
+    <string name="skills">Skills</string>
+    <string name="samplereview">Amazing work! Very professional and skilled.</string>
+
+
 </resources>
