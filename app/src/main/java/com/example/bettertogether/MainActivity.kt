@@ -1,21 +1,27 @@
 package com.example.bettertogether
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        auth = FirebaseAuth.getInstance()
 
-        // Find Button
-        val button1 = findViewById<Button>(R.id.new_room)
+        val signOutButton = findViewById<Button>(R.id.sign_out_button)
+        signOutButton.setOnClickListener {
+            signOut()
+        }
 
-        // Button click listener
-        button1.setOnClickListener {
+        val new_room = findViewById<Button>(R.id.new_room)
+        new_room.setOnClickListener {
             showFormDialog()
         }
     }
@@ -56,5 +62,14 @@ class MainActivity : AppCompatActivity() {
             .create()
 
         dialog.show()
+    }
+    private fun signOut() {
+        auth.signOut()
+        // Redirect to LoginActivity
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        Toast.makeText(this, "Signed out successfully!", Toast.LENGTH_SHORT).show()
     }
 }
