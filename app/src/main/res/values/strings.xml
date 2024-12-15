@@ -8,4 +8,10 @@
     <string name="button">Button</string>
     <string name="what_is_the_bet">What is the bet?</string>
     <string name="sign_out">Sign Out</string>
+    <string name="agree_to_terms_and_conditions">Agree to terms and conditions</string>
+    <string name="how_much_we_bettin">How much we bettin\'?</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="option1">Option1</string>
+    <string name="option2">Option2</string>
+    <string name="option3">Option3</string>
 </resources>
