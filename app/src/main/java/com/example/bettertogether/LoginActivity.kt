@@ -109,7 +109,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun goToMainScreen() {
         // Create intent to go to MainActivity
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent(this, HomeActivity::class.java).apply {
             // Clear the activity stack so user can't go back to login
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

@@ -11,7 +11,7 @@ import android.app.DatePickerDialog
 import java.util.Calendar
 
 
-class MainActivity : AppCompatActivity() {
+class HomeActivity : BaseActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,14 +19,9 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         val signOutButton = findViewById<Button>(R.id.sign_out_button)
-        signOutButton.setOnClickListener {
-            signOut()
-        }
-
+        signOutButton.setOnClickListener{ signOut() }
         val new_room = findViewById<Button>(R.id.new_room)
-        new_room.setOnClickListener {
-            showFormDialog()
-        }
+        new_room.setOnClickListener{ showFormDialog() }
     }
 
     private fun showFormDialog() {
