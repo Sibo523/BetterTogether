@@ -77,4 +77,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.core)
     implementation(libs.firebase.analytics)
+
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
 }

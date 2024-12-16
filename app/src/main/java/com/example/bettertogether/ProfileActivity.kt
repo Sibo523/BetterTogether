@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import android.app.DatePickerDialog
 import java.util.Calendar
 
@@ -17,10 +19,14 @@ class ProfileActivity : BaseActivity() {
         setContentView(R.layout.activity_profile)
         auth = FirebaseAuth.getInstance()
 
+        displayProfile();
+
         val signOutButton = findViewById<Button>(R.id.sign_out_button)
         signOutButton.setOnClickListener{ signOut() }
         val new_room = findViewById<Button>(R.id.new_room)
         new_room.setOnClickListener{ showFormDialog() }
+
+        setupBottomNavigation();
     }
 
     private fun showFormDialog() {
@@ -78,6 +84,24 @@ class ProfileActivity : BaseActivity() {
         dialog.show()
     }
 
+    private fun displayProfile(){
+        // Fetch and display the profile image
+        val user: FirebaseUser? = auth.currentUser
+        val profileImageView = findViewById<ImageView>(R.id.imageView)
+        if (user != null) {
+            val photoUrl = user.photoUrl
+            if (photoUrl != null) {
+                // Use Glide to load the profile picture
+                Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.ic_profile) // Optional: A default image
+                    .into(profileImageView)
+            } else {
+                // Set a default image if no profile picture is available
+                profileImageView.setImageResource(R.drawable.ic_profile)
+            }
+        }
+    }
     private fun signOut() {
         auth.signOut()
         // Redirect to LoginActivity
