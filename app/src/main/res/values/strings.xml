@@ -28,6 +28,10 @@
     <string name="contact">Contact Details</string>
     <string name="skills">Skills</string>
     <string name="samplereview">Amazing work! Very professional and skilled.</string>
+    <string name="bet_description">bet description</string>
+    <string name="entery_code">entery code</string>
+    <string name="even_bet">Even Bet</string>
+    <string name="bet_ratio">Bet Ratio</string>
 
 
 </resources>

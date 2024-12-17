@@ -69,7 +69,7 @@ dependencies {
 
     // Google Sign-In
     implementation(libs.androidx.credentials)
-    implementation(libs.play.services.auth.v2070) // Replace `v2070` with the latest version available in your `libs.versions.toml`.
+    implementation(libs.play.services.auth.v2070)
     implementation(libs.material.v1110)
 
     // Firebase
@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.core)
     implementation(libs.firebase.analytics)
+    implementation("com.google.firebase:firebase-database:20.3.1")
 
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.15.1")

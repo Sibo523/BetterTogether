@@ -28,6 +28,25 @@
         android:hint="@string/how_much_we_bettin"
         android:inputType="number" />
 
+    <!-- Description Input -->
+    <EditText
+        android:id="@+id/form_description_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/bet_description"
+        android:inputType="textMultiLine"
+        android:maxLength="2000"
+        android:lines="5" />
+
+    <!-- Code Input -->
+    <EditText
+        android:id="@+id/form_code_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/entery_code"
+        android:inputType="text"
+        android:maxLength="10" />
+
     <!-- Date Input -->
     <EditText
         android:id="@+id/form_date_input"
@@ -46,21 +65,15 @@
         android:layout_marginTop="16dp">
 
         <RadioButton
-            android:id="@+id/radio_option_1"
+            android:id="@+id/radio_option_even_bet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/option1" />
+            android:text="@string/even_bet" />
 
         <RadioButton
-            android:id="@+id/radio_option_2"
+            android:id="@+id/radio_option_bet_ratio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/option2" />
-
-        <RadioButton
-            android:id="@+id/radio_option_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/option3" />
+            android:text="@string/bet_ratio" />
     </RadioGroup>
 </LinearLayout>
