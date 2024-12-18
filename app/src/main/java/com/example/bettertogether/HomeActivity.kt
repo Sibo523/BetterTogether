@@ -20,13 +20,21 @@ class HomeActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
         auth = FirebaseAuth.getInstance()
+
+        val profileButton = findViewById<ImageButton>(R.id.profile_button)
+        profileButton.setOnClickListener {
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
+        }
 
         val newRoom = findViewById<Button>(R.id.new_room)
         newRoom.setOnClickListener { showFormDialog() }
 
         setupBottomNavigation()
     }
+
     // Dialog for the creation of a room
     private fun showFormDialog() {
         val inflater = LayoutInflater.from(this)

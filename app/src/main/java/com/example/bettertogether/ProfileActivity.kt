@@ -2,109 +2,119 @@ package com.example.bettertogether
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import android.app.DatePickerDialog
-import java.util.Calendar
+import com.google.firebase.firestore.FirebaseFirestore
 
-
-class ProfileActivity : BaseActivity() {
+class ProfileActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+
+    // Declare UI components
+    private lateinit var profileImageView: ImageView
+    private lateinit var nameTextView: TextView
+
+    private lateinit var emailTextView: TextView
+    private lateinit var usernameTextView: TextView
+    private lateinit var genderTextView: TextView
+    private lateinit var ageTextView: TextView
+    private lateinit var dobTextView: TextView
+    private lateinit var mobileTextView: TextView
+    private lateinit var signOutButton: Button
+    private lateinit var bioTextView: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_profile)
+        setContentView(R.layout.profile_ui) // Ensure this matches your XML file name
+
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
-        displayProfile();
+        // Initialize UI components
+        profileImageView = findViewById(R.id.profile_image)
+        nameTextView = findViewById(R.id.profile_name)
 
-        val signOutButton = findViewById<Button>(R.id.sign_out_button)
-        signOutButton.setOnClickListener{ signOut() }
-        val new_room = findViewById<Button>(R.id.new_room)
-        new_room.setOnClickListener{ showFormDialog() }
+        bioTextView = findViewById(R.id.profile_bio)
+        emailTextView = findViewById(R.id.profile_email_value)
+        usernameTextView = findViewById(R.id.profile_username_value)
+        genderTextView = findViewById(R.id.profile_gender_value)
+        ageTextView = findViewById(R.id.profile_age_value)
+        dobTextView = findViewById(R.id.profile_dob_value)
+        mobileTextView = findViewById(R.id.profile_mobile_value)
+        signOutButton = findViewById(R.id.sign_out_button)
 
-        setupBottomNavigation();
-    }
+        displayProfile()
 
-    private fun showFormDialog() {
-        val inflater = LayoutInflater.from(this)
-        val view = inflater.inflate(R.layout.form_dialog, null)
-
-        val checkbox = view.findViewById<CheckBox>(R.id.form_checkbox)
-        val editText = view.findViewById<EditText>(R.id.form_text_input)
-        val numberInput = view.findViewById<EditText>(R.id.form_number_input)
-        val dateInput = view.findViewById<EditText>(R.id.form_date_input) // Date input field
-        val radioGroup = view.findViewById<RadioGroup>(R.id.form_radio_group)
-
-        // Handle date picker
-        dateInput.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH)
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-            val datePicker = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
-                // Format the date and set it in the EditText
-                val formattedDate = "${selectedDay}/${selectedMonth + 1}/$selectedYear"
-                dateInput.setText(formattedDate)
-            }, year, month, day)
-
-            datePicker.show()
+        signOutButton.setOnClickListener {
+            signOut()
         }
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Submit Form")
-            .setView(view)
-            .setPositiveButton("Submit") { _, _ ->
-                val termsOfService = checkbox.isChecked
-                val betSubject = editText.text.toString()
-                val betNumber = numberInput.text.toString()
-                val selectedDate = dateInput.text.toString()
-                val selectedRadioId = radioGroup.checkedRadioButtonId
-                val selectedRadio = findViewById<RadioButton>(selectedRadioId)?.text?.toString()
-
-                if (betSubject.isBlank() || betNumber.isBlank() || selectedDate.isBlank() || selectedRadio==null){  // Validate inputs
-                    Toast.makeText(this, "Please fill all fields!", Toast.LENGTH_SHORT).show()
-                } else{  // Display collected data
-                    val message = """
-                    Checkbox: $termsOfService
-                    Bet Subject: $betSubject
-                    Bet Number: $betNumber
-                    Selected Date: $selectedDate
-                    Selected Radio: $selectedRadio
-                """.trimIndent()
-                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
-        dialog.show()
     }
 
-    private fun displayProfile(){
-        // Fetch and display the profile image
+    private fun displayProfile() {
         val user: FirebaseUser? = auth.currentUser
-        val profileImageView = findViewById<ImageView>(R.id.imageView)
+
         if (user != null) {
+            // Set name and email from FirebaseAuth
+            nameTextView.text = user.displayName ?: "N/A"
+            emailTextView.text = user.email ?: "N/A"
+
+            // Fetch additional user data from Firestore
+            val userId = user.uid
+            db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        usernameTextView.text = document.getString("username") ?: "N/A"
+                        genderTextView.text = document.getString("gender") ?: "N/A"
+                        ageTextView.text = document.getLong("age")?.toString() ?: "N/A"
+                        dobTextView.text = document.getString("dob") ?: "N/A"
+                        mobileTextView.text = document.getString("mobile") ?: "N/A"
+                    } else {
+                        Toast.makeText(this, "No additional user data found.", Toast.LENGTH_SHORT).show()
+                        // Optionally, set default values
+                        usernameTextView.text = "N/A"
+                        genderTextView.text = "N/A"
+                        ageTextView.text = "N/A"
+                        dobTextView.text = "N/A"
+                        mobileTextView.text = "N/A"
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(this, "Failed to fetch user data.", Toast.LENGTH_SHORT).show()
+                    // Optionally, set default values
+                    usernameTextView.text = "N/A"
+                    genderTextView.text = "N/A"
+                    ageTextView.text = "N/A"
+                    dobTextView.text = "N/A"
+                    mobileTextView.text = "N/A"
+                }
+
+            // Load profile picture
             val photoUrl = user.photoUrl
             if (photoUrl != null) {
-                // Use Glide to load the profile picture
                 Glide.with(this)
                     .load(photoUrl)
-                    .placeholder(R.drawable.ic_profile) // Optional: A default image
+                    .placeholder(R.drawable.ic_profile) // Optional fallback image
                     .into(profileImageView)
             } else {
-                // Set a default image if no profile picture is available
                 profileImageView.setImageResource(R.drawable.ic_profile)
             }
+        } else {
+            // Handle the case where the user is not logged in
+            Toast.makeText(this, "User not logged in.", Toast.LENGTH_SHORT).show()
+            // Redirect to login if necessary
+            val intent = Intent(this, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
         }
     }
+
     private fun signOut() {
         auth.signOut()
-        // Redirect to LoginActivity
         val intent = Intent(this, LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

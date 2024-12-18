@@ -9,7 +9,7 @@
     <string name="inbox">Inbox</string>
     <string name="button">Button</string>
     <string name="what_is_the_bet">What is the bet?</string>
-    <string name="sign_out">Sign Out</string>
+<!--    <string name="sign_out">Sign Out</string>-->
     <string name="agree_to_terms_and_conditions">Agree to terms and conditions</string>
     <string name="how_much_we_bettin">How much we bettin\'?</string>
     <string name="expiration_date">Expiration date</string>
@@ -20,20 +20,62 @@
     <string name="explorer">Explorer</string>
     <string name="add">Add</string>
     <string name="star">Star</string>
-    <string name="profile">Profile</string>
-
-    <!-- roi doing stuff -->
-    <string name="job_success">Job Success</string>
-    <string name="ratings">Ratings</string>
-    <string name="about_me">About Me</string>
-    <string name="my_desc">Hi, I am Sanskar, an experienced Android developer.</string>
-    <string name="contact">Contact Details</string>
-    <string name="skills">Skills</string>
-    <string name="samplereview">Amazing work! Very professional and skilled.</string>
-    <string name="bet_description">bet description</string>
-    <string name="entery_code">Entry Code- Should be between 6 and 10</string>
+    <string name="bet_description">Your bet description here.</string>
+    <string name="entery_code">Enter your code.</string>
     <string name="even_bet">Even Bet</string>
     <string name="bet_ratio">Bet Ratio</string>
+<!--    <string name="profile">Profile</string>-->
+
+    <!-- roi doing stuff -->
+<!--    <string name="job_success">Job Success</string>-->
+<!--    <string name="ratings">Ratings</string>-->
+<!--    <string name="about_me">About Me</string>-->
+<!--    <string name="my_desc">Hi, I am Sanskar, an experienced Android developer.</string>-->
+<!--    <string name="contact">Contact Details</string>-->
+<!--    <string name="skills">Skills</string>-->
+<!--    <string name="samplereview">Amazing work! Very professional and skilled.</string>-->
+<!--    <string name="bet_description">bet description</string>-->
+<!--    <string name="entery_code">Entry Code- Should be between 6 and 10</string>-->
+<!--    <string name="even_bet">Even Bet</string>-->
+<!--    <string name="bet_ratio">Bet Ratio</string>-->
+<!--    <string name="profile_image">Profile Image</string>-->
+<!--    <string name="name">Name</string>-->
+<!--    <string name="email">Email</string>-->
+<!--    <string name="username_">string</string>-->
+<!--    <string name="amitthecoder" />-->
+<!--    <string name="gender" />-->
+<!--    <string name="male" />-->
+<!--    <string name="age" />-->
+<!--    <string name="_21" />-->
+<!--    <string name="date_of_birth" />-->
+<!--    <string name="_07_02_2003" />-->
+<!--    <string name="mobile" />-->
+<!--    <string name="_91_9000000009" />-->
+<!--    <string name="axxxxxxa_gmail_com" />-->
+<!--    <string name="social_media">\n</string>-->
+<!--    <string name="user_information" />-->
+<!--    <string name="bio" />-->
+<!--    <string name="about" />-->
+<!--    <string name="amit_kumar" />-->
+
+    <!-- Example entries in res/values/strings.xml -->
+    <string name="profile">Profile</string>
+    <string name="about">About</string>
+    <string name="bio">This is the bio section.</string>
+    <string name="user_information">User Information</string>
+    <string name="username">Username</string>
+    <string name="gender">Gender</string>
+    <string name="age">Age</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="mobile">Mobile</string>
+    <string name="email">Email</string>
+    <string name="social_media">Social Media</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="verified_icon">Verified Icon</string>
+    <string name="twitter_icon">Twitter Icon</string>
+    <string name="linkedin_icon">LinkedIn Icon</string>
+    <string name="whatsapp_icon">WhatsApp Icon</string>
+    <string name="profile_image_description" />
 
 
 </resources>

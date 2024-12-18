@@ -26,6 +26,7 @@
             app:layout_constraintEnd_toStartOf="@+id/new_room"
             app:layout_constraintStart_toEndOf="@+id/inbox"
             app:layout_constraintTop_toTopOf="parent" />
+
         <Button
             android:id="@+id/new_room"
             android:layout_width="wrap_content"
@@ -38,6 +39,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/button" />
+
         <Button
             android:id="@+id/inbox"
             android:layout_width="wrap_content"
@@ -52,6 +54,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Profile Button -->
+        <ImageButton
+            android:id="@+id/profile_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/ic_profile"
+        android:contentDescription="@string/profilephoto"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

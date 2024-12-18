@@ -80,4 +80,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core.v351)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+implementation("com.airbnb.android:lottie:5.2.0")
 }
