@@ -25,59 +25,6 @@ class HomeActivity : BaseActivity() {
         val newRoom = findViewById<Button>(R.id.new_room)
         newRoom.setOnClickListener { showFormDialog() }
 
-        // Firebase Initialization
-        Log.d("Debug", "Firebase initialization starting...")
-        FirebaseApp.initializeApp(this)
-        if (FirebaseApp.getApps(this).isNotEmpty()) {
-            Log.d("Debug", "Firebase initialized successfully!")
-        } else {
-            Log.e("Debug", "Firebase initialization failed!")
-        }
-
-        // Authentication Check
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-        if (user != null) {
-            Log.d("Debug", "User signed in: ${user.uid}")
-        } else {
-            Log.d("Debug", "No user signed in.")
-        }
-
-        // Auth State Listener
-        auth.addAuthStateListener {
-            Log.d("Debug", "Auth state changed: ${it.currentUser?.uid ?: "No user"}")
-        }
-
-        // Firestore Write
-        Log.d("Firestore", "Preparing to write data to Firestore...")
-        val roomData = hashMapOf(
-            "testField" to "testValue",
-            "timestamp" to System.currentTimeMillis()
-        )
-        FirebaseFirestore.getInstance().collection("testCollection")
-            .add(roomData)
-            .addOnSuccessListener { documentReference ->
-                Log.d("Firestore", "Document written successfully with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", "Error writing document: ${e.message}", e)
-            }
-        Log.d("Firestore", "Firestore write operation executed.")
-
-        // Firestore Read
-        Log.d("Firestore", "Fetching data from Firestore...")
-        FirebaseFirestore.getInstance().collection("testCollection").get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    Log.d("Firestore", "Document fetched: ${document.id} => ${document.data}")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", "Error fetching documents: ${e.message}", e)
-            }
-        Log.d("Firestore", "Firestore read operation executed.")
-
-
         setupBottomNavigation()
     }
 
@@ -121,6 +68,24 @@ class HomeActivity : BaseActivity() {
                 val selectedRadioId = radioGroup.checkedRadioButtonId
                 val selectedRadio = view.findViewById<RadioButton>(selectedRadioId)?.text?.toString()
 
+                if (betSubject.isBlank()) {
+                    Toast.makeText(this, "aaaaa", Toast.LENGTH_SHORT).show()
+                }
+                if (betNumber.isBlank()) {
+                    Toast.makeText(this, "bbbbb", Toast.LENGTH_SHORT).show()
+                }
+                if (selectedDate.isBlank()) {
+                    Toast.makeText(this, "ccccc", Toast.LENGTH_SHORT).show()
+                }
+                if (description.isBlank()) {
+                    Toast.makeText(this, "ddddd", Toast.LENGTH_SHORT).show()
+                }
+                if (code.length !in 6..10) {
+                    Toast.makeText(this, "eeeee", Toast.LENGTH_SHORT).show()
+                }
+                if (selectedRadio == null) {
+                    Toast.makeText(this, "fffff", Toast.LENGTH_SHORT).show()
+                }
                 if (betSubject.isBlank() || betNumber.isBlank() || selectedDate.isBlank() ||
                     description.isBlank() || code.length !in 6..10 || selectedRadio == null) {
                     Toast.makeText(this, "Please fill all fields correctly!", Toast.LENGTH_SHORT).show()
