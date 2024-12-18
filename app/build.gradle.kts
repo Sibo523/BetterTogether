@@ -77,7 +77,11 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.core)
     implementation(libs.firebase.analytics)
-    implementation("com.google.firebase:firebase-database:20.3.1")
+    implementation("com.google.firebase:firebase-auth:21.3.0")
+    implementation("com.google.firebase:firebase-firestore:24.9.1")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-basement:18.2.1") // Critical for ProviderInstaller
+
 
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.15.1")

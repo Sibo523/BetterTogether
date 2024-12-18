@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "313612783460",
+    "firebase_url": "https://bettertogether-d2864-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "bettertogether-d2864",
     "storage_bucket": "bettertogether-d2864.firebasestorage.app"
   },
@@ -19,6 +20,14 @@
           "android_info": {
             "package_name": "com.example.bettertogether",
             "certificate_hash": "0142bfc952144eca1bf9537b5ecafe5dc7199730"
+          }
+        },
+        {
+          "client_id": "313612783460-rm7e6uic4v12c1n9ds5d0snhc65h2vhc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bettertogether",
+            "certificate_hash": "165c3e56e96cec8e56935f88035d46abfa5be824"
           }
         },
         {

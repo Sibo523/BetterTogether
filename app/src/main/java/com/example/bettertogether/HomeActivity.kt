@@ -1,29 +1,82 @@
 package com.example.bettertogether
 
-import android.content.Intent
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import com.google.firebase.FirebaseApp
+import com.google.android.gms.security.ProviderInstaller
+import android.content.Intent
 import com.google.firebase.auth.FirebaseAuth
-import android.app.DatePickerDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
-
-import com.google.firebase.database.FirebaseDatabase
+import android.util.Log
 
 class HomeActivity : BaseActivity() {
     private lateinit var auth: FirebaseAuth
-    private val database = FirebaseDatabase.getInstance() // Firebase Database Instance
-    private val roomsRef = database.getReference("rooms") // Reference to 'rooms' node
+    private val db = FirebaseFirestore.getInstance() // Firestore instance
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         auth = FirebaseAuth.getInstance()
 
-        val new_room = findViewById<Button>(R.id.new_room)
-        new_room.setOnClickListener { showFormDialog() }
+        val newRoom = findViewById<Button>(R.id.new_room)
+        newRoom.setOnClickListener { showFormDialog() }
+
+        // Firebase Initialization
+        Log.d("Debug", "Firebase initialization starting...")
+        FirebaseApp.initializeApp(this)
+        if (FirebaseApp.getApps(this).isNotEmpty()) {
+            Log.d("Debug", "Firebase initialized successfully!")
+        } else {
+            Log.e("Debug", "Firebase initialization failed!")
+        }
+
+        // Authentication Check
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        if (user != null) {
+            Log.d("Debug", "User signed in: ${user.uid}")
+        } else {
+            Log.d("Debug", "No user signed in.")
+        }
+
+        // Auth State Listener
+        auth.addAuthStateListener {
+            Log.d("Debug", "Auth state changed: ${it.currentUser?.uid ?: "No user"}")
+        }
+
+        // Firestore Write
+        Log.d("Firestore", "Preparing to write data to Firestore...")
+        val roomData = hashMapOf(
+            "testField" to "testValue",
+            "timestamp" to System.currentTimeMillis()
+        )
+        FirebaseFirestore.getInstance().collection("testCollection")
+            .add(roomData)
+            .addOnSuccessListener { documentReference ->
+                Log.d("Firestore", "Document written successfully with ID: ${documentReference.id}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error writing document: ${e.message}", e)
+            }
+        Log.d("Firestore", "Firestore write operation executed.")
+
+        // Firestore Read
+        Log.d("Firestore", "Fetching data from Firestore...")
+        FirebaseFirestore.getInstance().collection("testCollection").get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    Log.d("Firestore", "Document fetched: ${document.id} => ${document.data}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error fetching documents: ${e.message}", e)
+            }
+        Log.d("Firestore", "Firestore read operation executed.")
+
 
         setupBottomNavigation()
     }
@@ -72,25 +125,32 @@ class HomeActivity : BaseActivity() {
                     description.isBlank() || code.length !in 6..10 || selectedRadio == null) {
                     Toast.makeText(this, "Please fill all fields correctly!", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Prepare data for Firebase
+                    val user = auth.currentUser
+                    if (user == null) {
+                        Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+
+                    // Prepare data for Firestore
                     val roomData = hashMapOf(
-                        "termsAccepted" to termsOfService,
-                        "betSubject" to betSubject,
-                        "betNumber" to betNumber,
+                        "userId" to user.uid,                       // Firebase UID
+                        "termsAccepted" to termsOfService,          // accepted Terms?
+                        "betSubject" to betSubject,                 // What's the bet?
+                        "betNumber" to betNumber,                   // How many points
                         "description" to description,
                         "code" to code,
                         "selectedDate" to selectedDate,
-                        "betType" to selectedRadio
+                        "betType" to selectedRadio,
+                        "timestamp" to System.currentTimeMillis()   // When uploaded
                     )
-
-                    // Push data to Firebase
-                    val newRoomRef = roomsRef.push() // Generates a unique ID for the room
-                    newRoomRef.setValue(roomData)
+                    println("DEBUG: uploading")
+                    db.collection("rooms")   // Upload data to Firestore in "rooms" collection
+                        .add(roomData)
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this,"Room added successfully!",Toast.LENGTH_SHORT).show()
                         }
-                        .addOnFailureListener {
-                            Toast.makeText(this, "Failed to add room. Try again.", Toast.LENGTH_SHORT).show()
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(this,"Error: ${exception.message}",Toast.LENGTH_SHORT).show()
                         }
                 }
             }
