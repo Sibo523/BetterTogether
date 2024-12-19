@@ -10,7 +10,7 @@
         android:id="@+id/form_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/agree_to_terms_and_conditions" />
+        android:text="@string/private_room" />
 
     <!-- Text Input -->
     <EditText

@@ -9,7 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : BaseActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
@@ -51,6 +51,8 @@ class ProfileActivity : AppCompatActivity() {
         signOutButton.setOnClickListener {
             signOut()
         }
+
+        setupBottomNavigation()
     }
 
     private fun displayProfile() {

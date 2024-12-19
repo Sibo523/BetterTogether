@@ -76,6 +76,8 @@
     <string name="linkedin_icon">LinkedIn Icon</string>
     <string name="whatsapp_icon">WhatsApp Icon</string>
     <string name="profile_image_description" />
+    <string name="your_rooms">Your Rooms</string>
+    <string name="private_room">private room</string>
 
 
 </resources>
