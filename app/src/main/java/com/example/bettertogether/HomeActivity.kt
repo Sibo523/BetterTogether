@@ -33,7 +33,7 @@ class HomeActivity : BaseActivity() {
         newRoom.setOnClickListener { showFormDialog() }
 
         val yourRooms = findViewById<Button>(R.id.yourRooms)
-        yourRooms.setOnClickListener { showFormDialog() }
+        yourRooms.setOnClickListener { showYourRooms() }
 
         setupBottomNavigation()
     }
@@ -155,39 +155,47 @@ class HomeActivity : BaseActivity() {
         }
         dialog.show()
     }
+    private fun showYourRooms() {
+        val user = auth.currentUser
+        if (user == null) {
+            Toast.makeText(this, "Please log in to see your rooms.", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-//    private fun showYourRooms() {
-//        val user = auth.currentUser
-//        if (user == null) {
-//            Toast.makeText(this, "Please log in to see your rooms.", Toast.LENGTH_SHORT).show()
-//            return
-//        }
-//
-//        val dialogView = layoutInflater.inflate(R.layout.rooms_list_dialog, null)
-//        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.rooms_recycler_view)
-//        recyclerView.layoutManager = LinearLayoutManager(this)
-//
-//        val roomsList = mutableListOf<String>()
-//        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, roomsList)
-//        recyclerView.adapter = adapter
-//
-//        db.collection("users").document(user.uid).collection("rooms")
-//            .get()
-//            .addOnSuccessListener { documents ->
-//                roomsList.clear()
-//                for (document in documents) {
-//                    roomsList.add(document.id)
-//                }
-//                adapter.notifyDataSetChanged()
-//
-//                AlertDialog.Builder(this)
-//                    .setTitle("Your Rooms")
-//                    .setView(dialogView)
-//                    .setPositiveButton("OK", null)
-//                    .show()
-//            }
-//            .addOnFailureListener { exception ->
-//                Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
-//            }
-//    }
+        val dialogView = layoutInflater.inflate(R.layout.rooms_list_dialog, null)
+        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.rooms_recycler_view)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        val roomsList = mutableListOf<String>()
+        val adapter = RoomsAdapter(roomsList) { roomId ->
+            // Handle room click
+            openRoom(roomId)
+        }
+        recyclerView.adapter = adapter
+
+        db.collection("users").document(user.uid).collection("rooms")
+            .get()
+            .addOnSuccessListener { documents ->
+                roomsList.clear()
+                for (document in documents) {
+                    roomsList.add(document.id) // Assuming room IDs are meaningful; adapt if needed
+                }
+                adapter.notifyDataSetChanged()
+
+                AlertDialog.Builder(this)
+                    .setTitle("Your Rooms")
+                    .setView(dialogView)
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+    private fun openRoom(roomId: String) {
+        val intent = Intent(this, RoomActivity::class.java)
+        intent.putExtra("roomId", roomId)
+        startActivity(intent)
+    }
+
 }
