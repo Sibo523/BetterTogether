@@ -9,6 +9,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 abstract class BaseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setupBottomNavigation()
     }
 
     protected fun setupBottomNavigation() {
@@ -21,6 +23,18 @@ abstract class BaseActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_home -> {
                     navigateTo(HomeActivity::class.java)
+                    true
+                }
+                R.id.nav_explorer -> {
+                    navigateTo(HomeActivity::class.java)
+                    true
+                }
+                R.id.nav_add -> {
+                    navigateTo(NewRoomActivity::class.java)
+                    true
+                }
+                R.id.nav_star -> {
+                    navigateTo(RoomsActivity::class.java)
                     true
                 }
                 R.id.nav_profile -> {

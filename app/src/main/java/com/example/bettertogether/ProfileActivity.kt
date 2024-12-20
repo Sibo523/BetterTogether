@@ -3,7 +3,6 @@ package com.example.bettertogether
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -28,7 +27,7 @@ class ProfileActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.profile_ui) // Ensure this matches your XML file name
+        setContentView(R.layout.activity_profile) // Ensure this matches your XML file name
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()

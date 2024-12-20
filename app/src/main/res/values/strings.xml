@@ -78,6 +78,12 @@
     <string name="profile_image_description" />
     <string name="your_rooms">Your Rooms</string>
     <string name="private_room">private room</string>
+    <string name="ratio_bet">Ratio Bet</string>
+    <string name="public_room">Public Room</string>
+    <string name="room_code">Room Code</string>
+    <string name="description">Description</string>
+    <string name="bet_number">Bet Number</string>
+    <string name="bet_subject">Bet Subject</string>
 
 
 </resources>

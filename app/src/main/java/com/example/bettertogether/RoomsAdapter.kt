@@ -6,8 +6,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class RoomsAdapter(
-    private val rooms: List<String>,
-    private val onRoomClick: (String) -> Unit // A callback for handling clicks
+    private val rooms: List<Pair<String, String>>, // Pair<roomID, roomName>
+    private val onRoomClick: (String) -> Unit // Callback for handling clicks
 ) : RecyclerView.Adapter<RoomsAdapter.RoomViewHolder>() {
 
     class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -20,10 +20,10 @@ class RoomsAdapter(
     }
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        val roomName = rooms[position]
+        val (_, roomName) = rooms[position] // Extract roomName from the pair
         holder.roomNameTextView.text = roomName
         holder.itemView.setOnClickListener {
-            onRoomClick(roomName) // Trigger the callback when a room is clicked
+            onRoomClick(rooms[position].first) // Pass roomID to the callback
         }
     }
 
@@ -31,3 +31,4 @@ class RoomsAdapter(
         return rooms.size
     }
 }
+
