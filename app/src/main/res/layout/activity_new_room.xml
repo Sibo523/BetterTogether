@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <!-- Scrollable Content -->
     <ScrollView
@@ -14,16 +15,17 @@
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/form_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
             <EditText
                 android:id="@+id/form_text_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/bet_subject" />
+                android:hint="@string/bet_subject"
+                android:inputType="text" />
 
             <EditText
                 android:id="@+id/form_number_input"
@@ -36,19 +38,23 @@
                 android:id="@+id/form_date_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Expiration Date" />
+                android:hint="Expiration Date"
+                android:focusable="false"
+                android:inputType="date" />
 
             <EditText
                 android:id="@+id/form_description_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/description" />
+                android:hint="@string/description"
+                android:inputType="textMultiLine" />
 
             <EditText
                 android:id="@+id/form_code_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/room_code" />
+                android:hint="@string/room_code"
+                android:inputType="text" />
 
             <CheckBox
                 android:id="@+id/form_checkbox"
@@ -59,13 +65,14 @@
             <RadioGroup
                 android:id="@+id/form_radio_group"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <RadioButton
                     android:id="@+id/radio_option1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Even Bet" />
+                    android:text="@string/even_bet" />
 
                 <RadioButton
                     android:id="@+id/radio_option2"
@@ -78,11 +85,11 @@
                 android:id="@+id/submit_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Submit" />
+                android:text="submit" />
         </LinearLayout>
     </ScrollView>
 
-    <!-- Sticky Bottom Navigation -->
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"

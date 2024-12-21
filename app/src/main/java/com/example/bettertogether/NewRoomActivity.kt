@@ -2,11 +2,12 @@ package com.example.bettertogether
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.Calendar
+import java.util.*
 
 class NewRoomActivity : BaseActivity() {
     private lateinit var auth: FirebaseAuth
@@ -26,8 +27,43 @@ class NewRoomActivity : BaseActivity() {
         val codeInput = findViewById<EditText>(R.id.form_code_input)
         val radioGroup = findViewById<RadioGroup>(R.id.form_radio_group)
         val submitButton = findViewById<Button>(R.id.submit_button)
+        val formLayout = findViewById<LinearLayout>(R.id.form_layout)
 
-        dateInput.setOnClickListener { // Handle date picker
+        val additionalInputs = mutableListOf<EditText>()
+
+        // Add Event Checkbox Dynamically for Users with Max Permissions
+        val currentUser = auth.currentUser
+        currentUser?.getIdToken(false)?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val isAdmin = task.result?.claims?.get("admin") as? Boolean ?: false
+                if (isAdmin) {
+                    // Add "Event?" checkbox dynamically
+                    val eventCheckbox = CheckBox(this)
+                    eventCheckbox.text = "Event?"
+                    eventCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            // Show additional inputs dynamically
+                            val extraField1 = createEditText("Event Title")
+                            val extraField2 = createEditText("Event Description")
+                            val extraField3 = createEditText("Event Location")
+                            formLayout.addView(extraField1)
+                            formLayout.addView(extraField2)
+                            formLayout.addView(extraField3)
+                            additionalInputs.add(extraField1)
+                            additionalInputs.add(extraField2)
+                            additionalInputs.add(extraField3)
+                        } else {
+                            // Remove additional inputs
+                            additionalInputs.forEach { formLayout.removeView(it) }
+                            additionalInputs.clear()
+                        }
+                    }
+                    formLayout.addView(eventCheckbox, 6) // Add after the last default input
+                }
+            }
+        }
+
+        dateInput.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
@@ -75,12 +111,6 @@ class NewRoomActivity : BaseActivity() {
                 val selectedDate = dateInput.text.toString()
                 val description = descriptionInput.text.toString()
                 val selectedRadio = findViewById<RadioButton>(selectedRadioId)?.text?.toString()
-                val user = auth.currentUser
-                if (user == null) {
-                    Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
                 val roomData = hashMapOf(
                     "isPublic" to isPublic,
                     "name" to betSubject,
@@ -92,40 +122,44 @@ class NewRoomActivity : BaseActivity() {
                     "createdOn" to System.currentTimeMillis()
                 )
 
-                db.collection("rooms")
-                    .add(roomData)
-                    .addOnSuccessListener { roomDoc ->
-                        val participantData = hashMapOf(
-                            "role" to "owner",
-                            "joinedAt" to System.currentTimeMillis()
-                        )
-                        roomDoc.collection("participants").document(user.uid)
-                            .set(participantData)
-                            .addOnSuccessListener {
-                                val userRoomData = hashMapOf(
-                                    "role" to "owner",
-                                    "joinedAt" to System.currentTimeMillis()
-                                )
-                                db.collection("users").document(user.uid).collection("rooms").document(roomDoc.id)
-                                    .set(userRoomData)
-                                    .addOnSuccessListener {
-                                        Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
-                                        finish() // Close activity on success
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        Toast.makeText(this, "Error adding room to user: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-                            .addOnFailureListener { exception ->
-                                Toast.makeText(this, "Error adding participant: ${exception.message}", Toast.LENGTH_SHORT).show()
-                            }
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
+                // Check if Event Fields Exist
+                if (additionalInputs.isNotEmpty()) {
+                    val eventData = roomData.toMutableMap()
+                    eventData["eventTitle"] = additionalInputs[0].text.toString()
+                    eventData["eventDescription"] = additionalInputs[1].text.toString()
+                    eventData["eventLocation"] = additionalInputs[2].text.toString()
+
+                    db.collection("events")
+                        .add(eventData)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Event added successfully!", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(this, "Error adding event: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    db.collection("rooms")
+                        .add(roomData)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        }
+                }
             }
         }
+    }
 
-        setupBottomNavigation()
+    private fun createEditText(hint: String): EditText {
+        val editText = EditText(this)
+        editText.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        editText.hint = hint
+        return editText
     }
 }
