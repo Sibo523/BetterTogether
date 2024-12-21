@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".RoomActivity">
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/room_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Room Name"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/room_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Room Type"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/room_points"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Points"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/room_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/room_expiration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Expiration"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/room_is_public"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Public/Private"
+                android:paddingBottom="8dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/white"
+        app:itemIconSize="36dp"
+        app:menu="@menu/navbar" />
+</LinearLayout>

@@ -3,7 +3,7 @@ package com.example.bettertogether
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -65,10 +65,10 @@ class RoomsActivity : BaseActivity() {
             }
     }
 
-    private fun openRoom(roomId: String){  // Navigate to the specific room (RoomDetailsActivity, for example)
-        Toast.makeText(this, "Opening Room: $roomId", Toast.LENGTH_SHORT).show()
-        // val intent = Intent(this, RoomDetailsActivity::class.java)
-        // intent.putExtra("roomId", roomId)
-        // startActivity(intent)
+    private fun openRoom(roomId: String) {
+        val intent = Intent(this, RoomActivity::class.java)
+        intent.putExtra("roomId", roomId)
+        startActivity(intent)
     }
+
 }
