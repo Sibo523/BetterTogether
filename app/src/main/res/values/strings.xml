@@ -84,6 +84,8 @@
     <string name="description">Description</string>
     <string name="bet_number">Bet Number</string>
     <string name="bet_subject">Bet Subject</string>
+    <string name="send">Send</string>
+    <string name="enter_message">Enter message</string>
 
 
 </resources>

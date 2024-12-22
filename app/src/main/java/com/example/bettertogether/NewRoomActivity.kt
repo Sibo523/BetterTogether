@@ -131,6 +131,12 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun submitForm(additionalInputs: List<EditText>) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val isPublic = checkbox.isChecked
         val betSubject = editText.text.toString()
         val betNumber = numberInput.text.toString()
@@ -138,6 +144,9 @@ class NewRoomActivity : BaseActivity() {
         val description = descriptionInput.text.toString()
         val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
         val code = codeInput.text.toString()
+        val userId = currentUser.uid
+        val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+
         val roomData = hashMapOf(
             "isPublic" to isPublic,
             "name" to betSubject,
@@ -146,35 +155,51 @@ class NewRoomActivity : BaseActivity() {
             "code" to code,
             "expiration" to selectedDate,
             "betType" to selectedRadio,
-            "createdOn" to System.currentTimeMillis()
+            "createdOn" to System.currentTimeMillis(),
+            "createdBy" to userId,
+            "participants" to mutableListOf(
+                hashMapOf(
+                    "id" to userId,
+                    "name" to userName,
+                    "role" to "owner"
+                )
+            ) // Add creator as the first participant
         )
 
         if (additionalInputs.isNotEmpty()) {
-            val eventData = roomData.toMutableMap()
-            eventData["eventTitle"] = additionalInputs[0].text.toString()
-            eventData["eventDescription"] = additionalInputs[1].text.toString()
-            eventData["eventLocation"] = additionalInputs[2].text.toString()
-
-            db.collection("events")
-                .add(eventData)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Event added successfully!", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Error adding event: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
-        } else {
-            db.collection("rooms")
-                .add(roomData)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+            roomData["eventTitle"] = additionalInputs[0].text.toString()
+            roomData["eventDescription"] = additionalInputs[1].text.toString()
+            roomData["eventLocation"] = additionalInputs[2].text.toString()
         }
+
+        // Add room to Firestore
+        db.collection("rooms")
+            .add(roomData)
+            .addOnSuccessListener { roomRef ->
+                val roomId = roomRef.id
+                Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
+
+                // Add room to the user's `rooms` subcollection
+                val userRoomData = hashMapOf(
+                    "roomId" to roomId,
+                    "name" to betSubject,
+                    "joinedOn" to System.currentTimeMillis(),
+                    "role" to "owner" // Store the user's role in their subcollection
+                )
+                db.collection("users").document(userId).collection("rooms")
+                    .document(roomId)
+                    .set(userRoomData)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Room linked to user successfully!", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(this, "Error linking room to user: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun createEditText(hint: String): EditText {
