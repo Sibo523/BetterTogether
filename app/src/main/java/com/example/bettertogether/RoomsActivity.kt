@@ -64,11 +64,4 @@ class RoomsActivity : BaseActivity() {
                 Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
-    private fun openRoom(roomId: String) {
-        val intent = Intent(this, RoomActivity::class.java)
-        intent.putExtra("roomId", roomId)
-        startActivity(intent)
-    }
-
 }

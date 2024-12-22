@@ -78,12 +78,6 @@ class ExplorerActivity : BaseActivity() {
                 roomsList.filter { it.second.contains(searchQuery, ignoreCase = true) }
             )
         }
-
         roomsAdapter.notifyDataSetChanged() // Refresh the adapter
-    }
-
-    private fun openRoom(roomId: String) {
-        // Open the selected room (implement this as needed)
-        Toast.makeText(this, "Room ID: $roomId", Toast.LENGTH_SHORT).show()
     }
 }
