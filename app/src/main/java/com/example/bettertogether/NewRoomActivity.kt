@@ -81,6 +81,8 @@ class NewRoomActivity : BaseActivity() {
                 submitForm(additionalInputs)
             }
         }
+
+        setupBottomNavigation()
     }
 
     private fun isOwnerRole(): Boolean {

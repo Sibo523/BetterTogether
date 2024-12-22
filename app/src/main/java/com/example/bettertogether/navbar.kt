@@ -15,9 +15,7 @@ abstract class BaseActivity : AppCompatActivity() {
 
     protected fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        if (bottomNav == null) {
-            return
-        }
+        if(bottomNav == null){ return }
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -26,7 +24,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_explorer -> {
-                    navigateTo(HomeActivity::class.java)
+                    navigateTo(ExplorerActivity::class.java)
                     true
                 }
                 R.id.nav_add -> {
