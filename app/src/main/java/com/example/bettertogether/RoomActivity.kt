@@ -1,11 +1,16 @@
 package com.example.bettertogether
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
 
 class RoomActivity : BaseActivity() {
 
@@ -36,6 +41,15 @@ class RoomActivity : BaseActivity() {
         if (roomId != null) {
             fetchRoomDetails(roomId)
             setupChat(roomId)
+
+            // Check ownership and display a toast
+            FirestoreUtils.isOwnerRole(roomId) { isOwner ->
+                if (isOwner) {
+                    Toast.makeText(this, "Cheers! You are the owner of this room!", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "You are not the owner of this room.", Toast.LENGTH_SHORT).show()
+                }
+            }
         } else {
             Toast.makeText(this, "Room ID is missing", Toast.LENGTH_SHORT).show()
             finish() // Close the activity if no roomId is provided
@@ -79,6 +93,7 @@ class RoomActivity : BaseActivity() {
             }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun setupChat(roomId: String) {
         val messages = mutableListOf<Message>()
         val chatAdapter = ChatAdapter(messages)
@@ -111,25 +126,35 @@ class RoomActivity : BaseActivity() {
         sendButton.setOnClickListener {
             val messageText = messageInput.text.toString()
             if (messageText.isNotBlank()) {
-                val currentUser = auth.currentUser
-                val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
-
-                val message = Message(
-                    sender = senderName,
-                    message = messageText
-                )
-
-                firestore.collection("rooms").document(roomId).collection("messages")
-                    .add(message)
-                    .addOnSuccessListener {
-                        messageInput.text.clear()
+                FirestoreUtils.isOwnerRole(roomId) { isOwner ->
+                    if (isOwner) {
+                        sendMessage(roomId, messageText)
+                    } else {
+                        Toast.makeText(this, "Only the owner can send messages!", Toast.LENGTH_SHORT).show()
                     }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Error sending message: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
+                }
             } else {
                 Toast.makeText(this, "Message cannot be empty", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun sendMessage(roomId: String, messageText: String) {
+        val currentUser = auth.currentUser
+        val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
+
+        val message = Message(
+            sender = senderName,
+            message = messageText
+        )
+
+        firestore.collection("rooms").document(roomId).collection("messages")
+            .add(message)
+            .addOnSuccessListener {
+                messageInput.text.clear()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error sending message: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }
