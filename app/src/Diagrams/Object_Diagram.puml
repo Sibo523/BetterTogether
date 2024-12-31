@@ -1,0 +1,81 @@
+@startuml
+object BetterTogetherAppInstance {
+    - onCreate()
+}
+
+object BaseActivityInstance {
+    + setupBottomNavigation()
+}
+
+object LoginActivityInstance {
+    - firebaseAuthWithGoogle(account: GoogleSignInAccount)
+    - goToMainScreen()
+    - checkAndCreateUser()
+}
+
+object HomeActivityInstance {
+    + profileButton: ImageButton
+    + newRoomButton: Button
+    + yourRoomsButton: Button
+}
+
+object ProfileActivityInstance {
+    + displayProfile()
+    + signOut()
+}
+
+object RoomsActivityInstance {
+    + loadUserRooms()
+    + roomsAdapter: RoomsAdapterInstance
+}
+
+object RoomActivityInstance {
+    + setupChat(roomId: String)
+    + fetchRoomDetails(roomId: String)
+}
+
+object ExplorerActivityInstance {
+    + loadAllRooms()
+    + setupSearchBar()
+}
+
+object NewRoomActivityInstance {
+    + validateInputs(): Boolean
+    + submitForm(additionalInputs: List<EditText>)
+    + createEditText(hint: String): EditText
+}
+
+object RoomsAdapterInstance {
+    - rooms: List<Pair<String, String>>
+    + onRoomClick: (String) -> Unit
+}
+
+object ChatAdapterInstance {
+    - messages: List<Message>
+}
+
+object MessageInstance {
+    + sender: "John Doe"
+    + message: "Hello, world!"
+    + timestamp: 1632438430000
+}
+
+object FirestoreUtilsInstance {
+    + isOwnerRole(roomId: "room123", callback: (Boolean) -> Unit)
+}
+
+BetterTogetherAppInstance *-- BaseActivityInstance
+BaseActivityInstance *-- LoginActivityInstance
+BaseActivityInstance *-- HomeActivityInstance
+BaseActivityInstance *-- ProfileActivityInstance
+BaseActivityInstance *-- RoomsActivityInstance
+BaseActivityInstance *-- RoomActivityInstance
+BaseActivityInstance *-- ExplorerActivityInstance
+BaseActivityInstance *-- NewRoomActivityInstance
+RoomsActivityInstance *--> RoomsAdapterInstance
+RoomActivityInstance *--> ChatAdapterInstance
+ChatAdapterInstance *--> MessageInstance
+ExplorerActivityInstance *--> RoomsAdapterInstance
+NewRoomActivityInstance *--> FirestoreUtilsInstance
+RoomActivityInstance *--> FirestoreUtilsInstance
+@enduml
