@@ -1,0 +1,40 @@
+@startuml
+entity User {
+    * userId : String
+    * email : String
+    * displayName : String
+    * createdAt : Long
+    * currentPoints : Int
+}
+
+entity Room {
+    * roomId : String
+    * name : String
+    * description : String
+    * code : String
+    * expiration : String
+    * betType : String
+    * createdBy : String
+    * isPublic : Boolean
+}
+
+entity Message {
+    * messageId : String
+    * roomId : String
+    * sender : String
+    * message : String
+    * timestamp : Long
+}
+
+entity Participant {
+    * participantId : String
+    * roomId : String
+    * userId : String
+    * role : String
+}
+
+User ||--o{ Room : "creates"
+Room ||--o{ Message : "contains"
+Room ||--o{ Participant : "has"
+Participant }|--|| User : "is linked to"
+@enduml

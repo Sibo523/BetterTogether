@@ -1,0 +1,80 @@
+@startuml
+class BetterTogetherApp {
+    - onCreate()
+}
+
+abstract class BaseActivity {
+    + setupBottomNavigation()
+}
+
+class LoginActivity extends BaseActivity {
+    - firebaseAuthWithGoogle(account: GoogleSignInAccount)
+    - goToMainScreen()
+    - checkAndCreateUser()
+}
+
+class HomeActivity extends BaseActivity {
+    + profileButton: ImageButton
+    + newRoomButton: Button
+    + yourRoomsButton: Button
+}
+
+class ProfileActivity extends BaseActivity {
+    + displayProfile()
+    + signOut()
+}
+
+class RoomsActivity extends BaseActivity {
+    + loadUserRooms()
+    + roomsAdapter: RoomsAdapter
+}
+
+class RoomActivity extends BaseActivity {
+    + setupChat(roomId: String)
+    + fetchRoomDetails(roomId: String)
+}
+
+class ExplorerActivity extends BaseActivity {
+    + loadAllRooms()
+    + setupSearchBar()
+}
+
+class NewRoomActivity extends BaseActivity {
+    + validateInputs(): Boolean
+    + submitForm(additionalInputs: List<EditText>)
+    + createEditText(hint: String): EditText
+}
+
+class RoomsAdapter {
+    - rooms: List<Pair<String, String>>
+    + onRoomClick: (String) -> Unit
+}
+
+class ChatAdapter {
+    - messages: List<Message>
+}
+
+class Message {
+    + sender: String
+    + message: String
+    + timestamp: Long
+}
+
+class FirestoreUtils {
+    + isOwnerRole(roomId: String, callback: (Boolean) -> Unit)
+}
+
+BaseActivity <|-- LoginActivity
+BaseActivity <|-- HomeActivity
+BaseActivity <|-- ProfileActivity
+BaseActivity <|-- RoomsActivity
+BaseActivity <|-- RoomActivity
+BaseActivity <|-- ExplorerActivity
+BaseActivity <|-- NewRoomActivity
+RoomsActivity *--> RoomsAdapter
+RoomActivity *--> ChatAdapter
+ChatAdapter *--> Message
+ExplorerActivity *--> RoomsAdapter
+NewRoomActivity *--> FirestoreUtils
+RoomActivity *--> FirestoreUtils
+@enduml
