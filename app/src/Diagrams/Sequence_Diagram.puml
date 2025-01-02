@@ -1,43 +1,18 @@
 @startuml
-actor matan
+actor User
+User -> HomeActivity : Click Rate User Button
+HomeActivity -> RateUserActivity : Navigate to Rating Screen
 
-User -> LoginActivity : Open app
-LoginActivity -> FirebaseAuth : Check user authentication
-alt Authenticated
-    LoginActivity -> HomeActivity : Navigate to home
-else Not authenticated
-    LoginActivity -> GoogleSignIn : Prompt Google Sign-In
-    GoogleSignIn -> LoginActivity : Return authentication result
-    alt Auth successful
-        LoginActivity -> HomeActivity : Navigate to home
-    else Auth failed
-        LoginActivity -> User : Show error message
-    end
+User -> RateUserActivity : Select User and Input Rating
+RateUserActivity -> FirestoreUtils : Validate User and Submit Rating
+FirestoreUtils -> Firestore : Store Rating Data
+Firestore -> FirestoreUtils : Acknowledge Rating Submission
+
+alt Rating Successful
+    FirestoreUtils -> RateUserActivity : Success Confirmation
+    RateUserActivity -> User : Display Success Message
+else Rating Failed
+    FirestoreUtils -> RateUserActivity : Error Occurred
+    RateUserActivity -> User : Display Error Message
 end
-
-User -> HomeActivity : Interact with buttons
-alt Profile button
-    HomeActivity -> ProfileActivity : Navigate to profile
-    ProfileActivity -> FirebaseAuth : Fetch user profile
-    ProfileActivity -> User : Display profile details
-else Rooms button
-    HomeActivity -> RoomsActivity : Navigate to rooms
-    RoomsActivity -> FirebaseFirestore : Fetch user rooms
-    RoomsActivity -> RoomsAdapter : Display rooms
-else Explore button
-    HomeActivity -> ExplorerActivity : Navigate to explore
-    ExplorerActivity -> FirebaseFirestore : Fetch all rooms
-    ExplorerActivity -> RoomsAdapter : Display filtered rooms
-else Create Room button
-    HomeActivity -> NewRoomActivity : Navigate to create room
-    User -> NewRoomActivity : Input room details
-    NewRoomActivity -> FirebaseFirestore : Submit room data
-    NewRoomActivity -> User : Confirm room creation
-else Join Room
-    HomeActivity -> RoomActivity : Navigate to room
-    RoomActivity -> FirebaseFirestore : Fetch room details
-    RoomActivity -> ChatAdapter : Setup chat
-    RoomActivity -> User : Display chat interface
-end
-
 @enduml
