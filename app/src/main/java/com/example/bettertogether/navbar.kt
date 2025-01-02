@@ -14,6 +14,8 @@ abstract class BaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         setupBottomNavigation()
     }

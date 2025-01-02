@@ -2,6 +2,7 @@ package com.example.bettertogether
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import com.google.firebase.firestore.FieldValue
 import android.widget.*
 import android.util.Log
 import android.view.View
@@ -40,28 +41,28 @@ class NewRoomActivity : BaseActivity() {
         // Role check and dynamic UI
         auth.currentUser?.getIdToken(false)?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                if (isOwnerRole()) {
-                    val eventCheckbox = CheckBox(this)
-                    eventCheckbox.text = "Event?"
-                    eventCheckbox.setOnCheckedChangeListener { _, isChecked ->
-                        if (isChecked) {
-                            // Show additional Event inputs
-                            val extraField1 = createEditText("Event Title")
-                            val extraField2 = createEditText("Event Description")
-                            val extraField3 = createEditText("Event Location")
-                            formLayout.addView(extraField1)
-                            formLayout.addView(extraField2)
-                            formLayout.addView(extraField3)
-                            additionalInputs.add(extraField1)
-                            additionalInputs.add(extraField2)
-                            additionalInputs.add(extraField3)
-                        } else {
-                            // Remove additional inputs
-                            additionalInputs.forEach { formLayout.removeView(it) }
-                            additionalInputs.clear()
+                checkUserRole { role ->
+                    if (role == "owner") {
+                        val eventCheckbox = CheckBox(this)
+                        eventCheckbox.text = "Event?"
+                        eventCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                            if (isChecked){  // Show additional Event inputs
+                                val extraField1 = createEditText("Event Title")
+                                val extraField2 = createEditText("Event Description")
+                                val extraField3 = createEditText("Event Location")
+                                formLayout.addView(extraField1)
+                                formLayout.addView(extraField2)
+                                formLayout.addView(extraField3)
+                                additionalInputs.add(extraField1)
+                                additionalInputs.add(extraField2)
+                                additionalInputs.add(extraField3)
+                            } else{  // Remove additional inputs
+                                additionalInputs.forEach { formLayout.removeView(it) }
+                                additionalInputs.clear()
+                            }
                         }
+                        formLayout.addView(eventCheckbox, 6)
                     }
-                    formLayout.addView(eventCheckbox, 6)
                 }
             }
         }
@@ -77,10 +78,6 @@ class NewRoomActivity : BaseActivity() {
         }
 
         setupBottomNavigation()
-    }
-
-    private fun isOwnerRole(): Boolean {
-        return true // Replace with actual logic
     }
 
     private fun validateInputs(): Boolean {
@@ -157,7 +154,8 @@ class NewRoomActivity : BaseActivity() {
                 hashMapOf(
                     "id" to userId,
                     "name" to userName,
-                    "role" to "owner"
+                    "role" to "owner",
+                    "joinedOn" to System.currentTimeMillis()
                 )
             ) // Add creator as the first participant
         )
@@ -175,16 +173,15 @@ class NewRoomActivity : BaseActivity() {
                 val roomId = roomRef.id
                 Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
 
-                // Add room to the user's `rooms` subcollection
+                // Add the room details to the user's array of rooms
                 val userRoomData = hashMapOf(
                     "roomId" to roomId,
-                    "name" to betSubject,
+                    "roomName" to betSubject,
                     "joinedOn" to System.currentTimeMillis(),
-                    "role" to "owner" // Store the user's role in their subcollection
+                    "role" to "owner"
                 )
-                db.collection("users").document(userId).collection("rooms")
-                    .document(roomId)
-                    .set(userRoomData)
+                db.collection("users").document(userId)
+                    .update("rooms", FieldValue.arrayUnion(userRoomData))
                     .addOnSuccessListener {
                         Toast.makeText(this, "Room linked to user successfully!", Toast.LENGTH_SHORT).show()
                         finish()
@@ -192,11 +189,27 @@ class NewRoomActivity : BaseActivity() {
                     .addOnFailureListener { exception ->
                         Toast.makeText(this, "Error linking room to user: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
+
+                // Add the creator to the room's participants array
+                val participantData = hashMapOf(
+                    "id" to userId,
+                    "name" to userName,
+                    "role" to "owner",
+                    "joinedOn" to System.currentTimeMillis()
+                )
+                roomRef.update("participants", FieldValue.arrayUnion(participantData))
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "Participant added successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(this, "Error adding participant: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     private fun createEditText(hint: String): EditText {
         val editText = EditText(this)

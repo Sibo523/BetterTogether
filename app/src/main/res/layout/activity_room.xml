@@ -65,6 +65,26 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Room Code Input for Private Rooms -->
+    <EditText
+        android:id="@+id/code_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Room Code"
+        android:padding="8dp"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+
+    <!-- Join Button -->
+    <Button
+        android:id="@+id/join_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Join"
+        android:padding="16dp"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+
     <!-- Chat Messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"

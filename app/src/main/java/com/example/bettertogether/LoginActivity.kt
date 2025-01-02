@@ -106,7 +106,8 @@ class LoginActivity : BaseActivity() {
                         "email" to user.email,
                         "displayName" to user.displayName,
                         "createdAt" to System.currentTimeMillis(),
-                        "currentPoints" to 0 // Default points
+                        "currentPoints" to 100,
+                        "rooms" to emptyList<Map<String, Any>>()
                     )
                     userRef.set(userData)
                         .addOnSuccessListener {

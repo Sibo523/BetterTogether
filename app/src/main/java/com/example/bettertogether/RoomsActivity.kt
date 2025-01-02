@@ -34,27 +34,25 @@ class RoomsActivity : BaseActivity() {
             return
         }
 
-        db.collection("users").document(user.uid).collection("rooms")
+        db.collection("users").document(user.uid)
             .get()
-            .addOnSuccessListener { documents ->
-                roomsList.clear()
-                for (document in documents) {
-                    val roomId = document.id
-                    db.collection("rooms").document(roomId).get()
-                        .addOnSuccessListener { roomDoc ->
-                            if (roomDoc.exists()) {
-                                val roomName = roomDoc.getString("name") ?: "Unnamed Room"
-                                roomsList.add(Pair(roomId, roomName))
-                                roomsAdapter.notifyDataSetChanged()
-                            }
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    roomsList.clear()
+                    val rooms = document.get("rooms") as? List<Map<String, String>> // Assuming rooms is a list of maps
+                    if (rooms != null) {
+                        for (room in rooms) {
+                            val roomId = room["roomId"] ?: continue
+                            val roomName = room["roomName"] ?: "Unnamed Room"
+                            roomsList.add(Pair(roomId, roomName))
                         }
-                        .addOnFailureListener { exception ->
-                            Log.e("Firestore", "Error fetching room details: ${exception.message}")
-                        }
+                        roomsAdapter.notifyDataSetChanged()
+                    }
                 }
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 }

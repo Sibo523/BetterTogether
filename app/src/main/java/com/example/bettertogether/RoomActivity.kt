@@ -2,15 +2,14 @@ package com.example.bettertogether
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-
+import com.google.firebase.firestore.FieldValue
 
 class RoomActivity : BaseActivity() {
 
@@ -23,6 +22,8 @@ class RoomActivity : BaseActivity() {
     private lateinit var chatRecyclerView: RecyclerView
     private lateinit var messageInput: EditText
     private lateinit var sendButton: Button
+    private lateinit var joinButton: Button
+    private lateinit var codeInput: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,22 +34,21 @@ class RoomActivity : BaseActivity() {
 
         val roomId = intent.getStringExtra("roomId")
         if (roomId != null) {
-            fetchRoomDetails(roomId)
-            setupChat(roomId)
-
-            // Check ownership and display a toast
-            FirestoreUtils.isOwnerRole(roomId) { isOwner ->
-                if (isOwner) {
-                    Toast.makeText(this, "Cheers! You are the owner of this room!", Toast.LENGTH_LONG).show()
+            fetchRoomDetails(roomId) { isPublic, isParticipant ->
+                if (isParticipant) {
+                    setupChat(roomId)
                 } else {
-                    Toast.makeText(this, "You are not the owner of this room.", Toast.LENGTH_SHORT).show()
+                    if (isPublic) {
+                        showJoinButton(roomId)
+                    } else {
+                        showCodeInput(roomId)
+                    }
                 }
             }
         } else {
             Toast.makeText(this, "Room ID is missing", Toast.LENGTH_SHORT).show()
-            finish() // Close the activity if no roomId is provided
+            finish()
         }
-
         setupBottomNavigation()
     }
 
@@ -62,28 +62,38 @@ class RoomActivity : BaseActivity() {
         chatRecyclerView = findViewById(R.id.chat_recycler_view)
         messageInput = findViewById(R.id.message_input)
         sendButton = findViewById(R.id.send_button)
+        joinButton = findViewById(R.id.join_button)
+        codeInput = findViewById(R.id.code_input)
     }
 
-    private fun fetchRoomDetails(roomId: String) {
+    private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    // Populate the UI with the room details
+                if (document.exists()) {
+                    // Populate UI with room details
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = document.getString("betType") ?: "N/A"
                     roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
                     roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
-                    roomIsPublicTextView.text =
-                        if (document.getBoolean("isPublic") == true) "Public" else "Private"
+                    val isPublic = document.getBoolean("isPublic") == true
+                    roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
+
+                    // Check if the user is a participant
+                    val participants =
+                        document.get("participants") as? List<Map<String, Any>> ?: emptyList()
+                    val currentUser = auth.currentUser
+                    val isParticipant =
+                        currentUser != null && participants.any { it["id"] == currentUser.uid }
+                    callback(isPublic, isParticipant)
                 } else {
                     Toast.makeText(this, "Room not found", Toast.LENGTH_SHORT).show()
-                    finish() // Close the activity if the room doesn't exist
+                    finish()
                 }
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error fetching room details: ${exception.message}", Toast.LENGTH_SHORT).show()
-                finish() // Close the activity on failure
+            .addOnFailureListener {
+                Toast.makeText(this, "Error fetching room details.", Toast.LENGTH_SHORT).show()
+                finish()
             }
     }
 
@@ -94,20 +104,18 @@ class RoomActivity : BaseActivity() {
         chatRecyclerView.adapter = chatAdapter
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Listen for messages in real-time
         db.collection("rooms").document(roomId).collection("messages")
             .orderBy("timestamp")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Error loading messages: ${error.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error loading messages.", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
                 if (snapshots != null) {
                     messages.clear()
                     for (doc in snapshots) {
-                        val message = doc.toObject(Message::class.java)
-                        messages.add(message)
+                        messages.add(doc.toObject(Message::class.java))
                     }
                     chatAdapter.notifyDataSetChanged()
                     if (messages.isNotEmpty()) {
@@ -116,19 +124,12 @@ class RoomActivity : BaseActivity() {
                 }
             }
 
-        // Send new messages
         sendButton.setOnClickListener {
             val messageText = messageInput.text.toString()
             if (messageText.isNotBlank()) {
-                FirestoreUtils.isOwnerRole(roomId) { isOwner ->
-                    if (isOwner) {
-                        sendMessage(roomId, messageText)
-                    } else {
-                        Toast.makeText(this, "Only the owner can send messages!", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                sendMessage(roomId, messageText)
             } else {
-                Toast.makeText(this, "Message cannot be empty", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Message cannot be empty.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -137,18 +138,98 @@ class RoomActivity : BaseActivity() {
         val currentUser = auth.currentUser
         val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
 
-        val message = Message(
-            sender = senderName,
-            message = messageText
-        )
-
+        val message = Message(sender = senderName, message = messageText)
         db.collection("rooms").document(roomId).collection("messages")
             .add(message)
             .addOnSuccessListener {
                 messageInput.text.clear()
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error sending message: ${exception.message}", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener {
+                Toast.makeText(this, "Error sending message.", Toast.LENGTH_SHORT).show()
             }
     }
+
+    private fun showJoinButton(roomId: String) {
+        joinButton.visibility = View.VISIBLE
+        chatRecyclerView.visibility = View.GONE
+        messageInput.visibility = View.GONE
+        sendButton.visibility = View.GONE
+        codeInput.visibility = View.GONE
+
+        joinButton.setOnClickListener {
+            joinRoom(roomId, null)
+        }
+    }
+
+    private fun showCodeInput(roomId: String) {
+        joinButton.visibility = View.VISIBLE
+        codeInput.visibility = View.VISIBLE
+        chatRecyclerView.visibility = View.GONE
+        messageInput.visibility = View.GONE
+        sendButton.visibility = View.GONE
+
+        joinButton.setOnClickListener {
+            val enteredCode = codeInput.text.toString()
+            if (enteredCode.isBlank()) {
+                Toast.makeText(this, "Please enter the room code.", Toast.LENGTH_SHORT).show()
+            } else {
+                joinRoom(roomId, enteredCode)
+            }
+        }
+    }
+
+    private fun joinRoom(roomId: String, enteredCode: String?) {
+        db.collection("rooms").document(roomId).get()
+            .addOnSuccessListener { document ->
+                val roomCode = document.getString("code")
+                val isPublic = document.getBoolean("isPublic") == true
+                if (isPublic || roomCode == enteredCode) {
+                    val currentUser = auth.currentUser
+                    if (currentUser != null) {
+                        val userId = currentUser.uid
+                        val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+
+                        val participantData = mapOf(
+                            "id" to userId,
+                            "name" to userName,
+                            "role" to "participant",
+                            "joinedOn" to System.currentTimeMillis()
+                        )
+
+                        // Add to participants array in the room document
+                        db.collection("rooms").document(roomId)
+                            .update("participants", FieldValue.arrayUnion(participantData))
+                            .addOnSuccessListener {
+                                // Add to user's rooms array
+                                val roomData = mapOf(
+                                    "roomId" to roomId,
+                                    "roomName" to (document.getString("name") ?: "Unnamed Room"),
+                                    "joinedOn" to System.currentTimeMillis(),
+                                    "role" to "participant"
+                                )
+                                db.collection("users").document(userId)
+                                    .update("rooms", FieldValue.arrayUnion(roomData))
+                                    .addOnSuccessListener {
+                                        Toast.makeText(this, "Successfully joined the room!", Toast.LENGTH_SHORT).show()
+                                        recreate() // Refresh the activity to show the chat
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Toast.makeText(this, "Failed to update user room data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                            .addOnFailureListener { exception ->
+                                Toast.makeText(this, "Failed to join room: ${exception.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    } else {
+                        Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Incorrect room code.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error joining room: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
 }
