@@ -1,5 +1,5 @@
 @startuml
-actor User
+actor matan
 
 User -> LoginActivity : Open app
 LoginActivity -> FirebaseAuth : Check user authentication

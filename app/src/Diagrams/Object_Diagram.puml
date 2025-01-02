@@ -1,81 +1,51 @@
 @startuml
-object BetterTogetherAppInstance {
-    - onCreate()
+
+object Room1_RoomActivity {
+    roomId = "room1"
+    roomName = "Grades"
 }
 
-object BaseActivityInstance {
-    + setupBottomNavigation()
+object Room2_RoomActivity {
+    roomId = "room2"
+    roomName = "Sheep betting"
 }
 
-object LoginActivityInstance {
-    - firebaseAuthWithGoogle(account: GoogleSignInAccount)
-    - goToMainScreen()
-    - checkAndCreateUser()
+object RoomAdapter1_RoomAdapter{
+    rooms = "room1"
 }
 
-object HomeActivityInstance {
-    + profileButton: ImageButton
-    + newRoomButton: Button
-    + yourRoomsButton: Button
+object ChatAdapter1_ChatAdapter {
+    messages = "Hi everyone!"
 }
 
-object ProfileActivityInstance {
-    + displayProfile()
-    + signOut()
+object ChatAdapter2_ChatAdapter {
+    messages = "I <~3 MATAN!"
 }
 
-object RoomsActivityInstance {
-    + loadUserRooms()
-    + roomsAdapter: RoomsAdapterInstance
+object Message1_Message {
+    sender = "Alice"
+    message = "Hi everyone!"
+    timestamp = 1627891234
 }
 
-object RoomActivityInstance {
-    + setupChat(roomId: String)
-    + fetchRoomDetails(roomId: String)
+object Message11_Message {
+    sender = "fml"
+    message = "H everyone!"
+    timestamp = 12327891234
+}
+object Message2_Message {
+    sender = "Bob"
+    message = "Welcome to the chat."
+    timestamp = 1627891240
 }
 
-object ExplorerActivityInstance {
-    + loadAllRooms()
-    + setupSearchBar()
-}
+RoomAdapter1_RoomAdapter --> Room1_RoomActivity
+RoomAdapter1_RoomAdapter --> Room2_RoomActivity
 
-object NewRoomActivityInstance {
-    + validateInputs(): Boolean
-    + submitForm(additionalInputs: List<EditText>)
-    + createEditText(hint: String): EditText
-}
+Room1_RoomActivity --> ChatAdapter1_ChatAdapter
+ChatAdapter1_ChatAdapter --> Message1_Message
+ChatAdapter1_ChatAdapter --> Message11_Message
+Room2_RoomActivity --> ChatAdapter2_ChatAdapter
+ChatAdapter2_ChatAdapter --> Message2_Message
 
-object RoomsAdapterInstance {
-    - rooms: List<Pair<String, String>>
-    + onRoomClick: (String) -> Unit
-}
-
-object ChatAdapterInstance {
-    - messages: List<Message>
-}
-
-object MessageInstance {
-    + sender: "John Doe"
-    + message: "Hello, world!"
-    + timestamp: 1632438430000
-}
-
-object FirestoreUtilsInstance {
-    + isOwnerRole(roomId: "room123", callback: (Boolean) -> Unit)
-}
-
-BetterTogetherAppInstance *-- BaseActivityInstance
-BaseActivityInstance *-- LoginActivityInstance
-BaseActivityInstance *-- HomeActivityInstance
-BaseActivityInstance *-- ProfileActivityInstance
-BaseActivityInstance *-- RoomsActivityInstance
-BaseActivityInstance *-- RoomActivityInstance
-BaseActivityInstance *-- ExplorerActivityInstance
-BaseActivityInstance *-- NewRoomActivityInstance
-RoomsActivityInstance *--> RoomsAdapterInstance
-RoomActivityInstance *--> ChatAdapterInstance
-ChatAdapterInstance *--> MessageInstance
-ExplorerActivityInstance *--> RoomsAdapterInstance
-NewRoomActivityInstance *--> FirestoreUtilsInstance
-RoomActivityInstance *--> FirestoreUtilsInstance
 @enduml
