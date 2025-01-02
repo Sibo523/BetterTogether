@@ -6,12 +6,8 @@ import android.widget.Toast
 import android.content.Intent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 class RoomsActivity : BaseActivity() {
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: RoomsAdapter
     private val roomsList = mutableListOf<Pair<String, String>>() // Pair<roomID, roomName>
@@ -19,9 +15,6 @@ class RoomsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rooms)
-
-        auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
 
         recyclerView = findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)

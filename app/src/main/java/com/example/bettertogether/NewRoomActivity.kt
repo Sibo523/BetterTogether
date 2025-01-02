@@ -2,17 +2,12 @@ package com.example.bettertogether
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.widget.*
 import android.util.Log
 import android.view.View
-import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
 class NewRoomActivity : BaseActivity() {
-    private lateinit var auth: FirebaseAuth
-    private val db = FirebaseFirestore.getInstance()
 
     // Declare views as class-level properties
     private lateinit var checkbox: CheckBox
@@ -25,42 +20,9 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var submitButton: Button
     private lateinit var formLayout: LinearLayout
 
-//    private fun isOwnerRole(roomId: String, callback: (Boolean) -> Unit) {
-//        val currentUser = FirebaseAuth.getInstance().currentUser
-//        if (currentUser == null) {
-//            callback(false) // User not logged in
-//            return
-//        }
-//
-//        val userId = currentUser.uid
-//
-//        db.collection("rooms").document(roomId)
-//            .get()
-//            .addOnSuccessListener { document ->
-//                if (document.exists()) {
-//                    val participants = document.get("participants") as? List<Map<String, Any>>
-//                    if (participants != null) {
-//                        val userEntry = participants.find { it["id"] == userId }
-//                        if (userEntry != null && userEntry["role"] == "owner") {
-//                            callback(true)
-//                            return@addOnSuccessListener
-//                        }
-//                    }
-//                }
-//                callback(false)
-//            }
-//            .addOnFailureListener { exception ->
-//                Log.e("isOwnerRole", "Error checking role: ${exception.message}")
-//                callback(false)
-//            }
-//    }
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_room)
-
-        auth = FirebaseAuth.getInstance()
 
         // Initialize views once
         checkbox = findViewById(R.id.form_checkbox)

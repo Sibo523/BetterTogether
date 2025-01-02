@@ -6,10 +6,8 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
 
 class ExplorerActivity : BaseActivity() {
-    private lateinit var db: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: RoomsAdapter
     private val roomsList = mutableListOf<Pair<String, String>>() // Pair<roomID, roomName>
@@ -18,8 +16,6 @@ class ExplorerActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_explorer)
-
-        db = FirebaseFirestore.getInstance()
 
         recyclerView = findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)

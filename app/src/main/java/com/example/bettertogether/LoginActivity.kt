@@ -6,20 +6,14 @@ import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
-class LoginActivity : AppCompatActivity() {
-
-    private lateinit var auth: FirebaseAuth
-    private val db = FirebaseFirestore.getInstance() // Firestore instance initialization
+class LoginActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,8 +27,6 @@ class LoginActivity : AppCompatActivity() {
             updateSubtitleText("Good night!")
             window.decorView.setBackgroundResource(R.drawable.good_night_img) // Nighttime background
         }
-
-        auth = FirebaseAuth.getInstance()
 
         // Check if the user is already signed in
         val currentUser = auth.currentUser

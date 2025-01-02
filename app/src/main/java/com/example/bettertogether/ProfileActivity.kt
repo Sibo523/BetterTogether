@@ -4,13 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import com.bumptech.glide.Glide
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 
 class ProfileActivity : BaseActivity() {
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
 
     // Declare UI components
     private lateinit var profileImageView: ImageView
@@ -28,9 +26,6 @@ class ProfileActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile) // Ensure this matches your XML file name
-
-        auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
 
         // Initialize UI components
         profileImageView = findViewById(R.id.profile_image)
@@ -115,11 +110,21 @@ class ProfileActivity : BaseActivity() {
     }
 
     private fun signOut() {
+        // Sign out from Firebase
         auth.signOut()
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        // Revoke the Google Sign-In session
+        val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+        val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
+        googleSignInClient.signOut().addOnCompleteListener {
+            googleSignInClient.revokeAccess().addOnCompleteListener {
+                // Navigate back to LoginActivity
+                val intent = Intent(this, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                Toast.makeText(this, "Signed out successfully!", Toast.LENGTH_SHORT).show()
+            }
         }
-        startActivity(intent)
-        Toast.makeText(this, "Signed out successfully!", Toast.LENGTH_SHORT).show()
     }
 }

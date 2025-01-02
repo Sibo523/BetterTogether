@@ -14,9 +14,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class RoomActivity : BaseActivity() {
 
-    private lateinit var firestore: FirebaseFirestore
-    private lateinit var auth: FirebaseAuth
-
     private lateinit var roomNameTextView: TextView
     private lateinit var roomTypeTextView: TextView
     private lateinit var roomPointsTextView: TextView
@@ -30,9 +27,6 @@ class RoomActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
-
-        firestore = FirebaseFirestore.getInstance()
-        auth = FirebaseAuth.getInstance()
 
         // Initialize views
         initViews()
@@ -71,7 +65,7 @@ class RoomActivity : BaseActivity() {
     }
 
     private fun fetchRoomDetails(roomId: String) {
-        firestore.collection("rooms").document(roomId).get()
+        db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     // Populate the UI with the room details
@@ -101,7 +95,7 @@ class RoomActivity : BaseActivity() {
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // Listen for messages in real-time
-        firestore.collection("rooms").document(roomId).collection("messages")
+        db.collection("rooms").document(roomId).collection("messages")
             .orderBy("timestamp")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
@@ -148,7 +142,7 @@ class RoomActivity : BaseActivity() {
             message = messageText
         )
 
-        firestore.collection("rooms").document(roomId).collection("messages")
+        db.collection("rooms").document(roomId).collection("messages")
             .add(message)
             .addOnSuccessListener {
                 messageInput.text.clear()
