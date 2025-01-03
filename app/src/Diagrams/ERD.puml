@@ -1,6 +1,6 @@
 @startuml
 entity User {
-    * userId : String
+    * userId : String [PK]
     * email : String
     * displayName : String
     * createdAt : Long
@@ -8,33 +8,43 @@ entity User {
 }
 
 entity Room {
-    * roomId : String
+    * roomId : String [PK]
     * name : String
     * description : String
     * code : String
     * expiration : String
     * betType : String
-    * createdBy : String
+    * createdBy : String [FK -> User.userId]
     * isPublic : Boolean
 }
 
+entity BetCategory {
+    * categoryId : String [PK]
+    * roomId : String [FK -> Room.roomId]
+    * categoryName : String
+}
+
 entity Message {
-    * messageId : String
-    * roomId : String
-    * sender : String
+    * messageId : String [PK]
+    * roomId : String [FK -> Room.roomId]
+    * sender : String [FK -> User.userId]
     * message : String
     * timestamp : Long
 }
 
 entity Participant {
-    * participantId : String
-    * roomId : String
-    * userId : String
+    * participantId : String [PK]
+    * roomId : String [FK -> Room.roomId]
+    * userId : String [FK -> User.userId]
+    * betAmount : Int
+    * betCategoryId : String [FK -> BetCategory.categoryId]
     * role : String
 }
 
 User ||--o{ Room : "creates"
 Room ||--o{ Message : "contains"
 Room ||--o{ Participant : "has"
+Room ||--o{ BetCategory : "has"
 Participant }|--|| User : "is linked to"
+Participant }|--|| BetCategory : "places bet on"
 @enduml

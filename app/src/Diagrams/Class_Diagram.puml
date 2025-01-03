@@ -13,6 +13,24 @@ class LoginActivity extends BaseActivity {
     - checkAndCreateUser()
 }
 
+class PaymentActiviy extends BaseActivity{
+    - PaypalAPi
+}
+class NotificationActivity extends BaseActivity{
+    - NotifQueue: Queue
+    + getLastNotif(): Message
+    + removeNotif(): void
+
+}
+class RoomActivity extends BaseActivity {
+    + setupChat(roomId: String)
+    + fetchRoomDetails(roomId: String)
+}
+class NewRoomActivity extends BaseActivity {
+    + validateInputs(): Boolean
+    + submitForm(additionalInputs: List<EditText>)
+    + createEditText(hint: String): EditText
+}
 class HomeActivity extends BaseActivity {
     + profileButton: ImageButton
     + newRoomButton: Button
@@ -28,22 +46,15 @@ class RoomsActivity extends BaseActivity {
     + loadUserRooms()
     + roomsAdapter: RoomsAdapter
 }
-
-class RoomActivity extends BaseActivity {
-    + setupChat(roomId: String)
-    + fetchRoomDetails(roomId: String)
-}
-
-class ExplorerActivity extends BaseActivity {
+class RoomExplorerActivity extends BaseActivity {
     + loadAllRooms()
     + setupSearchBar()
 }
-
-class NewRoomActivity extends BaseActivity {
-    + validateInputs(): Boolean
-    + submitForm(additionalInputs: List<EditText>)
-    + createEditText(hint: String): EditText
+class UserExplorerActivity extends BaseActivity {
+    + loadAllUsers()
+    + setupSearchBar()
 }
+
 
 class RoomsAdapter {
     - rooms: List<Pair<String, String>>
@@ -63,18 +74,19 @@ class Message {
 class FirestoreUtils {
     + isOwnerRole(roomId: String, callback: (Boolean) -> Unit)
 }
+NotificationActivity -[dotted]-> Message
 
 BaseActivity <|-- LoginActivity
 BaseActivity <|-- HomeActivity
 BaseActivity <|-- ProfileActivity
 BaseActivity <|-- RoomsActivity
 BaseActivity <|-- RoomActivity
-BaseActivity <|-- ExplorerActivity
+BaseActivity <|-- RoomExplorerActivity
 BaseActivity <|-- NewRoomActivity
 RoomsActivity *--> RoomsAdapter
 RoomActivity *--> ChatAdapter
 ChatAdapter *--> Message
-ExplorerActivity *--> RoomsAdapter
+RoomExplorerActivity *--> RoomsAdapter
 NewRoomActivity *--> FirestoreUtils
 RoomActivity *--> FirestoreUtils
 @enduml
