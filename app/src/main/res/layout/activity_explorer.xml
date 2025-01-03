@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:queryHint="Search rooms"
+        android:background="@drawable/rounded_background"
         android:iconifiedByDefault="false" />
 
     <!-- RecyclerView for Rooms -->

@@ -1,7 +1,6 @@
 package com.example.bettertogether
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,8 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 class ExplorerActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: RoomsAdapter
-    private val roomsList = mutableListOf<Pair<String, String>>() // Pair<roomID, roomName>
-    private val filteredRoomsList = mutableListOf<Pair<String, String>>() // Filtered list for search
+    private val roomsList = mutableListOf<Triple<String, String, Boolean>>() // Triple<roomID, roomName, isPublic>
+    private val filteredRoomsList = mutableListOf<Triple<String, String, Boolean>>() // Filtered list for search
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +37,8 @@ class ExplorerActivity : BaseActivity() {
                 for (document in documents) {
                     val roomId = document.id
                     val roomName = document.getString("name") ?: "Unnamed Room"
-                    roomsList.add(Pair(roomId, roomName))
+                    val isPublic = document.getBoolean("isPublic") ?: false // Default to false if not provided
+                    roomsList.add(Triple(roomId, roomName, isPublic))
                 }
                 filteredRoomsList.addAll(roomsList) // Initially, show all rooms
                 roomsAdapter.notifyDataSetChanged()

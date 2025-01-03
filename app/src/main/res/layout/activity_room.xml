@@ -76,26 +76,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Room Code Input for Private Rooms -->
-    <EditText
-        android:id="@+id/code_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter Room Code"
-        android:padding="8dp"
-        android:layout_margin="16dp"
-        android:visibility="gone" />
-
-    <!-- Join Button -->
-    <Button
-        android:id="@+id/join_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Join"
-        android:padding="16dp"
-        android:layout_margin="16dp"
-        android:visibility="gone" />
-
     <!-- Chat Messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"
@@ -119,7 +99,7 @@
             android:layout_weight="1"
             android:hint="@string/enter_message"
             android:padding="8dp"
-            android:background="#292D38" />
+            android:background="@drawable/rounded_background" />
 
         <Button
             android:id="@+id/send_button"
@@ -128,6 +108,25 @@
             android:text="@string/send"
             android:padding="8dp" />
     </LinearLayout>
+
+    <!-- Room Code Input for Private Rooms -->
+    <EditText
+        android:id="@+id/code_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Room Code"
+        android:padding="8dp"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+    <!-- Join Button -->
+    <Button
+        android:id="@+id/join_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Join"
+        android:padding="16dp"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -1,16 +1,14 @@
 package com.example.bettertogether
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import android.content.Intent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class RoomsActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: RoomsAdapter
-    private val roomsList = mutableListOf<Pair<String, String>>() // Pair<roomID, roomName>
+    private val roomsList = mutableListOf<Triple<String, String, Boolean>>() // Triple<roomID, roomName, isPublic>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,12 +37,13 @@ class RoomsActivity : BaseActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     roomsList.clear()
-                    val rooms = document.get("rooms") as? List<Map<String, String>> // Assuming rooms is a list of maps
+                    val rooms = document.get("rooms") as? List<Map<String, Any>> // Assuming rooms is a list of maps
                     if (rooms != null) {
                         for (room in rooms) {
-                            val roomId = room["roomId"] ?: continue
-                            val roomName = room["roomName"] ?: "Unnamed Room"
-                            roomsList.add(Pair(roomId, roomName))
+                            val roomId = room["roomId"] as? String ?: continue
+                            val roomName = room["roomName"] as? String ?: "Unnamed Room"
+                            val isPublic = room["isPublic"] as? Boolean ?: false // Default to false
+                            roomsList.add(Triple(roomId, roomName, isPublic))
                         }
                         roomsAdapter.notifyDataSetChanged()
                     }
@@ -54,5 +53,4 @@ class RoomsActivity : BaseActivity() {
                 Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
 }

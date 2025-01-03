@@ -86,6 +86,7 @@
     <string name="bet_subject">Bet Subject</string>
     <string name="send">Send</string>
     <string name="enter_message">Enter message</string>
+    <string name="lock_icon">lock icon</string>
 
 
 </resources>

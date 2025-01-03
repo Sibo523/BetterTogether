@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground">
+    android:layout_margin="12dp"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="@drawable/rounded_background"
+    android:elevation="4dp">
 
-    <TextView
-        android:id="@+id/room_name_text"
+    <!-- Room details -->
+    <LinearLayout
+        android:id="@+id/room_details_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Room Name"
-        android:textSize="18sp"
-        android:textColor="@android:color/black" />
-</androidx.cardview.widget.CardView>
+        android:orientation="vertical"
+        android:paddingEnd="32dp">
+
+        <TextView
+            android:id="@+id/room_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Room Name"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Icon for lock -->
+    <ImageView
+        android:id="@+id/lock_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_lock"
+        android:contentDescription="@string/lock_icon"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone" />
+</RelativeLayout>

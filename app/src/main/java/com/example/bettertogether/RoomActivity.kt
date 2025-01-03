@@ -44,14 +44,10 @@ class RoomActivity : BaseActivity() {
         if (roomId != null) {
             fetchRoomDetails(roomId) { isPublic, participantStatus ->
                 isParticipant = participantStatus
-                if (isParticipant) {
-                    setupChat(roomId)
-                } else {
-                    if (isPublic) {
-                        showJoinButton(roomId)
-                    } else {
-                        showCodeInput(roomId)
-                    }
+                if(isParticipant){ setupChat(roomId) }
+                else{
+                    if(isPublic){ showJoinButton(roomId) }
+                    else{ showCodeInput(roomId) }
                 }
                 invalidateOptionsMenu()
             }
@@ -159,7 +155,7 @@ class RoomActivity : BaseActivity() {
 
     private fun showJoinButton(roomId: String) {
         joinButton.visibility = View.VISIBLE
-        chatRecyclerView.visibility = View.GONE
+        chatRecyclerView.visibility = View.INVISIBLE
         messageInput.visibility = View.GONE
         sendButton.visibility = View.GONE
         codeInput.visibility = View.GONE
@@ -171,7 +167,7 @@ class RoomActivity : BaseActivity() {
     private fun showCodeInput(roomId: String) {
         joinButton.visibility = View.VISIBLE
         codeInput.visibility = View.VISIBLE
-        chatRecyclerView.visibility = View.GONE
+        chatRecyclerView.visibility = View.INVISIBLE
         messageInput.visibility = View.GONE
         sendButton.visibility = View.GONE
 
