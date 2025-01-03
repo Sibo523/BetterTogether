@@ -8,6 +8,17 @@
     android:orientation="vertical"
     tools:context=".RoomActivity">
 
+    <!-- Leave Room Button -->
+    <Button
+        android:id="@+id/leave_room_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Leave Room"
+        android:textColor="@android:color/white"
+        android:background="@android:color/holo_red_dark"
+        android:visibility="gone"
+        android:padding="16dp" />
+
     <!-- Room Details -->
     <ScrollView
         android:layout_width="match_parent"

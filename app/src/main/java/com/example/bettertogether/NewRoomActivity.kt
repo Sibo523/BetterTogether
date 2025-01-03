@@ -189,21 +189,6 @@ class NewRoomActivity : BaseActivity() {
                     .addOnFailureListener { exception ->
                         Toast.makeText(this, "Error linking room to user: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
-
-                // Add the creator to the room's participants array
-                val participantData = hashMapOf(
-                    "id" to userId,
-                    "name" to userName,
-                    "role" to "owner",
-                    "joinedOn" to System.currentTimeMillis()
-                )
-                roomRef.update("participants", FieldValue.arrayUnion(participantData))
-                    .addOnSuccessListener {
-                        Log.d("Firestore", "Participant added successfully")
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Error adding participant: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()

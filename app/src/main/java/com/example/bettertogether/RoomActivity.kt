@@ -11,6 +11,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FieldValue
 
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
+
 class RoomActivity : BaseActivity() {
 
     private lateinit var roomNameTextView: TextView
@@ -25,6 +29,9 @@ class RoomActivity : BaseActivity() {
     private lateinit var joinButton: Button
     private lateinit var codeInput: EditText
 
+    private var isParticipant: Boolean = false
+    private var roomId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
@@ -32,9 +39,11 @@ class RoomActivity : BaseActivity() {
         // Initialize views
         initViews()
 
-        val roomId = intent.getStringExtra("roomId")
+        roomId = intent.getStringExtra("roomId")
+        val roomId = roomId
         if (roomId != null) {
-            fetchRoomDetails(roomId) { isPublic, isParticipant ->
+            fetchRoomDetails(roomId) { isPublic, participantStatus ->
+                isParticipant = participantStatus
                 if (isParticipant) {
                     setupChat(roomId)
                 } else {
@@ -44,6 +53,7 @@ class RoomActivity : BaseActivity() {
                         showCodeInput(roomId)
                     }
                 }
+                invalidateOptionsMenu()
             }
         } else {
             Toast.makeText(this, "Room ID is missing", Toast.LENGTH_SHORT).show()
@@ -65,7 +75,6 @@ class RoomActivity : BaseActivity() {
         joinButton = findViewById(R.id.join_button)
         codeInput = findViewById(R.id.code_input)
     }
-
     private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
@@ -133,7 +142,6 @@ class RoomActivity : BaseActivity() {
             }
         }
     }
-
     private fun sendMessage(roomId: String, messageText: String) {
         val currentUser = auth.currentUser
         val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
@@ -160,7 +168,6 @@ class RoomActivity : BaseActivity() {
             joinRoom(roomId, null)
         }
     }
-
     private fun showCodeInput(roomId: String) {
         joinButton.visibility = View.VISIBLE
         codeInput.visibility = View.VISIBLE
@@ -230,6 +237,95 @@ class RoomActivity : BaseActivity() {
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Error joining room: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.room_menu, menu)
+        val leaveRoomItem = menu.findItem(R.id.action_leave_room)
+        leaveRoomItem.isVisible = isParticipant
+        return true
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_leave_room -> {
+                showLeaveRoomDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+    private fun showLeaveRoomDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Leave Room")
+            .setMessage("Are you sure you want to leave this room?")
+            .setPositiveButton("Leave") { _, _ -> leaveRoom() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun leaveRoom() {
+        val currentUser = auth.currentUser
+        val userId = currentUser?.uid ?: return
+
+        roomId?.let { roomId ->
+            // First, retrieve the current user and room data to ensure correct object removal
+            db.collection("rooms").document(roomId).get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val participants = document.get("participants") as? List<Map<String,Any>> ?: emptyList()
+
+                        // Find the exact participant object to remove
+                        val participantToRemove = participants.find { it["id"] == userId }
+
+                        if (participantToRemove != null) {
+                            // Remove the user from the room's participants array
+                            db.collection("rooms").document(roomId)
+                                .update("participants", FieldValue.arrayRemove(participantToRemove))
+                                .addOnSuccessListener {
+                                    // Now remove the room from the user's rooms array
+                                    db.collection("users").document(userId).get()
+                                        .addOnSuccessListener { userDocument ->
+                                            if (userDocument.exists()) {
+                                                val rooms = userDocument.get("rooms") as? List<Map<String,Any>> ?: emptyList()
+                                                val roomToRemove = rooms.find { it["roomId"] == roomId }
+
+                                                if (roomToRemove != null) {
+                                                    db.collection("users").document(userId)
+                                                        .update("rooms", FieldValue.arrayRemove(roomToRemove))
+                                                        .addOnSuccessListener {
+                                                            Toast.makeText(this, "You have left the room.", Toast.LENGTH_SHORT).show()
+                                                            finish() // Close the activity
+                                                        }
+                                                        .addOnFailureListener { exception ->
+                                                            Toast.makeText(this, "Error updating user data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                } else {
+                                                    Toast.makeText(this, "Room not found in user data.", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                Toast.makeText(this, "User document not found.", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                        .addOnFailureListener { exception ->
+                                            Toast.makeText(this, "Error retrieving user data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                }
+                                .addOnFailureListener { exception ->
+                                    Toast.makeText(this, "Error updating room data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        } else {
+                            Toast.makeText(this, "User not found in participants.", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Room not found.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(this, "Error retrieving room data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+        } ?: run {
+            Toast.makeText(this, "Room ID is missing.", Toast.LENGTH_SHORT).show()
+        }
     }
 
 }
