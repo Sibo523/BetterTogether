@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.firestore.FieldValue
 
 abstract class BaseActivity : AppCompatActivity() {
     protected lateinit var auth: FirebaseAuth
@@ -87,4 +88,21 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
 
+    protected fun addRoomToUser(userId:String, roomId:String, betSubject:String, role:String, isPublic:Boolean){
+        val userRoomData = hashMapOf(
+            "roomId" to roomId,
+            "roomName" to betSubject,
+            "joinedOn" to System.currentTimeMillis(),
+            "role" to role,
+            "isPublic" to isPublic
+        )
+        db.collection("users").document(userId)
+            .update("rooms", FieldValue.arrayUnion(userRoomData))
+            .addOnSuccessListener { recreate() }
+            .addOnFailureListener { exception -> toast("Error linking room to user: ${exception.message}") }
+    }
+
+    protected fun toast(message : String){
+        toast(message)
+    }
 }

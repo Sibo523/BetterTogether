@@ -52,7 +52,7 @@ class RoomActivity : BaseActivity() {
                 invalidateOptionsMenu()
             }
         } else {
-            Toast.makeText(this, "Room ID is missing", Toast.LENGTH_SHORT).show()
+            toast("Room ID is missing")
             finish()
         }
         setupBottomNavigation()
@@ -92,12 +92,12 @@ class RoomActivity : BaseActivity() {
                         currentUser != null && participants.any { it["id"] == currentUser.uid }
                     callback(isPublic, isParticipant)
                 } else {
-                    Toast.makeText(this, "Room not found", Toast.LENGTH_SHORT).show()
+                    toast("Room not found")
                     finish()
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Error fetching room details.", Toast.LENGTH_SHORT).show()
+                toast("Error fetching room details.")
                 finish()
             }
     }
@@ -113,7 +113,7 @@ class RoomActivity : BaseActivity() {
             .orderBy("timestamp")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Error loading messages.", Toast.LENGTH_SHORT).show()
+                    toast("Error loading messages.")
                     return@addSnapshotListener
                 }
 
@@ -134,7 +134,7 @@ class RoomActivity : BaseActivity() {
             if (messageText.isNotBlank()) {
                 sendMessage(roomId, messageText)
             } else {
-                Toast.makeText(this, "Message cannot be empty.", Toast.LENGTH_SHORT).show()
+                toast("Message cannot be empty.")
             }
         }
     }
@@ -149,7 +149,7 @@ class RoomActivity : BaseActivity() {
                 messageInput.text.clear()
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Error sending message.", Toast.LENGTH_SHORT).show()
+                toast("Error sending message.")
             }
     }
 
@@ -174,7 +174,7 @@ class RoomActivity : BaseActivity() {
         joinButton.setOnClickListener {
             val enteredCode = codeInput.text.toString()
             if (enteredCode.isBlank()) {
-                Toast.makeText(this, "Please enter the room code.", Toast.LENGTH_SHORT).show()
+                toast("Please enter the room code.")
             } else {
                 joinRoom(roomId, enteredCode)
             }
@@ -186,53 +186,34 @@ class RoomActivity : BaseActivity() {
             .addOnSuccessListener { document ->
                 val roomCode = document.getString("code")
                 val isPublic = document.getBoolean("isPublic") == true
-                if (isPublic || roomCode == enteredCode) {
-                    val currentUser = auth.currentUser
-                    if (currentUser != null) {
-                        val userId = currentUser.uid
-                        val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
-
-                        val participantData = mapOf(
-                            "id" to userId,
-                            "name" to userName,
-                            "role" to "participant",
-                            "joinedOn" to System.currentTimeMillis()
-                        )
-
-                        // Add to participants array in the room document
-                        db.collection("rooms").document(roomId)
-                            .update("participants", FieldValue.arrayUnion(participantData))
-                            .addOnSuccessListener {
-                                // Add to user's rooms array
-                                val roomData = mapOf(
-                                    "roomId" to roomId,
-                                    "roomName" to (document.getString("name") ?: "Unnamed Room"),
-                                    "joinedOn" to System.currentTimeMillis(),
-                                    "role" to "participant"
-                                )
-                                db.collection("users").document(userId)
-                                    .update("rooms", FieldValue.arrayUnion(roomData))
-                                    .addOnSuccessListener {
-                                        Toast.makeText(this, "Successfully joined the room!", Toast.LENGTH_SHORT).show()
-                                        recreate() // Refresh the activity to show the chat
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        Toast.makeText(this, "Failed to update user room data: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-                            .addOnFailureListener { exception ->
-                                Toast.makeText(this, "Failed to join room: ${exception.message}", Toast.LENGTH_SHORT).show()
-                            }
-                    } else {
-                        Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Toast.makeText(this, "Incorrect room code.", Toast.LENGTH_SHORT).show()
+                if (!isPublic && roomCode != enteredCode) {
+                    toast("Incorrect room code.")
                 }
+                val currentUser = auth.currentUser
+                if (currentUser == null) {
+                    toast("User not authenticated")
+                    return@addOnSuccessListener
+                }
+                val userId = currentUser.uid
+                val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+
+                val participantData = mapOf(
+                    "id" to userId,
+                    "name" to userName,
+                    "role" to "participant",
+                    "joinedOn" to System.currentTimeMillis()
+                )
+
+                // Add to participants array in the room document
+                db.collection("rooms").document(roomId)
+                    .update("participants", FieldValue.arrayUnion(participantData))
+                    .addOnSuccessListener {
+                        val betSubject = (document.getString("name") ?: "Unnamed Room")
+                        addRoomToUser(userId,roomId,betSubject,"participant",isPublic)
+                    }
+                    .addOnFailureListener { exception -> toast("Failed to join room: ${exception.message}") }
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error joining room: ${exception.message}", Toast.LENGTH_SHORT).show()
-            }
+            .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -289,38 +270,38 @@ class RoomActivity : BaseActivity() {
                                                     db.collection("users").document(userId)
                                                         .update("rooms", FieldValue.arrayRemove(roomToRemove))
                                                         .addOnSuccessListener {
-                                                            Toast.makeText(this, "You have left the room.", Toast.LENGTH_SHORT).show()
+                                                            toast("You have left the room.")
                                                             finish() // Close the activity
                                                         }
                                                         .addOnFailureListener { exception ->
-                                                            Toast.makeText(this, "Error updating user data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                                            toast("Error updating user data: ${exception.message}")
                                                         }
                                                 } else {
-                                                    Toast.makeText(this, "Room not found in user data.", Toast.LENGTH_SHORT).show()
+                                                    toast("Room not found in user data.")
                                                 }
                                             } else {
-                                                Toast.makeText(this, "User document not found.", Toast.LENGTH_SHORT).show()
+                                                toast("User document not found.")
                                             }
                                         }
                                         .addOnFailureListener { exception ->
-                                            Toast.makeText(this, "Error retrieving user data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                            toast("Error retrieving user data: ${exception.message}")
                                         }
                                 }
                                 .addOnFailureListener { exception ->
-                                    Toast.makeText(this, "Error updating room data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    toast("Error updating room data: ${exception.message}")
                                 }
                         } else {
-                            Toast.makeText(this, "User not found in participants.", Toast.LENGTH_SHORT).show()
+                            toast("User not found in participants.")
                         }
                     } else {
-                        Toast.makeText(this, "Room not found.", Toast.LENGTH_SHORT).show()
+                        toast("Room not found.")
                     }
                 }
                 .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Error retrieving room data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    toast("Error retrieving room data: ${exception.message}")
                 }
         } ?: run {
-            Toast.makeText(this, "Room ID is missing.", Toast.LENGTH_SHORT).show()
+            toast("Room ID is missing.")
         }
     }
 

@@ -1,6 +1,7 @@
 package com.example.bettertogether
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import com.google.firebase.firestore.FieldValue
 import android.widget.*
@@ -11,7 +12,8 @@ import java.util.*
 class NewRoomActivity : BaseActivity() {
 
     // Declare views as class-level properties
-    private lateinit var checkbox: CheckBox
+    private lateinit var checkbox_public: CheckBox
+    private lateinit var checkbox_event: CheckBox
     private lateinit var editText: EditText
     private lateinit var numberInput: EditText
     private lateinit var dateInput: EditText
@@ -21,12 +23,17 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var submitButton: Button
     private lateinit var formLayout: LinearLayout
 
+    private lateinit var uploadImageButton: Button
+    private var imageUri: String? = null // Store the uploaded image URI
+    private var isEvent: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_room)
 
         // Initialize views once
-        checkbox = findViewById(R.id.form_checkbox)
+        checkbox_public = findViewById(R.id.form_checkbox_public)
+        checkbox_event = findViewById(R.id.form_checkbox_event)
         editText = findViewById(R.id.form_text_input)
         numberInput = findViewById(R.id.form_number_input)
         dateInput = findViewById(R.id.form_date_input)
@@ -36,35 +43,18 @@ class NewRoomActivity : BaseActivity() {
         submitButton = findViewById(R.id.submit_button)
         formLayout = findViewById(R.id.form_layout)
 
-        val additionalInputs = mutableListOf<EditText>()
-
-        // Role check and dynamic UI
-        auth.currentUser?.getIdToken(false)?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                checkUserRole { role ->
-                    if (role == "owner") {
-                        val eventCheckbox = CheckBox(this)
-                        eventCheckbox.text = "Event?"
-                        eventCheckbox.setOnCheckedChangeListener { _, isChecked ->
-                            if (isChecked){  // Show additional Event inputs
-                                val extraField1 = createEditText("Event Title")
-                                val extraField2 = createEditText("Event Description")
-                                val extraField3 = createEditText("Event Location")
-                                formLayout.addView(extraField1)
-                                formLayout.addView(extraField2)
-                                formLayout.addView(extraField3)
-                                additionalInputs.add(extraField1)
-                                additionalInputs.add(extraField2)
-                                additionalInputs.add(extraField3)
-                            } else{  // Remove additional inputs
-                                additionalInputs.forEach { formLayout.removeView(it) }
-                                additionalInputs.clear()
-                            }
-                        }
-                        formLayout.addView(eventCheckbox, 6)
-                    }
-                }
+        uploadImageButton = Button(this).apply {
+            text = "Upload Image"
+            visibility = View.GONE
+            setOnClickListener {
+                openImagePicker() // Open image picker for upload
             }
+        }
+        formLayout.addView(uploadImageButton)
+
+        checkbox_event.setOnCheckedChangeListener { _, isChecked ->
+            isEvent = isChecked
+            uploadImageButton.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
         dateInput.setOnClickListener {
@@ -73,7 +63,7 @@ class NewRoomActivity : BaseActivity() {
 
         submitButton.setOnClickListener {
             if (validateInputs()) {
-                submitForm(additionalInputs)
+                submitForm()
             }
         }
 
@@ -104,7 +94,11 @@ class NewRoomActivity : BaseActivity() {
             isValid = false
         }
         if (radioGroup.checkedRadioButtonId == -1) {
-            Toast.makeText(this, "Please select a ratio", Toast.LENGTH_SHORT).show()
+            toast("Please select a ratio")
+            isValid = false
+        }
+        if (isEvent && imageUri == null) {
+            toast("Please upload an image for the event")
             isValid = false
         }
 
@@ -123,14 +117,14 @@ class NewRoomActivity : BaseActivity() {
         datePicker.show()
     }
 
-    private fun submitForm(additionalInputs: List<EditText>) {
+    private fun submitForm() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            toast("User not authenticated")
             return
         }
 
-        val isPublic = checkbox.isChecked
+        val isPublic = checkbox_public.isChecked
         val betSubject = editText.text.toString()
         val betNumber = numberInput.text.toString()
         val selectedDate = dateInput.text.toString()
@@ -157,52 +151,34 @@ class NewRoomActivity : BaseActivity() {
                     "role" to "owner",
                     "joinedOn" to System.currentTimeMillis()
                 )
-            ) // Add creator as the first participant
+            )
         )
 
-        if (additionalInputs.isNotEmpty()) {
-            roomData["eventTitle"] = additionalInputs[0].text.toString()
-            roomData["eventDescription"] = additionalInputs[1].text.toString()
-            roomData["eventLocation"] = additionalInputs[2].text.toString()
+        if (isEvent) {
+            roomData["imageUri"] = imageUri
+            db.collection("events")
+                .add(roomData)
+                .addOnSuccessListener { eventRef ->
+                    addRoomToUser(userId,eventRef.id,betSubject,"owner",isPublic)
+                }
+                .addOnFailureListener { toast("Error adding event") }
+        } else {
+            db.collection("rooms")
+                .add(roomData)
+                .addOnSuccessListener { roomRef ->
+                    addRoomToUser(userId,roomRef.id,betSubject,"owner",isPublic)
+                }
+                .addOnFailureListener { exception -> toast("Error adding room: ${exception.message}") }
+            
         }
-
-        // Add room to Firestore
-        db.collection("rooms")
-            .add(roomData)
-            .addOnSuccessListener { roomRef ->
-                val roomId = roomRef.id
-                Toast.makeText(this, "Room added successfully!", Toast.LENGTH_SHORT).show()
-
-                // Add the room details to the user's array of rooms
-                val userRoomData = hashMapOf(
-                    "roomId" to roomId,
-                    "roomName" to betSubject,
-                    "joinedOn" to System.currentTimeMillis(),
-                    "role" to "owner"
-                )
-                db.collection("users").document(userId)
-                    .update("rooms", FieldValue.arrayUnion(userRoomData))
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Room linked to user successfully!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Error linking room to user: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error adding room: ${exception.message}", Toast.LENGTH_SHORT).show()
-            }
     }
 
-
-    private fun createEditText(hint: String): EditText {
-        val editText = EditText(this)
-        editText.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        editText.hint = hint
-        return editText
+    private fun openImagePicker() {
+        // Open a file picker to select an image (example logic)
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+        }
+        startActivityForResult(intent, 100)
     }
+    
 }

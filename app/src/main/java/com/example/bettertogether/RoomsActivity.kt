@@ -37,7 +37,7 @@ class RoomsActivity : BaseActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     roomsList.clear()
-                    val rooms = document.get("rooms") as? List<Map<String, Any>> // Assuming rooms is a list of maps
+                    val rooms = document.get("rooms") as? List<Map<String, Any>>// Assuming rooms is a list of maps
                     if (rooms != null) {
                         for (room in rooms) {
                             val roomId = room["roomId"] as? String ?: continue
