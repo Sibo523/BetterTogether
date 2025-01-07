@@ -25,13 +25,11 @@ class NewRoomActivity : BaseActivity() {
 
     private lateinit var uploadImageButton: Button
     private var imageUri: String? = null // Store the uploaded image URI
-    private var isEvent: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_room)
 
-        // Initialize views once
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
         editText = findViewById(R.id.form_text_input)
@@ -46,20 +44,18 @@ class NewRoomActivity : BaseActivity() {
         uploadImageButton = Button(this).apply {
             text = "Upload Image"
             visibility = View.GONE
-            setOnClickListener {
-                openImagePicker() // Open image picker for upload
-            }
+            setOnClickListener { openImagePicker() }
         }
         formLayout.addView(uploadImageButton)
 
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
-            isEvent = isChecked
             uploadImageButton.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-
-        dateInput.setOnClickListener {
-            showDatePicker()
+        checkbox_public.setOnCheckedChangeListener { _, isChecked ->
+            codeInput.visibility = if (isChecked) View.GONE else View.VISIBLE
         }
+
+        dateInput.setOnClickListener { showDatePicker() }
 
         submitButton.setOnClickListener {
             if (validateInputs()) {
@@ -71,38 +67,35 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun validateInputs(): Boolean {
-        var isValid = true
-
         if (editText.text.toString().isBlank()) {
             editText.error = "Bet subject cannot be empty"
-            isValid = false
+            return false
         }
         if (numberInput.text.toString().isBlank()) {
             numberInput.error = "Bet number cannot be empty"
-            isValid = false
+            return false
         }
         if (dateInput.text.toString().isBlank()) {
             dateInput.error = "Please select a date"
-            isValid = false
+            return false
         }
         if (descriptionInput.text.toString().isBlank()) {
             descriptionInput.error = "Description cannot be empty"
-            isValid = false
+            return false
         }
         if (codeInput.text.toString().length !in 6..10) {
             codeInput.error = "Code must be between 6 and 10 characters"
-            isValid = false
+            return false
         }
         if (radioGroup.checkedRadioButtonId == -1) {
             toast("Please select a ratio")
-            isValid = false
+            return false
         }
-        if (isEvent && imageUri == null) {
+        if (checkbox_event.isChecked && imageUri == null) {
             toast("Please upload an image for the event")
-            isValid = false
+            return false
         }
-
-        return isValid
+        return true
     }
 
     private fun showDatePicker() {
@@ -154,7 +147,7 @@ class NewRoomActivity : BaseActivity() {
             )
         )
 
-        if (isEvent) {
+        if (checkbox_event.isChecked) {
             roomData["imageUri"] = imageUri
             db.collection("events")
                 .add(roomData)
