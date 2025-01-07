@@ -248,61 +248,27 @@ class RoomActivity : BaseActivity() {
             // First, retrieve the current user and room data to ensure correct object removal
             db.collection("rooms").document(roomId).get()
                 .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val participants = document.get("participants") as? List<Map<String,Any>> ?: emptyList()
-
-                        // Find the exact participant object to remove
-                        val participantToRemove = participants.find { it["id"] == userId }
-
-                        if (participantToRemove != null) {
-                            // Remove the user from the room's participants array
-                            db.collection("rooms").document(roomId)
-                                .update("participants", FieldValue.arrayRemove(participantToRemove))
-                                .addOnSuccessListener {
-                                    // Now remove the room from the user's rooms array
-                                    db.collection("users").document(userId).get()
-                                        .addOnSuccessListener { userDocument ->
-                                            if (userDocument.exists()) {
-                                                val rooms = userDocument.get("rooms") as? List<Map<String,Any>> ?: emptyList()
-                                                val roomToRemove = rooms.find { it["roomId"] == roomId }
-
-                                                if (roomToRemove != null) {
-                                                    db.collection("users").document(userId)
-                                                        .update("rooms", FieldValue.arrayRemove(roomToRemove))
-                                                        .addOnSuccessListener {
-                                                            toast("You have left the room.")
-                                                            finish() // Close the activity
-                                                        }
-                                                        .addOnFailureListener { exception ->
-                                                            toast("Error updating user data: ${exception.message}")
-                                                        }
-                                                } else {
-                                                    toast("Room not found in user data.")
-                                                }
-                                            } else {
-                                                toast("User document not found.")
-                                            }
-                                        }
-                                        .addOnFailureListener { exception ->
-                                            toast("Error retrieving user data: ${exception.message}")
-                                        }
-                                }
-                                .addOnFailureListener { exception ->
-                                    toast("Error updating room data: ${exception.message}")
-                                }
-                        } else {
-                            toast("User not found in participants.")
-                        }
-                    } else {
+                    if (!document.exists()) {
                         toast("Room not found.")
+                        return@addOnSuccessListener
                     }
+                    val participants = document.get("participants") as? List<Map<String,Any>> ?: emptyList()
+                    val participantToRemove = participants.find { it["id"] == userId }  // Find the exact participant object to remove
+                    if (participantToRemove == null) {
+                        toast("User not found in participants.")
+                        return@addOnSuccessListener
+                    }
+                    db.collection("rooms").document(roomId)  // Remove the user from the room's participants array
+                        .update("participants", FieldValue.arrayRemove(participantToRemove))
+                        .addOnSuccessListener {
+                            removeRoomFromUser(userId, roomId)  // Now remove the room from the user's rooms array
+                            if(participants.size == 1){ deleteRoom(roomId) } // Delete the room if no participants are left
+                            else{ toast("You have left the room.") }
+                        }
+                        .addOnFailureListener { exception -> toast("Error updating room data: ${exception.message}") }
                 }
-                .addOnFailureListener { exception ->
-                    toast("Error retrieving room data: ${exception.message}")
-                }
-        } ?: run {
-            toast("Room ID is missing.")
-        }
+                .addOnFailureListener { exception -> toast("Error retrieving room data: ${exception.message}") }
+        } ?: run { toast("Room ID is missing.") }
     }
 
 }

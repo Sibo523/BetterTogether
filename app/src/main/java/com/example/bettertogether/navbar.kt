@@ -101,7 +101,37 @@ abstract class BaseActivity : AppCompatActivity() {
             .addOnSuccessListener { recreate() }
             .addOnFailureListener { exception -> toast("Error linking room to user: ${exception.message}") }
     }
+    protected fun removeRoomFromUser(userId:String, roomId:String){
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { userDocument ->
+                if(!userDocument.exists()){
+                    toast("User document not found.")
+                    return@addOnSuccessListener
+                }
+                val rooms = userDocument.get("rooms") as? List<Map<String,Any>> ?: emptyList()
+                val roomToRemove = rooms.find { it["roomId"] == roomId }
+                if (roomToRemove == null) {
+                    toast("Room not found in user data.")
+                    return@addOnSuccessListener
+                }
+                db.collection("users").document(userId)
+                    .update("rooms", FieldValue.arrayRemove(roomToRemove))
+                    .addOnSuccessListener { finish() } // Close the activity
+                    .addOnFailureListener { exception -> toast("Error updating user data: ${exception.message}") }
+            }
+            .addOnFailureListener { exception -> toast("Error retrieving user data: ${exception.message}") }
+    }
+    protected fun deleteRoom(roomId:String){
+        db.collection("rooms").document(roomId).delete()
+            .addOnSuccessListener { toast("Room was deleted.") }
+            .addOnFailureListener { exception -> toast("Error deleting empty room: ${exception.message}") }
+    }
+    protected fun addUserToRoom(){
 
+    }
+    protected fun removeUserFromRoom(){
+
+    }
     protected fun toast(message : String){
         toast(message)
     }
