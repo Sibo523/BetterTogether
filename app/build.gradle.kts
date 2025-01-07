@@ -80,5 +80,16 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core.v351)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-implementation("com.airbnb.android:lottie:5.2.0")
+    implementation("com.airbnb.android:lottie:5.2.0")
+
+    // Imgur for uploading an image
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.1")
+
+}
+
+repositories {
+    google()
+    mavenCentral()
 }

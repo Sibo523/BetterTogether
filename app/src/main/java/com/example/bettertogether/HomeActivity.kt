@@ -39,7 +39,7 @@ class HomeActivity : BaseActivity() {
         yourRooms.setOnClickListener { }
 
         // Load image from URL (can replace the constant string with string variable)
-        loadImageFromURL("https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/J._M._Flagg%2C_I_Want_You_for_U.S._Army_poster_%281917%29.jpg/451px-J._M._Flagg%2C_I_Want_You_for_U.S._Army_poster_%281917%29.jpg")
+        loadImageFromURL("https://i.imgur.com/1AOQjMn.jpeg")
 
         setupBottomNavigation()
     }

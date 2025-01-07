@@ -1,7 +1,12 @@
 package com.example.bettertogether
 
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -13,9 +18,17 @@ import com.google.firebase.firestore.FieldValue
 
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import java.io.IOException
+import java.io.InputStream
+import java.net.URL
+import kotlin.concurrent.thread
 
 class RoomActivity : BaseActivity() {
+
+    private lateinit var progressDialog: ProgressDialog
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private lateinit var roomNameTextView: TextView
     private lateinit var roomTypeTextView: TextView
@@ -28,9 +41,11 @@ class RoomActivity : BaseActivity() {
     private lateinit var sendButton: Button
     private lateinit var joinButton: Button
     private lateinit var codeInput: EditText
+    private lateinit var roomImage : ImageView
 
     private var isParticipant: Boolean = false
     private var roomId: String? = null
+    private var url: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +85,7 @@ class RoomActivity : BaseActivity() {
         sendButton = findViewById(R.id.send_button)
         joinButton = findViewById(R.id.join_button)
         codeInput = findViewById(R.id.code_input)
+        roomImage = findViewById(R.id.roomImgViaURL)
     }
     private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
         db.collection("rooms").document(roomId).get()
@@ -78,6 +94,10 @@ class RoomActivity : BaseActivity() {
                     // Populate UI with room details
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = document.getString("betType") ?: "N/A"
+                    url = document.getString("url") ?: "N/A"
+                    if(url.toString() != "null") {
+                        loadImageFromURL(url.toString())
+                    }
                     roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
                     roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
@@ -302,6 +322,38 @@ class RoomActivity : BaseActivity() {
                 }
         } ?: run {
             toast("Room ID is missing.")
+        }
+    }
+
+    private fun loadImageFromURL(imageUrl: String) {
+        progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Getting your pic....")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        // Perform network operation on a separate thread
+        thread {
+            var bitmap: Bitmap? = null
+            try {
+                val inputStream: InputStream = URL(imageUrl).openStream()
+                bitmap = BitmapFactory.decodeStream(inputStream)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+
+            // Update UI on the main thread
+            mainHandler.post {
+                progressDialog.dismiss()
+                if (bitmap != null) {
+                    roomImage.setImageBitmap(bitmap)
+                } else {
+                    Toast.makeText(
+                        this@RoomActivity,
+                        "Failed to load image",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 

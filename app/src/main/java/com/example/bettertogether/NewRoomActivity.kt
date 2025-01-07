@@ -8,6 +8,20 @@ import android.widget.*
 import android.util.Log
 import android.view.View
 import java.util.*
+import android.app.Activity
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Base64
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 class NewRoomActivity : BaseActivity() {
 
@@ -22,6 +36,8 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var radioGroup: RadioGroup
     private lateinit var submitButton: Button
     private lateinit var formLayout: LinearLayout
+    private lateinit var uploadButton: Button
+    var uploadedImageUrl: String? = "null"
 
     private lateinit var uploadImageButton: Button
     private var imageUri: String? = null // Store the uploaded image URI
@@ -42,15 +58,27 @@ class NewRoomActivity : BaseActivity() {
         radioGroup = findViewById(R.id.form_radio_group)
         submitButton = findViewById(R.id.submit_button)
         formLayout = findViewById(R.id.form_layout)
+        uploadButton = findViewById(R.id.uploadButton)
 
-        uploadImageButton = Button(this).apply {
-            text = "Upload Image"
-            visibility = View.GONE
-            setOnClickListener {
-                openImagePicker() // Open image picker for upload
-            }
-        }
-        formLayout.addView(uploadImageButton)
+        uploadButton.setOnClickListener{openGallery()}
+
+
+//        uploadImageButton = Button(this).apply {
+//            text = "Upload Image"
+//            visibility = View.GONE
+//            setOnClickListener {
+//                openImagePicker() // Open image picker for upload
+//            }
+//        }
+//        uploadImageButton = Button(this).apply {
+//            text = "Upload Image"
+//            visibility = View.GONE
+//            setOnClickListener {
+//                openImagePicker()
+//            }
+//        }
+//        formLayout.addView(uploadImageButton)
+
 
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
             isEvent = isChecked
@@ -133,9 +161,11 @@ class NewRoomActivity : BaseActivity() {
         val code = codeInput.text.toString()
         val userId = currentUser.uid
         val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+        val url = uploadedImageUrl.toString()
 
         val roomData = hashMapOf(
             "isPublic" to isPublic,
+            "url" to url,
             "name" to betSubject,
             "betPoints" to betNumber,
             "description" to description,
@@ -180,5 +210,66 @@ class NewRoomActivity : BaseActivity() {
         }
         startActivityForResult(intent, 100)
     }
-    
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, 101)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 101 && resultCode == Activity.RESULT_OK) {
+            val selectedImageUri: Uri? = data?.data
+            selectedImageUri?.let {
+                val imagePath = getPathFromUri(it)
+                if (imagePath != null) {
+                    uploadImageToImgur(imagePath)
+                }
+            }
+        }
+    }
+
+    private fun getPathFromUri(uri: Uri): String? {
+        var filePath: String? = null
+        val cursor = contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DATA), null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                filePath = it.getString(columnIndex)
+            }
+        }
+        return filePath
+    }
+
+    private fun uploadImageToImgur(imagePath: String) {
+        val file = File(imagePath)
+        val imageBytes = file.readBytes()
+        val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+
+        val body = mapOf("image" to base64Image)
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.imgur.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val imgurApi = retrofit.create(ImgurApi::class.java)
+
+        val call = imgurApi.uploadImage("Client-ID f41b5381b69da09", body)
+        call.enqueue(object : Callback<ImgurResponse> {
+            override fun onResponse(call: Call<ImgurResponse>, response: Response<ImgurResponse>) {
+                if (response.isSuccessful) {
+                    uploadedImageUrl = response.body()?.data?.link
+                    Toast.makeText(this@NewRoomActivity, "Uploaded: $uploadedImageUrl", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this@NewRoomActivity, "Upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
+                Toast.makeText(this@NewRoomActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
 }
