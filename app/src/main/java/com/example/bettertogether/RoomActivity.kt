@@ -45,7 +45,6 @@ class RoomActivity : BaseActivity() {
 
     private var isParticipant: Boolean = false
     private var roomId: String? = null
-    private var url: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,10 +93,6 @@ class RoomActivity : BaseActivity() {
                     // Populate UI with room details
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = document.getString("betType") ?: "N/A"
-                    url = document.getString("url") ?: "N/A"
-                    if(url.toString() != "null") {
-                        loadImageFromURL(url.toString())
-                    }
                     roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
                     roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
@@ -284,6 +279,7 @@ class RoomActivity : BaseActivity() {
                             removeRoomFromUser(userId, roomId)  // Now remove the room from the user's rooms array
                             if(participants.size == 1){ deleteRoom(roomId) } // Delete the room if no participants are left
                             else{ toast("You have left the room.") }
+                            finish()
                         }
                         .addOnFailureListener { exception -> toast("Error updating room data: ${exception.message}") }
                 }
@@ -291,36 +287,36 @@ class RoomActivity : BaseActivity() {
         } ?: run { toast("Room ID is missing.") }
     }
 
-    private fun loadImageFromURL(imageUrl: String) {
-        progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Getting your pic....")
-        progressDialog.setCancelable(false)
-        progressDialog.show()
-
-        // Perform network operation on a separate thread
-        thread {
-            var bitmap: Bitmap? = null
-            try {
-                val inputStream: InputStream = URL(imageUrl).openStream()
-                bitmap = BitmapFactory.decodeStream(inputStream)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-
-            // Update UI on the main thread
-            mainHandler.post {
-                progressDialog.dismiss()
-                if (bitmap != null) {
-                    roomImage.setImageBitmap(bitmap)
-                } else {
-                    Toast.makeText(
-                        this@RoomActivity,
-                        "Failed to load image",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
+//    private fun loadImageFromURL(imageUrl: String) {
+//        progressDialog = ProgressDialog(this)
+//        progressDialog.setMessage("Getting your pic....")
+//        progressDialog.setCancelable(false)
+//        progressDialog.show()
+//
+//        // Perform network operation on a separate thread
+//        thread {
+//            var bitmap: Bitmap? = null
+//            try {
+//                val inputStream: InputStream = URL(imageUrl).openStream()
+//                bitmap = BitmapFactory.decodeStream(inputStream)
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//            }
+//
+//            // Update UI on the main thread
+//            mainHandler.post {
+//                progressDialog.dismiss()
+//                if (bitmap != null) {
+//                    roomImage.setImageBitmap(bitmap)
+//                } else {
+//                    Toast.makeText(
+//                        this@RoomActivity,
+//                        "Failed to load image",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                }
+//            }
+//        }
+//    }
 
 }

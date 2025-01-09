@@ -41,7 +41,6 @@ class NewRoomActivity : BaseActivity() {
 
     private lateinit var uploadImageButton: Button
     private var imageUri: String? = null // Store the uploaded image URI
-    private var isEvent: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,40 +59,21 @@ class NewRoomActivity : BaseActivity() {
         formLayout = findViewById(R.id.form_layout)
         uploadButton = findViewById(R.id.uploadButton)
 
-        uploadButton.setOnClickListener{openGallery()}
-
-
-//        uploadImageButton = Button(this).apply {
-//            text = "Upload Image"
-//            visibility = View.GONE
-//            setOnClickListener {
-//                openImagePicker() // Open image picker for upload
-//            }
-//        }
-//        uploadImageButton = Button(this).apply {
-//            text = "Upload Image"
-//            visibility = View.GONE
-//            setOnClickListener {
-//                openImagePicker()
-//            }
-//        }
-//        formLayout.addView(uploadImageButton)
-
-
+        checkUserRole { role ->
+            checkbox_event.visibility = if(role=="owner") View.VISIBLE else View.GONE
+        }
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
-            isEvent = isChecked
-            uploadImageButton.visibility = if (isChecked) View.VISIBLE else View.GONE
+            uploadImageButton.visibility = if(isChecked) View.VISIBLE else View.GONE
+        }
+        checkbox_public.setOnCheckedChangeListener { _, isChecked ->
+            codeInput.visibility = if(isChecked) View.GONE else View.VISIBLE
         }
 
-        dateInput.setOnClickListener {
-            showDatePicker()
-        }
+        uploadButton.setOnClickListener{ openGallery() }
 
-        submitButton.setOnClickListener {
-            if (validateInputs()) {
-                submitForm()
-            }
-        }
+        dateInput.setOnClickListener{ showDatePicker() }
+
+        submitButton.setOnClickListener{ if(validateInputs()){ submitForm() } }
 
         setupBottomNavigation()
     }
@@ -117,7 +97,7 @@ class NewRoomActivity : BaseActivity() {
             descriptionInput.error = "Description cannot be empty"
             isValid = false
         }
-        if (codeInput.text.toString().length !in 6..10) {
+        if (!checkbox_public.isChecked && codeInput.text.toString().length !in 6..10) {
             codeInput.error = "Code must be between 6 and 10 characters"
             isValid = false
         }
@@ -125,7 +105,7 @@ class NewRoomActivity : BaseActivity() {
             toast("Please select a ratio")
             isValid = false
         }
-        if (isEvent && imageUri == null) {
+        if (checkbox_event.isChecked && imageUri == null) {
             toast("Please upload an image for the event")
             isValid = false
         }
@@ -165,7 +145,6 @@ class NewRoomActivity : BaseActivity() {
 
         val roomData = hashMapOf(
             "isPublic" to isPublic,
-            "url" to url,
             "name" to betSubject,
             "betPoints" to betNumber,
             "description" to description,
@@ -184,8 +163,8 @@ class NewRoomActivity : BaseActivity() {
             )
         )
 
-        if (isEvent) {
-            roomData["imageUri"] = imageUri
+        if (checkbox_event.isChecked) {
+            roomData["url"] = url
             db.collection("events")
                 .add(roomData)
                 .addOnSuccessListener { eventRef ->

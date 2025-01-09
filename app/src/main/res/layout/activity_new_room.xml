@@ -59,7 +59,8 @@
                 android:id="@+id/form_checkbox_event"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/event" />
+                android:text="@string/event"
+                android:visibility="gone" />
 
             <RadioGroup
                 android:id="@+id/form_radio_group"
@@ -84,7 +85,8 @@
                 android:id="@+id/uploadButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add an Image" />
+                android:text="Add an Image"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/submit_button"
