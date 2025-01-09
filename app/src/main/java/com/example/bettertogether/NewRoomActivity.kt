@@ -13,7 +13,6 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Base64
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,7 +38,6 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var uploadButton: Button
     var uploadedImageUrl: String? = "null"
 
-    private lateinit var uploadImageButton: Button
     private var imageUri: String? = null // Store the uploaded image URI
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +61,7 @@ class NewRoomActivity : BaseActivity() {
             checkbox_event.visibility = if(role=="owner") View.VISIBLE else View.GONE
         }
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
-            uploadImageButton.visibility = if(isChecked) View.VISIBLE else View.GONE
+            uploadButton.visibility = if(isChecked) View.VISIBLE else View.GONE
         }
         checkbox_public.setOnCheckedChangeListener { _, isChecked ->
             codeInput.visibility = if(isChecked) View.GONE else View.VISIBLE
@@ -180,14 +178,6 @@ class NewRoomActivity : BaseActivity() {
                 .addOnFailureListener { exception -> toast("Error adding room: ${exception.message}") }
             
         }
-    }
-
-    private fun openImagePicker() {
-        // Open a file picker to select an image (example logic)
-        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "image/*"
-        }
-        startActivityForResult(intent, 100)
     }
 
     private fun openGallery() {
