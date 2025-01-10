@@ -52,10 +52,11 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateTo(targetActivity: Class<out AppCompatActivity>) {
+    protected fun navigateTo(targetActivity: Class<out AppCompatActivity>) {
         if (this::class.java != targetActivity) {
             val intent = Intent(this, targetActivity)
             startActivity(intent)
+            finish()
         }
     }
     protected fun openRoom(roomId: String) {
@@ -88,7 +89,7 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
 
-    protected fun addRoomToUser(userId:String, roomId:String, betSubject:String, role:String, isPublic:Boolean){
+    protected fun addRoomToUser(userId:String, roomId:String, betSubject:String, role:String, isPublic:Boolean, callback:(Boolean)->Unit){
         val userRoomData = hashMapOf(
             "roomId" to roomId,
             "roomName" to betSubject,
@@ -98,41 +99,62 @@ abstract class BaseActivity : AppCompatActivity() {
         )
         db.collection("users").document(userId)
             .update("rooms", FieldValue.arrayUnion(userRoomData))
-            .addOnSuccessListener { recreate() }
-            .addOnFailureListener { exception -> toast("Error linking room to user: ${exception.message}") }
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener {
+                exception -> toast("Error linking room to user: ${exception.message}")
+                callback(false)
+            }
     }
-    protected fun removeRoomFromUser(userId:String, roomId:String){
+    protected fun removeRoomFromUser(userId:String, roomId:String, callback:(Boolean)->Unit){
         db.collection("users").document(userId).get()
             .addOnSuccessListener { userDocument ->
                 if(!userDocument.exists()){
                     toast("User document not found.")
-                    return@addOnSuccessListener
+                    callback(false)
                 }
                 val rooms = userDocument.get("rooms") as? List<Map<String,Any>> ?: emptyList()
                 val roomToRemove = rooms.find { it["roomId"] == roomId }
                 if (roomToRemove == null) {
                     toast("Room not found in user data.")
-                    return@addOnSuccessListener
+                    callback(false)
                 }
                 db.collection("users").document(userId)
                     .update("rooms", FieldValue.arrayRemove(roomToRemove))
-                    .addOnSuccessListener { finish() } // Close the activity
-                    .addOnFailureListener { exception -> toast("Error updating user data: ${exception.message}") }
+                    .addOnSuccessListener { callback(true) } // Close the activity
+                    .addOnFailureListener {
+                        exception -> toast("Error updating user data: ${exception.message}")
+                        callback(false)
+                    }
             }
-            .addOnFailureListener { exception -> toast("Error retrieving user data: ${exception.message}") }
+            .addOnFailureListener {
+                exception -> toast("Error retrieving user data: ${exception.message}")
+                callback(false)
+            }
     }
     protected fun deleteRoom(roomId:String){
         db.collection("rooms").document(roomId).delete()
             .addOnSuccessListener { toast("Room was deleted.") }
             .addOnFailureListener { exception -> toast("Error deleting empty room: ${exception.message}") }
     }
-    protected fun addUserToRoom(){
-
+    protected fun addUserToRoom(roomId:String, participantData:Map<String,Any>, callback:(Boolean)->Unit){
+        db.collection("rooms").document(roomId)
+            .update("participants", FieldValue.arrayUnion(participantData))
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener {
+                exception -> toast("Failed to join room: ${exception.message}")
+                callback(false)
+            }
     }
-    protected fun removeUserFromRoom(){
-
+    protected fun removeUserFromRoom(roomId:String, participantToRemove:Map<String,Any>, callback:(Boolean)->Unit){
+        db.collection("rooms").document(roomId)  // Remove the user from the room's participants array
+            .update("participants", FieldValue.arrayRemove(participantToRemove))
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener {
+                exception -> toast("Error updating room data: ${exception.message}")
+                callback(false)
+            }
     }
     protected fun toast(message : String){
-        toast(message)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

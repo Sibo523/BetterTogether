@@ -1,34 +1,20 @@
 package com.example.bettertogether
 
 import android.annotation.SuppressLint
-import android.app.ProgressDialog
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FieldValue
 
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
-import java.io.IOException
-import java.io.InputStream
-import java.net.URL
-import kotlin.concurrent.thread
 
 class RoomActivity : BaseActivity() {
-
-    private lateinit var progressDialog: ProgressDialog
-    private val mainHandler = Handler(Looper.getMainLooper())
 
     private lateinit var roomNameTextView: TextView
     private lateinit var roomTypeTextView: TextView
@@ -220,13 +206,18 @@ class RoomActivity : BaseActivity() {
                 )
 
                 // Add to participants array in the room document
-                db.collection("rooms").document(roomId)
-                    .update("participants", FieldValue.arrayUnion(participantData))
-                    .addOnSuccessListener {
+                addUserToRoom(roomId, participantData){ success ->
+                    if (success) {
                         val betSubject = (document.getString("name") ?: "Unnamed Room")
-                        addRoomToUser(userId,roomId,betSubject,"participant",isPublic)
-                    }
-                    .addOnFailureListener { exception -> toast("Failed to join room: ${exception.message}") }
+                        addRoomToUser(userId,roomId,betSubject,"participant",isPublic){ success2 ->
+                            if (success2) {
+                                toast("User added successfully")
+                                recreate() // Refresh the activity to show the chat
+                            }
+                            else { toast("Failed to add room from user") }
+                        }
+                    } else { toast("Failed to add user from room") }
+                }
             }
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
@@ -273,15 +264,18 @@ class RoomActivity : BaseActivity() {
                         toast("User not found in participants.")
                         return@addOnSuccessListener
                     }
-                    db.collection("rooms").document(roomId)  // Remove the user from the room's participants array
-                        .update("participants", FieldValue.arrayRemove(participantToRemove))
-                        .addOnSuccessListener {
-                            removeRoomFromUser(userId, roomId)  // Now remove the room from the user's rooms array
-                            if(participants.size == 1){ deleteRoom(roomId) } // Delete the room if no participants are left
-                            else{ toast("You have left the room.") }
-                            finish()
-                        }
-                        .addOnFailureListener { exception -> toast("Error updating room data: ${exception.message}") }
+                    removeUserFromRoom(roomId, participantToRemove){ success ->
+                        if (success) {
+                            removeRoomFromUser(userId, roomId){ success2 ->
+                                if (success2) {   // Now remove the room from the user's rooms array
+                                    if(participants.size <= 1){ deleteRoom(roomId) } // Delete the room if no participants are left
+                                    toast("You have left the room")
+                                    navigateTo(RoomsActivity::class.java)
+                                }
+                                else { toast("Failed to remove room from user") }
+                            }
+                        } else { toast("Failed to remove user from room") }
+                    }
                 }
                 .addOnFailureListener { exception -> toast("Error retrieving room data: ${exception.message}") }
         } ?: run { toast("Room ID is missing.") }

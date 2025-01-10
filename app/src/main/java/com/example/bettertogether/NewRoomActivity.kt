@@ -3,7 +3,6 @@ package com.example.bettertogether
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
-import com.google.firebase.firestore.FieldValue
 import android.widget.*
 import android.util.Log
 import android.view.View
@@ -18,9 +17,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 
 class NewRoomActivity : BaseActivity() {
 
@@ -37,8 +33,6 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var formLayout: LinearLayout
     private lateinit var uploadButton: Button
     var uploadedImageUrl: String? = "null"
-
-    private var imageUri: String? = null // Store the uploaded image URI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,7 +97,7 @@ class NewRoomActivity : BaseActivity() {
             toast("Please select a ratio")
             isValid = false
         }
-        if (checkbox_event.isChecked && imageUri == null) {
+        if (checkbox_event.isChecked && uploadedImageUrl == "null") {
             toast("Please upload an image for the event")
             isValid = false
         }
@@ -161,23 +155,22 @@ class NewRoomActivity : BaseActivity() {
             )
         )
 
+        var whereToAdd = "rooms"
         if (checkbox_event.isChecked) {
             roomData["url"] = url
-            db.collection("events")
-                .add(roomData)
-                .addOnSuccessListener { eventRef ->
-                    addRoomToUser(userId,eventRef.id,betSubject,"owner",isPublic)
-                }
-                .addOnFailureListener { toast("Error adding event") }
-        } else {
-            db.collection("rooms")
-                .add(roomData)
-                .addOnSuccessListener { roomRef ->
-                    addRoomToUser(userId,roomRef.id,betSubject,"owner",isPublic)
-                }
-                .addOnFailureListener { exception -> toast("Error adding room: ${exception.message}") }
-            
+            whereToAdd = "events"
         }
+        db.collection(whereToAdd)
+            .add(roomData)
+            .addOnSuccessListener { roomRef ->
+                addRoomToUser(userId,roomRef.id,betSubject,"owner",isPublic) { success ->
+                    if(success){
+                        toast("Created room successfully")
+                        openRoom(roomRef.id)
+                    }
+                }
+            }
+            .addOnFailureListener { toast("Error adding room") }
     }
 
     private fun openGallery() {
@@ -191,54 +184,45 @@ class NewRoomActivity : BaseActivity() {
         if (requestCode == 101 && resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = data?.data
             selectedImageUri?.let {
-                val imagePath = getPathFromUri(it)
-                if (imagePath != null) {
-                    uploadImageToImgur(imagePath)
-                }
+                uploadImageToImgur(it)
             }
         }
     }
 
-    private fun getPathFromUri(uri: Uri): String? {
-        var filePath: String? = null
-        val cursor = contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DATA), null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                filePath = it.getString(columnIndex)
-            }
-        }
-        return filePath
-    }
+    private fun uploadImageToImgur(uri: Uri) {
+        try {
+            // Get InputStream from the Uri
+            val inputStream = contentResolver.openInputStream(uri)
+            val imageBytes = inputStream?.readBytes() ?: throw Exception("Failed to read image data")
+            val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
 
-    private fun uploadImageToImgur(imagePath: String) {
-        val file = File(imagePath)
-        val imageBytes = file.readBytes()
-        val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+            val body = mapOf("image" to base64Image)
 
-        val body = mapOf("image" to base64Image)
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://api.imgur.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.imgur.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            val imgurApi = retrofit.create(ImgurApi::class.java)
 
-        val imgurApi = retrofit.create(ImgurApi::class.java)
-
-        val call = imgurApi.uploadImage("Client-ID f41b5381b69da09", body)
-        call.enqueue(object : Callback<ImgurResponse> {
-            override fun onResponse(call: Call<ImgurResponse>, response: Response<ImgurResponse>) {
-                if (response.isSuccessful) {
-                    uploadedImageUrl = response.body()?.data?.link
-                    Toast.makeText(this@NewRoomActivity, "Uploaded: $uploadedImageUrl", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(this@NewRoomActivity, "Upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
+            val call = imgurApi.uploadImage("Client-ID f41b5381b69da09", body)
+            call.enqueue(object : Callback<ImgurResponse> {
+                override fun onResponse(call: Call<ImgurResponse>, response: Response<ImgurResponse>) {
+                    if (response.isSuccessful) {
+                        uploadedImageUrl = response.body()?.data?.link
+                        Toast.makeText(this@NewRoomActivity, "Uploaded: $uploadedImageUrl", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(this@NewRoomActivity, "Upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
-                Toast.makeText(this@NewRoomActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
-            }
-        })
+                override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
+                    Toast.makeText(this@NewRoomActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                }
+            })
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error uploading image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
+
 }
