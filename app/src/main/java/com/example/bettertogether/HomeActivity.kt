@@ -1,13 +1,14 @@
 package com.example.bettertogether
 
 import android.app.ProgressDialog
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.*
+import android.widget.ImageView
+import android.widget.Toast
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -18,40 +19,69 @@ class HomeActivity : BaseActivity() {
     private lateinit var imgViaURL: ImageView
     private lateinit var progressDialog: ProgressDialog
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val imageUrls = mutableListOf<String>()
+    private var currentImageIndex = 0
+    private val slideshowInterval = 8000L // 3 seconds
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val profileButton = findViewById<ImageButton>(R.id.profile_button)
-        profileButton.setOnClickListener {
-            val intent = Intent(this, ProfileActivity::class.java)
-            startActivity(intent)
-        }
-
-        // ImageView that presents the image
         imgViaURL = findViewById(R.id.imgViaURL)
 
-        val newRoom = findViewById<Button>(R.id.new_room)
-        newRoom.setOnClickListener { }
-
-        val yourRooms = findViewById<Button>(R.id.yourRooms)
-        yourRooms.setOnClickListener { }
-
-        // Load image from URL (can replace the constant string with string variable)
-        loadImageFromURL("https://i.imgur.com/1AOQjMn.jpeg")
+        // Fetch events and start slideshow
+        fetchEventsAndStartSlideshow()
 
         setupBottomNavigation()
     }
 
-
-    private fun loadImageFromURL(imageUrl: String) {
+    private fun fetchEventsAndStartSlideshow() {
         progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Getting your pic....")
+        progressDialog.setMessage("Fetching events...")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        // Perform network operation on a separate thread
+        db.collection("rooms")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                progressDialog.dismiss()
+                for (document in querySnapshot.documents) {
+                    if(document.getBoolean("isEvent")==true){
+                        val url = document.getString("url")
+                        if (url != null) {
+                            imageUrls.add(url)
+                        }
+                    }
+                }
+
+                if (imageUrls.isNotEmpty()) {
+                    startSlideshow()
+                } else {
+                    Toast.makeText(this, "No images found in events.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                progressDialog.dismiss()
+                Toast.makeText(this, "Failed to fetch events: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun startSlideshow() {
+        // Start rotating through images
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                if (imageUrls.isNotEmpty()) {
+                    val imageUrl = imageUrls[currentImageIndex]
+                    loadImageFromURL(imageUrl)
+                    currentImageIndex = (currentImageIndex + 1) % imageUrls.size
+                }
+                mainHandler.postDelayed(this, slideshowInterval)
+            }
+        })
+    }
+
+    private fun loadImageFromURL(imageUrl: String) {
+        // Load image from URL in a separate thread
         thread {
             var bitmap: Bitmap? = null
             try {
@@ -63,18 +93,16 @@ class HomeActivity : BaseActivity() {
 
             // Update UI on the main thread
             mainHandler.post {
-                progressDialog.dismiss()
                 if (bitmap != null) {
                     imgViaURL.setImageBitmap(bitmap)
                 } else {
                     Toast.makeText(
                         this@HomeActivity,
-                        "Failed to load image",
+                        "Failed to load image: $imageUrl",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             }
         }
     }
-
 }

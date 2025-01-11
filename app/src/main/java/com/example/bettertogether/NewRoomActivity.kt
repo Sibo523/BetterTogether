@@ -98,7 +98,7 @@ class NewRoomActivity : BaseActivity() {
             isValid = false
         }
         if (checkbox_event.isChecked && uploadedImageUrl == "null") {
-            toast("Please upload an image for the event")
+            toast("Please upload an image or wait for the event")
             isValid = false
         }
 
@@ -125,6 +125,7 @@ class NewRoomActivity : BaseActivity() {
         }
 
         val isPublic = checkbox_public.isChecked
+        val isEvent = checkbox_event.isChecked
         val betSubject = editText.text.toString()
         val betNumber = numberInput.text.toString()
         val selectedDate = dateInput.text.toString()
@@ -136,6 +137,7 @@ class NewRoomActivity : BaseActivity() {
         val url = uploadedImageUrl.toString()
 
         val roomData = hashMapOf(
+            "isEvent" to isEvent,
             "isPublic" to isPublic,
             "name" to betSubject,
             "betPoints" to betNumber,
@@ -155,12 +157,8 @@ class NewRoomActivity : BaseActivity() {
             )
         )
 
-        var whereToAdd = "rooms"
-        if (checkbox_event.isChecked) {
-            roomData["url"] = url
-            whereToAdd = "events"
-        }
-        db.collection(whereToAdd)
+        if(isEvent){ roomData["url"] = url }
+        db.collection("rooms")
             .add(roomData)
             .addOnSuccessListener { roomRef ->
                 addRoomToUser(userId,roomRef.id,betSubject,"owner",isPublic) { success ->

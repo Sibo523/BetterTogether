@@ -27,47 +27,6 @@
                 android:layout_height="330dp"
                 android:background="#212530">
 
-                <Button
-                    android:id="@+id/yourRooms"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="219dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginBottom="63dp"
-                    android:text="@string/your_rooms"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/new_room"
-                    app:layout_constraintStart_toEndOf="@+id/inbox"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <Button
-                    android:id="@+id/new_room"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="13dp"
-                    android:layout_marginTop="54dp"
-                    android:layout_marginEnd="40dp"
-                    android:layout_marginBottom="63dp"
-                    android:text="@string/new_room"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/yourRooms" />
-
-                <Button
-                    android:id="@+id/inbox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="40dp"
-                    android:layout_marginTop="219dp"
-                    android:layout_marginEnd="23dp"
-                    android:layout_marginBottom="63dp"
-                    android:text="@string/inbox"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/yourRooms"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
                 <!-- Profile Button -->
                 <ImageButton
                     android:id="@+id/profile_button"
@@ -82,32 +41,20 @@
 
                 <ImageView
                     android:id="@+id/imgViaURL"
-                    android:layout_width="210dp"
-                    android:layout_height="162dp"
-                    app:layout_constraintBottom_toTopOf="@+id/yourRooms"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.431"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.615"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     tools:srcCompat="@tools:sample/avatars" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="350dp">
-
-                <SearchView
-                    android:id="@+id/search"
-                    android:layout_width="match_parent"
-                    android:layout_height="70dp"
-                    android:layout_marginStart="30dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginEnd="30dp"
-                    android:background="#FFFFFF"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
                     android:id="@+id/button4"
