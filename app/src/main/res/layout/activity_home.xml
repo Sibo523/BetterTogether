@@ -20,24 +20,10 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Main Content -->
-
+            <!-- Event Thumbnails -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="330dp"
-                android:background="#212530">
-
-                <!-- Profile Button -->
-                <ImageButton
-                    android:id="@+id/profile_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/ic_profile"
-                    android:contentDescription="@string/profilephoto"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                android:layout_height="310dp">
 
                 <ImageView
                     android:id="@+id/imgViaURL"
@@ -50,25 +36,170 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     tools:srcCompat="@tools:sample/avatars" />
 
+                <Button
+                    android:id="@+id/bet"
+                    android:layout_width="70dp"
+                    android:layout_height="50dp"
+                    android:layout_marginEnd="25dp"
+                    android:layout_marginBottom="15dp"
+                    android:text="Bet"
+                    android:background="@android:color/white"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="350dp">
+                android:layout_height="wrap_content">
 
-                <Button
-                    android:id="@+id/button4"
-                    android:layout_width="343dp"
-                    android:layout_height="97dp"
-                    android:layout_marginStart="34dp"
-                    android:layout_marginTop="150dp"
-                    android:layout_marginEnd="34dp"
-                    android:layout_marginBottom="20dp"
-                    android:text="Button"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
+                <!-- Sports Section -->
+                <TextView
+                    android:id="@+id/sports_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sports"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:layout_marginTop="16dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+                <LinearLayout
+                    android:id="@+id/sports_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/sports_label"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <!-- Basketball -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_basketball"
+                            android:contentDescription="Basketball" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Basketball"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Soccer -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_soccer"
+                            android:contentDescription="Soccer" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Soccer"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Boxing -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_boxing"
+                            android:contentDescription="Boxing" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Boxing"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Football -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_football"
+                            android:contentDescription="Football" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Football"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Other Subjects Section -->
+                <TextView
+                    android:id="@+id/subjects_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Other Subjects"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@id/sports_row"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/subjects_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/subjects_label"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <!-- Politics -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_other_ic_politics"
+                            android:contentDescription="Politics" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Politics"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                    <!-- Add more subjects as needed -->
+                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </ScrollView>

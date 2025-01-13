@@ -8,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
 import android.widget.Toast
-import com.google.firebase.firestore.FirebaseFirestore
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -28,7 +27,6 @@ class HomeActivity : BaseActivity() {
         setContentView(R.layout.activity_home)
 
         imgViaURL = findViewById(R.id.imgViaURL)
-
         // Fetch events and start slideshow
         fetchEventsAndStartSlideshow()
 

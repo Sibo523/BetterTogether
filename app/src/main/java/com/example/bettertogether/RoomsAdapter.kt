@@ -18,7 +18,7 @@ class RoomsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.room_item, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_room, parent, false)
         return RoomViewHolder(view)
     }
 

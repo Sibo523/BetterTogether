@@ -22,7 +22,7 @@ class ChatAdapter(private val messages: List<Message>) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.message_item, parent, false)
+            .inflate(R.layout.item_message, parent, false)
         return ChatViewHolder(view)
     }
 
