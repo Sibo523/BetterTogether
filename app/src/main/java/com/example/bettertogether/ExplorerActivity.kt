@@ -5,12 +5,13 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.DocumentSnapshot
 
 class ExplorerActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
-    private lateinit var roomsAdapter: RoomsAdapter
-    private val roomsList = mutableListOf<Triple<String, String, Boolean>>() // Triple<roomID, roomName, isPublic>
-    private val filteredRoomsList = mutableListOf<Triple<String, String, Boolean>>() // Filtered list for search
+    private lateinit var roomsAdapter: AdapterRooms
+    private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
+    private val filteredRoomsList = mutableListOf<DocumentSnapshot>() // Filtered list for search
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,8 +19,8 @@ class ExplorerActivity : BaseActivity() {
 
         recyclerView = findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        roomsAdapter = RoomsAdapter(filteredRoomsList) { roomId ->
-            openRoom(roomId)
+        roomsAdapter = AdapterRooms(filteredRoomsList) { document ->
+            openRoom(document.id)
         }
         recyclerView.adapter = roomsAdapter
 
@@ -31,20 +32,19 @@ class ExplorerActivity : BaseActivity() {
     private fun loadAllRooms() {
         db.collection("rooms")
             .get()
-            .addOnSuccessListener { documents ->
+            .addOnSuccessListener { querySnapshot ->
                 roomsList.clear()
+                roomsList.addAll(querySnapshot.documents)
                 filteredRoomsList.clear()
-                for (document in documents) {
-                    val roomId = document.id
-                    val roomName = document.getString("name") ?: "Unnamed Room"
-                    val isPublic = document.getBoolean("isPublic") ?: false // Default to false if not provided
-                    roomsList.add(Triple(roomId, roomName, isPublic))
-                }
-                filteredRoomsList.addAll(roomsList) // Initially, show all rooms
+                filteredRoomsList.addAll(roomsList) // Initially display all rooms
                 roomsAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error fetching rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Error fetching rooms: ${exception.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
@@ -71,9 +71,13 @@ class ExplorerActivity : BaseActivity() {
             filteredRoomsList.addAll(roomsList) // Show all rooms if search is empty
         } else {
             filteredRoomsList.addAll(
-                roomsList.filter { it.second.contains(searchQuery, ignoreCase = true) }
+                roomsList.filter { document ->
+                    val roomName = document.getString("name") ?: "Unnamed Room"
+                    roomName.contains(searchQuery, ignoreCase = true)
+                }
             )
         }
         roomsAdapter.notifyDataSetChanged() // Refresh the adapter
     }
+
 }

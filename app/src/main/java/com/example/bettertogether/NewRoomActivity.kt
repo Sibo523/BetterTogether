@@ -24,13 +24,13 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var checkbox_public: CheckBox
     private lateinit var checkbox_event: CheckBox
     private lateinit var editText: EditText
-    private lateinit var numberInput: EditText
+    private lateinit var betAmountInput: EditText
+    private lateinit var maxParticipantsInput: EditText
     private lateinit var dateInput: EditText
     private lateinit var descriptionInput: EditText
     private lateinit var codeInput: EditText
     private lateinit var radioGroup: RadioGroup
     private lateinit var submitButton: Button
-    private lateinit var formLayout: LinearLayout
     private lateinit var uploadButton: Button
     var uploadedImageUrl: String? = "null"
 
@@ -42,13 +42,13 @@ class NewRoomActivity : BaseActivity() {
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
         editText = findViewById(R.id.form_text_input)
-        numberInput = findViewById(R.id.form_number_input)
+        betAmountInput = findViewById(R.id.form_number_input)
+        maxParticipantsInput = findViewById(R.id.max_participants_input)
         dateInput = findViewById(R.id.form_date_input)
         descriptionInput = findViewById(R.id.form_description_input)
         codeInput = findViewById(R.id.form_code_input)
         radioGroup = findViewById(R.id.form_radio_group)
         submitButton = findViewById(R.id.submit_button)
-        formLayout = findViewById(R.id.form_layout)
         uploadButton = findViewById(R.id.uploadButton)
 
         checkUserRole { role ->
@@ -71,38 +71,39 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun validateInputs(): Boolean {
-        var isValid = true
-
         if (editText.text.toString().isBlank()) {
             editText.error = "Bet subject cannot be empty"
-            isValid = false
+            return false
         }
-        if (numberInput.text.toString().isBlank()) {
-            numberInput.error = "Bet number cannot be empty"
-            isValid = false
+        if (betAmountInput.text.toString().isBlank()) {
+            betAmountInput.error = "Bet number cannot be empty"
+            return false
         }
         if (dateInput.text.toString().isBlank()) {
             dateInput.error = "Please select a date"
-            isValid = false
+            return false
         }
         if (descriptionInput.text.toString().isBlank()) {
             descriptionInput.error = "Description cannot be empty"
-            isValid = false
+            return false
+        }
+        if (maxParticipantsInput.text.toString().isBlank()) {
+            maxParticipantsInput.error = "Max Participants cannot be empty"
+            return false
         }
         if (!checkbox_public.isChecked && codeInput.text.toString().length !in 6..10) {
             codeInput.error = "Code must be between 6 and 10 characters"
-            isValid = false
+            return false
         }
         if (radioGroup.checkedRadioButtonId == -1) {
             toast("Please select a ratio")
-            isValid = false
+            return false
         }
         if (checkbox_event.isChecked && uploadedImageUrl == "null") {
             toast("Please upload an image or wait for the event")
-            isValid = false
+            return false
         }
-
-        return isValid
+        return true
     }
 
     private fun showDatePicker() {
@@ -127,7 +128,8 @@ class NewRoomActivity : BaseActivity() {
         val isPublic = checkbox_public.isChecked
         val isEvent = checkbox_event.isChecked
         val betSubject = editText.text.toString()
-        val betNumber = numberInput.text.toString()
+        val betAmount = betAmountInput.text.toString()
+        val maxParticipants = maxParticipantsInput.text.toString()
         val selectedDate = dateInput.text.toString()
         val description = descriptionInput.text.toString()
         val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
@@ -140,7 +142,8 @@ class NewRoomActivity : BaseActivity() {
             "isEvent" to isEvent,
             "isPublic" to isPublic,
             "name" to betSubject,
-            "betPoints" to betNumber,
+            "betPoints" to betAmount,
+            "maxParticipants" to maxParticipants,
             "description" to description,
             "code" to code,
             "expiration" to selectedDate,

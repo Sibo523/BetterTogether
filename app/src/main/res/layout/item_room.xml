@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingEnd="32dp">
+        android:paddingEnd="80dp"> <!-- Adjust paddingEnd to leave space for lock and counter -->
 
         <TextView
             android:id="@+id/room_name"
@@ -33,7 +33,20 @@
         android:layout_height="24dp"
         android:src="@drawable/room_ic_lock"
         android:contentDescription="@string/lock_icon"
-        android:layout_alignParentEnd="true"
+        android:layout_toStartOf="@id/participants_counter"
         android:layout_centerVertical="true"
         android:visibility="gone" />
+    <!-- Participants counter -->
+    <TextView
+        android:id="@+id/participants_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:text="0/10"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:paddingEnd="8dp"
+        android:layout_alignParentEnd="true"
+        android:textColor="@android:color/black" />
+
 </RelativeLayout>
