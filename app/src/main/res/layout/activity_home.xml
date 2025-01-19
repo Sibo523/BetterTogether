@@ -78,7 +78,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent">
 
-                    <!-- Icons for sports categories -->
+                    <!-- Basketball -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -113,6 +113,44 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Soccer"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Football -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_football"
+                            android:contentDescription="Football" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Football"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Boxing -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/events_sports_ic_boxing"
+                            android:contentDescription="Boxing" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Boxing"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
