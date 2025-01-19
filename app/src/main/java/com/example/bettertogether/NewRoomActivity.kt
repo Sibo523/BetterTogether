@@ -32,7 +32,7 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var radioGroup: RadioGroup
     private lateinit var submitButton: Button
     private lateinit var uploadButton: Button
-    var uploadedImageUrl: String? = "null"
+    var uploadedImageUrl: String? = "null.png"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +53,6 @@ class NewRoomActivity : BaseActivity() {
 
         checkUserRole { role ->
             checkbox_event.visibility = if(role=="owner") View.VISIBLE else View.GONE
-        }
-        checkbox_event.setOnCheckedChangeListener { _, isChecked ->
-            uploadButton.visibility = if(isChecked) View.VISIBLE else View.GONE
         }
         checkbox_public.setOnCheckedChangeListener { _, isChecked ->
             codeInput.visibility = if(isChecked) View.GONE else View.VISIBLE
@@ -97,7 +94,7 @@ class NewRoomActivity : BaseActivity() {
             toast("Please select a ratio")
             return false
         }
-        if (checkbox_event.isChecked && uploadedImageUrl == "null") {
+        if (checkbox_event.isChecked && uploadedImageUrl == "null.png") {
             toast("Please upload an image or wait for the event")
             return false
         }
@@ -148,6 +145,7 @@ class NewRoomActivity : BaseActivity() {
             "betType" to selectedRadio,
             "createdOn" to System.currentTimeMillis(),
             "createdBy" to userId,
+            "url" to url,
             "participants" to mutableListOf(
                 hashMapOf(
                     "id" to userId,
@@ -157,8 +155,6 @@ class NewRoomActivity : BaseActivity() {
                 )
             )
         )
-
-        if(isEvent){ roomData["url"] = url }
         db.collection("rooms")
             .add(roomData)
             .addOnSuccessListener { roomRef ->
