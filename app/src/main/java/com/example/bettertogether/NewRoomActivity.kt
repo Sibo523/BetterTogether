@@ -66,8 +66,6 @@ class NewRoomActivity : BaseActivity() {
         dateInput.setOnClickListener{ showDatePicker() }
 
         submitButton.setOnClickListener{ if(validateInputs()){ submitForm() } }
-
-        setupBottomNavigation()
     }
 
     private fun validateInputs(): Boolean {

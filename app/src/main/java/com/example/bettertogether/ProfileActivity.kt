@@ -45,8 +45,6 @@ class ProfileActivity : BaseActivity() {
         signOutButton.setOnClickListener {
             signOut()
         }
-
-        setupBottomNavigation()
     }
 
     private fun displayProfile() {

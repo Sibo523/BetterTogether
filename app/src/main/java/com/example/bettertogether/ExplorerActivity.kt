@@ -26,7 +26,6 @@ class ExplorerActivity : BaseActivity() {
 
         loadAllRooms()
         setupSearchBar()
-        setupBottomNavigation()
     }
 
     private fun loadAllRooms() {

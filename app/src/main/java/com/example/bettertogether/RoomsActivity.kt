@@ -24,7 +24,6 @@ class RoomsActivity : BaseActivity() {
         recyclerView.adapter = roomsAdapter
 
         loadUserRooms()
-        setupBottomNavigation()
     }
 
     private fun loadUserRooms() {

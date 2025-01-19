@@ -13,14 +13,15 @@ abstract class BaseActivity : AppCompatActivity() {
     protected lateinit var auth: FirebaseAuth
     protected lateinit var db: FirebaseFirestore
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun setContentView(layoutResID: Int) {
+        val baseView = layoutInflater.inflate(R.layout.activity_base, null)
+        val contentFrame = baseView.findViewById<FrameLayout>(R.id.activity_content)
+        layoutInflater.inflate(layoutResID, contentFrame, true)
+        super.setContentView(baseView)
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-
         setupBottomNavigation()
     }
-
     protected fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         if(bottomNav == null){ return }

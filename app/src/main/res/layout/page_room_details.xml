@@ -1,40 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- room_details.xml -->
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#F9FAFB">
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="#F9FAFB">
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/footerLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/roomExpirationText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:textSize="12sp"
-            android:textColor="#8B97A2" />
-
-        <!-- ScrollView for the main content -->
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="100dp"
+            android:clipToPadding="false">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <!-- Add your content here -->
+            <TextView
+                android:id="@+id/roomExpirationText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="100dp"
-                android:clipToPadding="false">
+                android:layout_marginStart="4dp"
+                android:text="Expiration Date"
+                android:textSize="12sp"
+                android:textColor="#8B97A2" />
 
                 <!-- Image Section (analogous to the Container with Stack in Flutter) -->
                 <FrameLayout
@@ -47,6 +44,7 @@
                     android:padding="0dp">
 
                     <ImageView
+                        android:id="@+id/roomImage"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
@@ -263,18 +261,20 @@
                             android:textColor="#8B97A2"/>
                     </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
         </ScrollView>
 
-        <!-- Fixed Footer for Bet points & Bet Now -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#000000"
-            android:gravity="end"
-            android:padding="16dp">
+    <!-- Footer with Buttons -->
+    <LinearLayout
+        android:id="@+id/footerLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#000000"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
             <!-- Bet points Column -->
             <LinearLayout
@@ -304,45 +304,43 @@
                     android:textColor="#8B97A2"/>
             </LinearLayout>
 
-            <!-- Room Code Input for Private Rooms -->
-            <EditText
-                android:id="@+id/code_input"
+            <!-- Fixed Buttons at the bottom -->
+            <LinearLayout
+                android:id="@+id/buttonContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Room Code"
-                android:padding="8dp"
-                android:layout_margin="16dp"
-                android:visibility="gone" />
-            <!-- Join Button -->
-            <Button
-                android:id="@+id/joinButton"
-                android:layout_width="130dp"
-                android:layout_height="50dp"
-                android:text="JOIN"
-                android:textColor="@android:color/white"
-                android:backgroundTint="#4B39EF"
-                android:visibility="gone"/>
-            <!-- Bet Button -->
-            <Button
-                android:id="@+id/betNowButton"
-                android:layout_width="130dp"
-                android:layout_height="50dp"
-                android:text="Bet"
-                android:textColor="@android:color/white"
-                android:backgroundTint="#4B39EF" />
+                android:orientation="horizontal"
+                android:background="#000000"
+                android:padding="16dp" >
 
-        </LinearLayout>
-
+                <!-- Room Code Input for Private Rooms -->
+                <EditText
+                    android:id="@+id/codeInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Room Code"
+                    android:padding="8dp"
+                    android:layout_margin="16dp"
+                    android:visibility="gone" />
+                <!-- Join Button -->
+                <Button
+                    android:id="@+id/joinButton"
+                    android:layout_width="130dp"
+                    android:layout_height="50dp"
+                    android:text="JOIN"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#4B39EF"
+                    android:visibility="gone" />
+                <!-- Bet Button -->
+                <Button
+                    android:id="@+id/betNowButton"
+                    android:layout_width="130dp"
+                    android:layout_height="50dp"
+                    android:layout_marginStart="16dp"
+                    android:text="Bet"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#4B39EF" />
+            </LinearLayout>
     </LinearLayout>
 
-    <!-- Sticky Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        app:itemIconTint="@color/black"
-        app:itemTextColor="@color/white"
-        app:itemIconSize="36dp"
-        app:menu="@menu/navbar" />
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

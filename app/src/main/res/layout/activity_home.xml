@@ -78,7 +78,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent">
 
-                    <!-- Basketball -->
+                    <!-- Icons for sports categories -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -116,46 +116,9 @@
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
-                    <!-- Boxing -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@drawable/events_sports_ic_boxing"
-                            android:contentDescription="Boxing" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Boxing"
-                            android:textColor="@android:color/white"
-                            android:gravity="center" />
-                    </LinearLayout>
-                    <!-- Football -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@drawable/events_sports_ic_football"
-                            android:contentDescription="Football" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Football"
-                            android:textColor="@android:color/white"
-                            android:gravity="center" />
-                    </LinearLayout>
                 </LinearLayout>
 
+                <!-- Additional Subjects Section -->
                 <TextView
                     android:id="@+id/other_subjects_label"
                     android:layout_width="wrap_content"
@@ -194,7 +157,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Basketball"
+                            android:text="Politics"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -205,7 +168,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" >
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/slider_title"
@@ -225,15 +188,4 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-
-    <!-- Bottom Navigation Bar -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        app:itemIconTint="@color/black"
-        app:itemTextColor="@color/white"
-        app:itemIconSize="36dp"
-        app:menu="@menu/navbar" />
 </LinearLayout>

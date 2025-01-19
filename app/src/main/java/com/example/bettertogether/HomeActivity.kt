@@ -41,8 +41,6 @@ class HomeActivity : BaseActivity() {
         }
         roomsSlider.adapter = roomsSliderAdapter
         popularPublicRooms()
-
-        setupBottomNavigation()
     }
 
     private fun eventsForSlideshow() {
