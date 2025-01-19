@@ -1,118 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:padding="16dp">
+    android:orientation="vertical"
+    tools:context=".NewRoomActivity">
 
-    <LinearLayout
+    <!-- Scrollable Content -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
 
-        <!-- Room Name -->
-        <EditText
-            android:id="@+id/form_text_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Room Name"
-            android:inputType="text" />
-
-        <!-- Bet Number -->
-        <EditText
-            android:id="@+id/form_number_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Bet Number"
-            android:inputType="number" />
-
-        <!-- Expiration Date -->
-        <EditText
-            android:id="@+id/form_date_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Expiration Date"
-            android:focusable="false"
-            android:inputType="date" />
-
-        <!-- Description -->
-        <EditText
-            android:id="@+id/form_description_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Description"
-            android:inputType="textMultiLine" />
-
-        <!-- Checkboxes for Public Room and Event -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <CheckBox
-                android:id="@+id/form_checkbox_public"
-                android:layout_width="wrap_content"
+            <!-- Room Name -->
+            <EditText
+                android:id="@+id/form_text_input"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Public Room" />
+                android:hint="Enter Room Name"
+                android:inputType="text" />
 
-            <CheckBox
-                android:id="@+id/form_checkbox_event"
-                android:layout_width="wrap_content"
+            <!-- Bet Number -->
+            <EditText
+                android:id="@+id/form_number_input"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Event"
+                android:hint="Bet Number"
+                android:inputType="number" />
+
+            <!-- Expiration Date -->
+            <EditText
+                android:id="@+id/form_date_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Expiration Date"
+                android:focusable="false"
+                android:inputType="date" />
+
+            <!-- Description -->
+            <EditText
+                android:id="@+id/form_description_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Description"
+                android:inputType="textMultiLine" />
+
+            <!-- Checkboxes for Public Room and Event -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/form_checkbox_public"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Public Room" />
+
+                <CheckBox
+                    android:id="@+id/form_checkbox_event"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Event"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Maximum Participants -->
+            <EditText
+                android:id="@+id/max_participants_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Max Participants"
+                android:inputType="number" />
+
+            <!-- Room Code -->
+            <EditText
+                android:id="@+id/form_code_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Room Code"
+                android:inputType="text" />
+
+            <!-- Radio Group for Bet Type -->
+            <RadioGroup
+                android:id="@+id/form_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radio_option1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Even Bet" />
+
+                <RadioButton
+                    android:id="@+id/radio_option2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ratio Bet" />
+            </RadioGroup>
+
+            <!-- Upload Button -->
+            <Button
+                android:id="@+id/uploadButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Image"
                 android:visibility="gone" />
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/submit_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Create Room" />
         </LinearLayout>
+    </ScrollView>
 
-        <!-- Maximum Participants -->
-        <EditText
-            android:id="@+id/max_participants_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Max Participants"
-            android:inputType="number" />
-
-        <!-- Room Code -->
-        <EditText
-            android:id="@+id/form_code_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Room Code"
-            android:inputType="text" />
-
-        <!-- Radio Group for Bet Type -->
-        <RadioGroup
-            android:id="@+id/form_radio_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/radio_option1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Even Bet" />
-
-            <RadioButton
-                android:id="@+id/radio_option2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ratio Bet" />
-        </RadioGroup>
-
-        <!-- Upload Button -->
-        <Button
-            android:id="@+id/uploadButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Upload Image"
-            android:visibility="gone" />
-
-        <!-- Submit Button -->
-        <Button
-            android:id="@+id/submit_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Create Room" />
-    </LinearLayout>
-</ScrollView>
+    <!-- Bottom Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+    android:id="@+id/bottom_navigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorPrimary"
+    app:itemIconTint="@color/black"
+    app:itemTextColor="@color/white"
+    app:itemIconSize="36dp"
+    app:menu="@menu/navbar" />
+</LinearLayout>

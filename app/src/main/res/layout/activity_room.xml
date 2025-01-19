@@ -1,147 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".RoomActivity">
+    android:background="#F9FAFB">
 
-    <!-- Leave Room Button -->
-    <Button
-        android:id="@+id/leave_room_button"
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Leave Room"
-        android:textColor="@android:color/white"
-        android:background="@android:color/holo_red_dark"
-        android:visibility="gone"
-        android:padding="16dp" />
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-    <!-- Room Details -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
-
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:titleTextColor="@android:color/white"
+            app:title="Room Details" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-            <TextView
-                android:id="@+id/room_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Room Name"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingBottom="8dp" />
-
-            <TextView
-                android:id="@+id/room_type"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Room Type"
-                android:paddingBottom="8dp" />
-
-            <TextView
-                android:id="@+id/room_points"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Points"
-                android:paddingBottom="8dp" />
-
-            <TextView
-                android:id="@+id/room_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Description"
-                android:paddingBottom="8dp" />
-
-            <TextView
-                android:id="@+id/room_expiration"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Expiration"
-                android:paddingBottom="8dp" />
-
-            <TextView
-                android:id="@+id/room_is_public"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Public/Private"
-                android:paddingBottom="8dp" />
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Chat Messages -->
-    <ImageView
-        android:id="@+id/roomImgViaURL"
+    <!-- ViewPager2 for fragments -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="207dp"
-        tools:srcCompat="@tools:sample/avatars" />
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chat_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical"
-        android:padding="8dp" />
-
-    <!-- Chat Input -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <EditText
-            android:id="@+id/message_input"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/enter_message"
-            android:padding="8dp"
-            android:background="@drawable/rounded_background" />
-
-        <Button
-            android:id="@+id/send_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/send"
-            android:padding="8dp" />
-    </LinearLayout>
-
-    <!-- Room Code Input for Private Rooms -->
-    <EditText
-        android:id="@+id/code_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter Room Code"
-        android:padding="8dp"
-        android:layout_margin="16dp"
-        android:visibility="gone" />
-    <!-- Join Button -->
-    <Button
-        android:id="@+id/join_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Join"
-        android:padding="16dp"
-        android:layout_margin="16dp"
-        android:visibility="gone" />
-
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        app:itemIconTint="@color/black"
-        app:itemTextColor="@color/white"
-        app:itemIconSize="36dp"
-        app:menu="@menu/navbar" />
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

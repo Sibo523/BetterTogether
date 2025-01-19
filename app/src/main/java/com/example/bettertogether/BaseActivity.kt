@@ -89,13 +89,13 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
 
-    protected fun addRoomToUser(userId:String, roomId:String, betSubject:String, role:String, isPublic:Boolean, callback:(Boolean)->Unit){
+    protected fun addRoomToUser(userId:String, roomId:String, betSubject:String, role:String, isprotected:Boolean, callback:(Boolean)->Unit){
         val userRoomData = hashMapOf(
             "roomId" to roomId,
             "roomName" to betSubject,
             "joinedOn" to System.currentTimeMillis(),
             "role" to role,
-            "isPublic" to isPublic
+            "isprotected" to isprotected
         )
         db.collection("users").document(userId)
             .update("rooms", FieldValue.arrayUnion(userRoomData))

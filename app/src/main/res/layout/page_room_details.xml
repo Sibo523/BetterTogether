@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- room_details.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F9FAFB">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#F9FAFB">
+
+        <TextView
+            android:id="@+id/roomExpirationText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textSize="12sp"
+            android:textColor="#8B97A2" />
+
+        <!-- ScrollView for the main content -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="100dp"
+                android:clipToPadding="false">
+
+                <!-- Image Section (analogous to the Container with Stack in Flutter) -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="320dp"
+                    android:layout_margin="16dp"
+                    android:background="#DBE2E7"
+                    android:clipToPadding="true"
+                    android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="0dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/star" />
+                </FrameLayout>
+
+                <!-- Room Name -->
+                <TextView
+                    android:id="@+id/roomNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="12dp"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <!-- Room publicity -->
+                <TextView
+                    android:id="@+id/isPublicText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp"
+                    android:textColor="#8B97A2" />
+
+                <!-- Participants Count row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/participantsCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="12sp"
+                        android:textColor="#8B97A2" />
+
+                    <TextView
+                        android:id="@+id/participantsCountText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="participants"
+                        android:textSize="12sp"
+                        android:textColor="#8B97A2" />
+                </LinearLayout>
+
+                <!-- Description Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="12dp"
+                    android:text="DESCRIPTION"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+                <!-- Description Body -->
+                <TextView
+                    android:id="@+id/roomDescriptionText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="#8B97A2"
+                    android:textSize="14sp" />
+
+                <!-- Amenities title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Amenities"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+                <!-- Horizontal scroll for amenities icons -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="24dp"
+                    android:clipToPadding="false">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Repeat for each amenity icon, e.g. -->
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/star"
+                            android:contentDescription="xxxxxxxxxx"
+                            app:tint="#8B97A2" />
+
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/star"
+                            android:contentDescription="xxxxxxxxxxxxx"
+                            app:tint="#8B97A2" />
+
+                        <!-- ... etc. for each amenity ... -->
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- "What people are saying" Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:background="#FFFFFF">
+
+                    <TextView
+                        android:id="@+id/peopleSayingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginEnd="24dp"
+                        android:text="What people are saying"
+                        android:textSize="14sp"
+                        android:textColor="#000000" />
+
+                    <!-- A ViewPager2 or custom horizontal scroll for user reviews in a real project -->
+                    <!-- Here we just mock a vertical list of reviews -->
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Example single review item -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="12dp"
+                            android:layout_margin="12dp"
+                            android:background="#FFFFFF"
+                            android:layout_marginBottom="0dp"
+                            android:clipToPadding="false">
+
+                            <!-- Left column: name & rating -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="User Name"
+                                    android:textColor="#000000"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <!-- Mocked rating display -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="4dp">
+                                    <!-- 5 stars possible -->
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:src="@drawable/star"
+                                        app:tint="#FFA130" />
+                                    <!-- ... more stars ... -->
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <!-- Right column: user photo -->
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:src="@drawable/ic_profile"
+                                android:scaleType="centerCrop"/>
+                        </LinearLayout>
+
+                        <!-- Review text -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="12dp"
+                            android:text="This place was amazing! 10/10 would recommend."
+                            android:textSize="14sp"
+                            android:textColor="#8B97A2"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Fixed Footer for Bet points & Bet Now -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#000000"
+            android:gravity="end"
+            android:padding="16dp">
+
+            <!-- Bet points Column -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/betPointsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        android:textColor="#F9FAFB"/>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/roomTypeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textColor="#8B97A2"/>
+            </LinearLayout>
+
+            <!-- Room Code Input for Private Rooms -->
+            <EditText
+                android:id="@+id/code_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Room Code"
+                android:padding="8dp"
+                android:layout_margin="16dp"
+                android:visibility="gone" />
+            <!-- Join Button -->
+            <Button
+                android:id="@+id/joinButton"
+                android:layout_width="130dp"
+                android:layout_height="50dp"
+                android:text="JOIN"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#4B39EF"
+                android:visibility="gone"/>
+            <!-- Bet Button -->
+            <Button
+                android:id="@+id/betNowButton"
+                android:layout_width="130dp"
+                android:layout_height="50dp"
+                android:text="Bet"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#4B39EF" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Sticky Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/white"
+        app:itemIconSize="36dp"
+        app:menu="@menu/navbar" />
+</LinearLayout>

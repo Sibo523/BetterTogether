@@ -12,8 +12,8 @@ data class Message(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-class ChatAdapter(private val messages: List<Message>) :
-    RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+class AdapterChat(private val messages: List<Message>) :
+    RecyclerView.Adapter<AdapterChat.ChatViewHolder>() {
 
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val senderTextView: TextView = itemView.findViewById(R.id.sender_text)
