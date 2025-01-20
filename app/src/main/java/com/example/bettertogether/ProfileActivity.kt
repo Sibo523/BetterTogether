@@ -50,12 +50,9 @@ class ProfileActivity : BaseActivity() {
     private fun displayProfile() {
         val user: FirebaseUser? = auth.currentUser
 
-        if (user != null) {
-            // Set name and email from FirebaseAuth
+        if (user != null) {    // Set name and email from FirebaseAuth
             nameTextView.text = user.displayName ?: "N/A"
             emailTextView.text = user.email ?: "N/A"
-
-            // Fetch additional user data from Firestore
             val userId = user.uid
             db.collection("users").document(userId)
                 .get()
@@ -67,7 +64,7 @@ class ProfileActivity : BaseActivity() {
                         dobTextView.text = document.getString("dob") ?: "N/A"
                         mobileTextView.text = document.getString("mobile") ?: "N/A"
                     } else {
-                        Toast.makeText(this, "No additional user data found.", Toast.LENGTH_SHORT).show()
+                        toast("No additional user data found.")
                         // Optionally, set default values
                         usernameTextView.text = "N/A"
                         genderTextView.text = "N/A"
@@ -77,7 +74,7 @@ class ProfileActivity : BaseActivity() {
                     }
                 }
                 .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Failed to fetch user data.", Toast.LENGTH_SHORT).show()
+                    toast("Failed to fetch user data.")
                     // Optionally, set default values
                     usernameTextView.text = "N/A"
                     genderTextView.text = "N/A"
@@ -85,20 +82,10 @@ class ProfileActivity : BaseActivity() {
                     dobTextView.text = "N/A"
                     mobileTextView.text = "N/A"
                 }
-
-            // Load profile picture
-            val photoUrl = user.photoUrl
-            if (photoUrl != null) {
-                Glide.with(this)
-                    .load(photoUrl)
-                    .placeholder(R.drawable.ic_profile) // Optional fallback image
-                    .into(profileImageView)
-            } else {
-                profileImageView.setImageResource(R.drawable.ic_profile)
-            }
-        } else {
-            // Handle the case where the user is not logged in
-            Toast.makeText(this, "User not logged in.", Toast.LENGTH_SHORT).show()
+            loadUserPhoto(profileImageView)
+            
+        } else {  // Handle the case where the user is not logged in
+            toast("User not logged in.")
             // Redirect to login if necessary
             val intent = Intent(this, LoginActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -107,21 +94,18 @@ class ProfileActivity : BaseActivity() {
         }
     }
 
-    private fun signOut() {
-        // Sign out from Firebase
+    private fun signOut() {            // Sign out from Firebase
         auth.signOut()
-
         // Revoke the Google Sign-In session
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
         val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
         googleSignInClient.signOut().addOnCompleteListener {
             googleSignInClient.revokeAccess().addOnCompleteListener {
-                // Navigate back to LoginActivity
                 val intent = Intent(this, LoginActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
                 startActivity(intent)
-                Toast.makeText(this, "Signed out successfully!", Toast.LENGTH_SHORT).show()
+                toast("Signed out successfully!")
             }
         }
     }

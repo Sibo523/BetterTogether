@@ -1,16 +1,11 @@
 package com.example.bettertogether
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlin.concurrent.thread
 
 class HomeActivity : BaseActivity() {
 
@@ -23,7 +18,6 @@ class HomeActivity : BaseActivity() {
     private val imageUrls = mutableListOf<String>()
     private var currentImageIndex = 0
     private val slideshowInterval = 8000L // 8 seconds
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,11 +52,11 @@ class HomeActivity : BaseActivity() {
                 if (imageUrls.isNotEmpty()) {
                     startSlideshow()
                 } else {
-                    Toast.makeText(this, "No images found in events.", Toast.LENGTH_SHORT).show()
+                    toast("No images found in events.")
                 }
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Failed to fetch events: ${exception.message}", Toast.LENGTH_SHORT).show()
+                toast("Failed to fetch events: ${exception.message}")
             }
     }
 
@@ -71,32 +65,12 @@ class HomeActivity : BaseActivity() {
             override fun run() {
                 if (imageUrls.isNotEmpty()) {
                     val imageUrl = imageUrls[currentImageIndex]
-                    loadImageFromURL(imageUrl)
+                    loadImageFromURL(imageUrl,imgViaURL)
                     currentImageIndex = (currentImageIndex + 1) % imageUrls.size
                 }
                 mainHandler.postDelayed(this, slideshowInterval)
             }
         })
-    }
-
-    private fun loadImageFromURL(imageUrl: String) {
-        thread {
-            var bitmap: Bitmap? = null
-            try {
-                val inputStream = java.net.URL(imageUrl).openStream()
-                bitmap = BitmapFactory.decodeStream(inputStream)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            mainHandler.post {
-                if (bitmap != null) {
-                    imgViaURL.setImageBitmap(bitmap)
-                } else {
-                    Toast.makeText(this, "Failed to load image: $imageUrl", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
 
     private fun popularPublicRooms() {
@@ -119,7 +93,7 @@ class HomeActivity : BaseActivity() {
                 roomsSliderAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error fetching popular rooms: ${exception.message}", Toast.LENGTH_SHORT).show()
+                toast("Error fetching popular rooms: ${exception.message}")
             }
     }
 }

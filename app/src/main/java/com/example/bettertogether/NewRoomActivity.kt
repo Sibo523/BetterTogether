@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
-import android.util.Log
 import android.view.View
 import java.util.*
 import android.app.Activity

@@ -2,10 +2,12 @@ package com.example.bettertogether
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FieldValue
 
@@ -155,6 +157,26 @@ abstract class BaseActivity : AppCompatActivity() {
                 callback(false)
             }
     }
+
+
+    protected fun loadUserPhoto(imageView:ImageView){
+        val user = auth.currentUser
+        if (user == null) { return }
+        val photoUrl = user.photoUrl
+        loadImageFromURL(photoUrl.toString(),imageView)
+    }
+    protected fun loadImageFromURL(imageUrl: String, imageView: ImageView) {
+        if (!isDestroyed && !isFinishing) {
+            Glide.with(this) // `this` הוא הקונטקסט, אם אתה נמצא בתוך Activity או Fragment.
+                .load(imageUrl) // כתובת ה-URL של התמונה.
+                .placeholder(R.drawable.star) // תמונה שתוצג בזמן הטעינה (אופציונלי).
+                .error(R.drawable.star) // תמונה שתוצג אם הטעינה נכשלה (אופציונלי).
+                .into(imageView)
+        } else {
+            Log.w("BaseActivity", "Attempted to load image for a destroyed or finishing activity")
+        }
+    }
+
     protected fun toast(message : String){
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }

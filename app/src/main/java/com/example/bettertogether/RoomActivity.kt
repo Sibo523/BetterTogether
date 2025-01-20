@@ -13,7 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
+import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 
 class RoomActivity : BaseActivity() {
     private lateinit var roomNameTextView: TextView
@@ -38,6 +38,8 @@ class RoomActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
 
+        roomId = intent.getStringExtra("roomId").toString()
+
         val viewPager: ViewPager2 = findViewById(R.id.viewPager)
         val adapter = AdapterRoomPager(this)
         viewPager.adapter = adapter
@@ -49,7 +51,7 @@ class RoomActivity : BaseActivity() {
                 if (currentView != null) {
                     when (position) {
                         0 -> initRoomDetailsView(currentView) // אתחול עמוד פרטי החדר
-                        1 -> initChatView(currentView)       // אתחול עמוד הצ'אט
+                        1 -> initChatView(currentView)        // אתחול עמוד הצ'אט
                     }
                 }
             }
@@ -57,22 +59,6 @@ class RoomActivity : BaseActivity() {
 
         adapter.getPageView(0)?.let { initRoomDetailsView(it) }
         adapter.getPageView(1)?.let { initChatView(it) }
-
-        roomId = intent.getStringExtra("roomId").toString()
-        val roomId = roomId
-        if (roomId != "null") {
-            fetchRoomDetails(roomId) { isPublic, participantStatus ->
-                isParticipant = participantStatus
-                if(!isParticipant){
-                    if(isPublic){ showJoinButton(roomId) }
-                    else{ showCodeInput(roomId) }
-                }
-                invalidateOptionsMenu()
-            }
-        } else {
-            toast("Room ID is missing")
-            finish()
-        }
     }
 
     private fun initRoomDetailsView(view: View) {
@@ -87,27 +73,21 @@ class RoomActivity : BaseActivity() {
         betNowButton = view.findViewById(R.id.betNowButton)
         codeInput = view.findViewById(R.id.codeInput)
         roomImage = view.findViewById(R.id.roomImage)
-    }
-    private fun initChatView(view: View) {
-        chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
-        messageInput = view.findViewById(R.id.messageInput)
-        sendButton = view.findViewById(R.id.sendButton)
 
-        // אתחול RecyclerView לצ'אט
-        chatRecyclerView.layoutManager = LinearLayoutManager(this)
-        chatRecyclerView.adapter = AdapterChat(mutableListOf())
-
-        sendButton.setOnClickListener {
-            val messageText = messageInput.text.toString()
-            if (messageText.isNotBlank()) {
-                sendMessage(roomId, messageText)
-            } else {
-                toast("Message cannot be empty.")
+        if (roomId != "null") {
+            fetchRoomDetails(roomId) { isPublic, participantStatus ->
+                isParticipant = participantStatus
+                if(!isParticipant){
+                    if(isPublic){ showJoinButton(roomId) }
+                    else{ showCodeInput(roomId) }
+                }
+                invalidateOptionsMenu()
             }
+        } else {
+            toast("Room ID is missing")
+            finish()
         }
-        setupChat(roomId)
     }
-
     private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
@@ -118,23 +98,27 @@ class RoomActivity : BaseActivity() {
                     roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
                     roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
-                    val roomsParticipants = document.get("participants") as? List<*> ?: emptyList<Any>()
-                    val numPaticipants = roomsParticipants.size ?: 1
-                    val maxParticipants = document.getString("maxParticipants")?.toIntOrNull() ?: 10
-                    participantsCountTextView.text = "$numPaticipants/$maxParticipants"
-                    val imageUrl = document.get("url") ?: "https://example.com/image.jpg"
-                    Glide.with(this)
-                        .load(imageUrl)
-                        .into(roomImage)
+
                     val isPublic = document.getBoolean("isPublic") == true
                     roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
 
+                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
+                    val numPaticipants = roomsParticipants.size ?: 1
+                    val maxParticipants = document.getString("maxParticipants")?.toIntOrNull() ?: 10
+                    participantsCountTextView.text = "$numPaticipants/$maxParticipants"
+
+                    val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
+                    val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
+                    val adapter = AdapterParticipantsPager(roomsParticipants)
+                    participantsViewPager.adapter = adapter
+                    dotsIndicator.attachTo(participantsViewPager)
+
+                    val imageUrl : String = document.getString("url") ?: "https://example.com/image.jpg"
+                    loadImageFromURL(imageUrl,roomImage)
+
                     // Check if the user is a participant
-                    val participants =
-                        document.get("participants") as? List<Map<String, Any>> ?: emptyList()
                     val currentUser = auth.currentUser
-                    val isParticipant =
-                        currentUser != null && participants.any { it["id"] == currentUser.uid }
+                    val isParticipant = currentUser != null && roomsParticipants.any { it["id"] == currentUser.uid }
                     callback(isPublic, isParticipant)
                 } else {
                     toast("Room not found")
@@ -146,47 +130,6 @@ class RoomActivity : BaseActivity() {
                 finish()
             }
     }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private fun setupChat(roomId: String) {
-        val messages = mutableListOf<Message>()
-        val chatAdapter = AdapterChat(messages)
-
-        db.collection("rooms").document(roomId).collection("messages")
-            .orderBy("timestamp")
-            .addSnapshotListener { snapshots, error ->
-                if (error != null) {
-                    toast("Error loading messages.")
-                    return@addSnapshotListener
-                }
-
-                if (snapshots != null) {
-                    messages.clear()
-                    for (doc in snapshots) {
-                        messages.add(doc.toObject(Message::class.java))
-                    }
-                    chatAdapter.notifyDataSetChanged()
-                    if (messages.isNotEmpty()) {
-                        chatRecyclerView.scrollToPosition(messages.size - 1)
-                    }
-                }
-            }
-    }
-    private fun sendMessage(roomId: String, messageText: String) {
-        val currentUser = auth.currentUser
-        val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
-
-        val message = Message(sender = senderName, message = messageText)
-        db.collection("rooms").document(roomId).collection("messages")
-            .add(message)
-            .addOnSuccessListener {
-                messageInput.text.clear()
-            }
-            .addOnFailureListener {
-                toast("Error sending message.")
-            }
-    }
-
     private fun showJoinButton(roomId: String) {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE
@@ -210,7 +153,6 @@ class RoomActivity : BaseActivity() {
             }
         }
     }
-
     private fun joinRoom(roomId: String, enteredCode: String?) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
@@ -251,6 +193,65 @@ class RoomActivity : BaseActivity() {
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
 
+    private fun initChatView(view: View) {
+        chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
+        messageInput = view.findViewById(R.id.messageInput)
+        sendButton = view.findViewById(R.id.sendButton)
+
+        sendButton.setOnClickListener {
+            val messageText = messageInput.text.toString()
+            if (messageText.isNotBlank()) {
+                sendMessage(roomId, messageText)
+            } else {
+                toast("Message cannot be empty.")
+            }
+        }
+        setupChat(roomId)
+    }
+    @SuppressLint("NotifyDataSetChanged")
+    private fun setupChat(roomId: String) {
+        val messages = mutableListOf<Message>()
+        val chatAdapter = AdapterChat(messages)
+
+        // אתחול RecyclerView לצ'אט
+        chatRecyclerView.layoutManager = LinearLayoutManager(this)
+        chatRecyclerView.adapter = chatAdapter
+
+        db.collection("rooms").document(roomId).collection("messages")
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    toast("Error loading messages.")
+                    return@addSnapshotListener
+                }
+
+                if (snapshots != null) {
+                    messages.clear()
+                    for (doc in snapshots) {
+                        messages.add(doc.toObject(Message::class.java))
+                    }
+                    chatAdapter.notifyDataSetChanged()
+                    if (messages.isNotEmpty()) {
+                        chatRecyclerView.scrollToPosition(messages.size - 1)
+                    }
+                }
+            }
+    }
+    private fun sendMessage(roomId: String, messageText: String) {
+        val currentUser = auth.currentUser
+        val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
+
+        val message = Message(sender = senderName, message = messageText)
+        db.collection("rooms").document(roomId).collection("messages")
+            .add(message)
+            .addOnSuccessListener {
+                messageInput.text.clear()
+            }
+            .addOnFailureListener {
+                toast("Error sending message.")
+            }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.room_menu, menu)
         val leaveRoomItem = menu.findItem(R.id.action_leave_room)
@@ -274,7 +275,6 @@ class RoomActivity : BaseActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-
     private fun leaveRoom() {
         val currentUser = auth.currentUser
         val userId = currentUser?.uid ?: return
@@ -309,5 +309,4 @@ class RoomActivity : BaseActivity() {
                 .addOnFailureListener { exception -> toast("Error retrieving room data: ${exception.message}") }
         } ?: run { toast("Room ID is missing.") }
     }
-
 }

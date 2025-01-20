@@ -31,13 +31,9 @@ class LoginActivity : BaseActivity() {
         // Check if the user is already signed in
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // User is already signed in; navigate to HomeActivity
             checkAndCreateUser()
             goToMainScreen()
-        } else {
-            // Set up Google Sign-In
-            setupGoogleSignIn()
-        }
+        } else{ setupGoogleSignIn() }
     }
 
     private fun isDayTime(): Boolean {
@@ -51,7 +47,6 @@ class LoginActivity : BaseActivity() {
         subtitleTextView.text = text
         subtitleTextView.setTextColor(getColor(R.color.white))
     }
-
 
     private fun setupGoogleSignIn() {
         val googleSignInButton = findViewById<com.google.android.gms.common.SignInButton>(R.id.btnGoogleSignIn)
@@ -68,17 +63,21 @@ class LoginActivity : BaseActivity() {
     }
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        Log.d("LoginActivity", "ActivityResult received with code: ${result.resultCode}")
         if (result.resultCode == RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)
+                Log.d("LoginActivity", "Google sign-in successful: ${account.email}")
                 firebaseAuthWithGoogle(account)
             } catch (e: ApiException) {
-                Log.w("LoginActivity", "Google sign-in failed", e)
-                Toast.makeText(this, "Google sign-in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("LoginActivity", "Google sign-in failed", e)
             }
+        } else {
+            Log.w("LoginActivity", "ActivityResult returned with code: ${result.resultCode}")
         }
     }
+
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
@@ -107,7 +106,8 @@ class LoginActivity : BaseActivity() {
                         "displayName" to user.displayName,
                         "createdAt" to System.currentTimeMillis(),
                         "currentPoints" to 100,
-                        "rooms" to emptyList<Map<String, Any>>()
+                        "rooms" to emptyList<Map<String, Any>>(),
+                        "photoUrl" to (user.photoUrl?.toString() ?: "")
                     )
                     userRef.set(userData)
                         .addOnSuccessListener {
