@@ -2,7 +2,6 @@ package com.example.bettertogether
 
 import android.os.Bundle
 import android.widget.SearchView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.DocumentSnapshot
@@ -39,11 +38,7 @@ class ExplorerActivity : BaseActivity() {
                 roomsAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(
-                    this,
-                    "Error fetching rooms: ${exception.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                toast("Error fetching rooms: ${exception.message}")
             }
     }
 

@@ -130,6 +130,7 @@ class NewRoomActivity : BaseActivity() {
         val code = codeInput.text.toString()
         val userId = currentUser.uid
         val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+        val userUrl = currentUser.photoUrl
         val url = uploadedImageUrl.toString()
 
         val roomData = hashMapOf(
@@ -150,6 +151,7 @@ class NewRoomActivity : BaseActivity() {
                     "id" to userId,
                     "name" to userName,
                     "role" to "owner",
+                    "photoUrl" to userUrl,
                     "joinedOn" to System.currentTimeMillis()
                 )
             )

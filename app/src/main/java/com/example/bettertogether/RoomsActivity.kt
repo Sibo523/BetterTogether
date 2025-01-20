@@ -28,38 +28,34 @@ class RoomsActivity : BaseActivity() {
 
     private fun loadUserRooms() {
         val user = auth.currentUser
-        if (user == null) {
-            Toast.makeText(this, "Please log in to see your rooms.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        db.collection("users").document(user.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    roomsList.clear()
-                    val roomIds = document.get("rooms") as? List<Map<String, Any>>
-                    if (roomIds != null) {
-                        val ids = roomIds.mapNotNull { it["roomId"] as? String }
-                        db.collection("rooms")
-                            .whereIn(FieldPath.documentId(), ids)
-                            .get()
-                            .addOnSuccessListener { querySnapshot ->
-                                roomsList.addAll(querySnapshot.documents)
-                                roomsAdapter.notifyDataSetChanged()
-                            }
-                            .addOnFailureListener { exception ->
-                                Toast.makeText(
-                                    this,
-                                    "Error fetching rooms: ${exception.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+        if(user == null){
+            toast("Please log in to see your rooms.")
+            navigateToLogin()
+        } else{
+            db.collection("users").document(user.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        roomsList.clear()
+                        val roomIds = document.get("rooms") as? List<Map<String, Any>>
+                        if (roomIds != null && roomIds.size > 0) {
+                            val ids = roomIds.mapNotNull { it["roomId"] as? String }
+                            db.collection("rooms")
+                                .whereIn(FieldPath.documentId(), ids)
+                                .get()
+                                .addOnSuccessListener { querySnapshot ->
+                                    roomsList.addAll(querySnapshot.documents)
+                                    roomsAdapter.notifyDataSetChanged()
+                                }
+                                .addOnFailureListener { exception ->
+                                    toast("Error fetching rooms: ${exception.message}")
+                                }
+                        }
                     }
                 }
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error fetching user data: ${exception.message}", Toast.LENGTH_SHORT).show()
-            }
+                .addOnFailureListener { exception ->
+                    toast("Error fetching user data: ${exception.message}")
+                }
+        }
     }
 }

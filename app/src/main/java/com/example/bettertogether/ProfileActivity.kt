@@ -49,8 +49,10 @@ class ProfileActivity : BaseActivity() {
 
     private fun displayProfile() {
         val user: FirebaseUser? = auth.currentUser
-
-        if (user != null) {    // Set name and email from FirebaseAuth
+        if (user == null) {
+            toast("Please log in to see your profile.")
+            navigateToLogin()
+        } else{    // Set name and email from FirebaseAuth
             nameTextView.text = user.displayName ?: "N/A"
             emailTextView.text = user.email ?: "N/A"
             val userId = user.uid
@@ -83,14 +85,6 @@ class ProfileActivity : BaseActivity() {
                     mobileTextView.text = "N/A"
                 }
             loadUserPhoto(profileImageView)
-            
-        } else {  // Handle the case where the user is not logged in
-            toast("User not logged in.")
-            // Redirect to login if necessary
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
         }
     }
 
@@ -101,11 +95,8 @@ class ProfileActivity : BaseActivity() {
         val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
         googleSignInClient.signOut().addOnCompleteListener {
             googleSignInClient.revokeAccess().addOnCompleteListener {
-                val intent = Intent(this, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
                 toast("Signed out successfully!")
+                navigateToLogin()
             }
         }
     }

@@ -81,6 +81,7 @@ class RoomActivity : BaseActivity() {
                     if(isPublic){ showJoinButton(roomId) }
                     else{ showCodeInput(roomId) }
                 }
+                if(auth.currentUser == null){ hideRoomFunctions() }
                 invalidateOptionsMenu()
             }
         } else {
@@ -88,6 +89,12 @@ class RoomActivity : BaseActivity() {
             finish()
         }
     }
+    private fun hideRoomFunctions(){
+        joinButton.setOnClickListener {
+            navigateToLogin()
+        }
+    }
+
     private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
@@ -168,11 +175,13 @@ class RoomActivity : BaseActivity() {
                 }
                 val userId = currentUser.uid
                 val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
+                val userUrl = currentUser.photoUrl
 
                 val participantData = mapOf(
                     "id" to userId,
                     "name" to userName,
                     "role" to "participant",
+                    "photoUrl" to userUrl,
                     "joinedOn" to System.currentTimeMillis()
                 )
 

@@ -1,7 +1,6 @@
 package com.example.bettertogether
 
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import com.google.firebase.auth.FirebaseAuth
@@ -55,6 +54,13 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
+    protected fun navigateToLogin(){
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
+    }
     protected fun navigateTo(targetActivity: Class<out AppCompatActivity>) {
         if (this::class.java != targetActivity) {
             val intent = Intent(this, targetActivity)
@@ -139,7 +145,7 @@ abstract class BaseActivity : AppCompatActivity() {
             .addOnSuccessListener { toast("Room was deleted.") }
             .addOnFailureListener { exception -> toast("Error deleting empty room: ${exception.message}") }
     }
-    protected fun addUserToRoom(roomId:String, participantData:Map<String,Any>, callback:(Boolean)->Unit){
+    protected fun addUserToRoom(roomId:String, participantData: Map<String, Comparable<*>?>, callback:(Boolean)->Unit){
         db.collection("rooms").document(roomId)
             .update("participants", FieldValue.arrayUnion(participantData))
             .addOnSuccessListener { callback(true) }
@@ -158,7 +164,6 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
 
-
     protected fun loadUserPhoto(imageView:ImageView){
         val user = auth.currentUser
         if (user == null) { return }
@@ -169,8 +174,8 @@ abstract class BaseActivity : AppCompatActivity() {
         if (!isDestroyed && !isFinishing) {
             Glide.with(this) // `this` הוא הקונטקסט, אם אתה נמצא בתוך Activity או Fragment.
                 .load(imageUrl) // כתובת ה-URL של התמונה.
-                .placeholder(R.drawable.star) // תמונה שתוצג בזמן הטעינה (אופציונלי).
-                .error(R.drawable.star) // תמונה שתוצג אם הטעינה נכשלה (אופציונלי).
+                .placeholder(R.drawable.ic_profile) // תמונה שתוצג בזמן הטעינה (אופציונלי).
+                .error(R.drawable.ic_profile) // תמונה שתוצג אם הטעינה נכשלה (אופציונלי).
                 .into(imageView)
         } else {
             Log.w("BaseActivity", "Attempted to load image for a destroyed or finishing activity")

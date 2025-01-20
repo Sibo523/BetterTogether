@@ -26,6 +26,12 @@ class AdapterParticipantsPager(private val participants: List<Map<String, Any>>)
         val participant = participants[position]
         holder.nameTextView.text = participant["name"] as? String ?: "Unknown"
         holder.roleTextView.text = participant["role"] as? String ?: "No Role"
+        var imageUrl  = participant["photoUrl"]
+        Glide.with(holder.profileImageView.context)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_profile)
+            .error(R.drawable.ic_profile)
+            .into(holder.profileImageView)
     }
 
     override fun getItemCount(): Int = participants.size

@@ -124,7 +124,8 @@ class LoginActivity : BaseActivity() {
                         "createdAt" to System.currentTimeMillis(),
                         "currentPoints" to 100,
                         "rooms" to emptyList<Map<String, Any>>(),
-                        "photoUrl" to (user.photoUrl?.toString() ?: "")
+                        "photoUrl" to (user.photoUrl?.toString() ?: ""),
+                        "role" to "client"
                     )
                     userRef.set(userData)
                         .addOnSuccessListener {
