@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFB">
+    android:background="#F9FAFB"
+    android:backgroundTint="#FFFFFF">
 
     <!-- Scrollable Content -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/footerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingBottom="100dp"
-            android:clipToPadding="false">
+            android:paddingBottom="100dp">
 
             <!-- Add your content here -->
             <TextView
@@ -30,265 +31,272 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="Expiration Date"
+                android:textColor="#8B97A2"
+                android:textSize="12sp" />
+
+            <!-- Image Section (analogous to the Container with Stack in Flutter) -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="320dp"
+                android:layout_margin="16dp"
+                android:background="#DBE2E7"
+                android:clipToPadding="true"
+                android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="0dp">
+
+                <ImageView
+                    android:id="@+id/roomImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/star" />
+            </FrameLayout>
+
+            <!-- Room Name -->
+            <TextView
+                android:id="@+id/roomNameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:textColor="@android:color/black"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- Room publicity -->
+            <TextView
+                android:id="@+id/isPublicText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="24dp"
+                android:textColor="#8B97A2"
+                android:textSize="12sp" />
+
+            <!-- Participants Count row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/participantsCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="#8B97A2"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/participantsCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="participants"
+                    android:textColor="#8B97A2"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Description Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:text="DESCRIPTION"
+                android:textColor="#000000"
                 android:textSize="12sp"
-                android:textColor="#8B97A2" />
+                android:textStyle="bold" />
+            <!-- Description Body -->
+            <TextView
+                android:id="@+id/roomDescriptionText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="24dp"
+                android:textColor="#8B97A2"
+                android:textSize="14sp" />
 
-                <!-- Image Section (analogous to the Container with Stack in Flutter) -->
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="320dp"
-                    android:layout_margin="16dp"
-                    android:background="#DBE2E7"
-                    android:clipToPadding="true"
-                    android:foreground="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="0dp">
+            <!-- Amenities title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:text="Amenities"
+                android:textColor="#000000"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+            <!-- Horizontal scroll for amenities icons -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:clipToPadding="false">
 
-                    <ImageView
-                        android:id="@+id/roomImage"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:adjustViewBounds="true"
-                        android:src="@drawable/star" />
-                </FrameLayout>
-
-                <!-- Room Name -->
-                <TextView
-                    android:id="@+id/roomNameText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="12dp"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black" />
-
-                <!-- Room publicity -->
-                <TextView
-                    android:id="@+id/isPublicText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="4dp"
-                    android:textSize="12sp"
-                    android:textColor="#8B97A2" />
-
-                <!-- Participants Count row -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="8dp"
                     android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/participantsCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:textSize="12sp"
-                        android:textColor="#8B97A2" />
+                    <!-- Repeat for each amenity icon, e.g. -->
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="xxxxxxxxxx"
+                        android:src="@drawable/star"
+                        app:tint="#8B97A2" />
 
-                    <TextView
-                        android:id="@+id/participantsCountText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="participants"
-                        android:textSize="12sp"
-                        android:textColor="#8B97A2" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="xxxxxxxxxxxxx"
+                        android:src="@drawable/star"
+                        app:tint="#8B97A2" />
+
+                    <!-- ... etc. for each amenity ... -->
                 </LinearLayout>
+            </HorizontalScrollView>
 
-                <!-- Description Title -->
+            <!-- Room Paricipants Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="#FFFFFF"
+                android:orientation="vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
+
                 <TextView
+                    android:id="@+id/participantsTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     android:layout_marginEnd="24dp"
-                    android:layout_marginTop="12dp"
-                    android:text="DESCRIPTION"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textColor="#000000" />
-                <!-- Description Body -->
-                <TextView
-                    android:id="@+id/roomDescriptionText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#8B97A2"
+                    android:text="Participants:"
+                    android:textColor="#000000"
                     android:textSize="14sp" />
 
-                <!-- Amenities title -->
-                <TextView
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/participantsViewPager"
                     android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="8dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false" />
+
+                <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+                    android:id="@+id/participantsDotsIndicator"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="12dp"
-                    android:text="Amenities"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:textColor="#000000" />
-                <!-- Horizontal scroll for amenities icons -->
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="24dp"
-                    android:clipToPadding="false">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <!-- Repeat for each amenity icon, e.g. -->
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:layout_marginEnd="8dp"
-                            android:src="@drawable/star"
-                            android:contentDescription="xxxxxxxxxx"
-                            app:tint="#8B97A2" />
-
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:layout_marginEnd="8dp"
-                            android:src="@drawable/star"
-                            android:contentDescription="xxxxxxxxxxxxx"
-                            app:tint="#8B97A2" />
-
-                        <!-- ... etc. for each amenity ... -->
-                    </LinearLayout>
-                </HorizontalScrollView>
-
-                <!-- Room Paricipants Section -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:background="#FFFFFF">
-
-                    <TextView
-                        android:id="@+id/participantsTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginEnd="24dp"
-                        android:text="Participants:"
-                        android:textSize="14sp"
-                        android:textColor="#000000" />
-
-                    <androidx.viewpager2.widget.ViewPager2
-                        android:id="@+id/participantsViewPager"
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:clipToPadding="false"
-                        android:clipChildren="false"
-                        android:layout_marginTop="8dp" />
-
-                    <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
-                        android:id="@+id/participantsDotsIndicator"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="8dp"
-                        app:dotsSize="8dp"
-                        app:dotsSpacing="4dp"
-                        app:dotsColor="@color/black"
-                        app:dotsCornerRadius="4dp" />
-                </LinearLayout>
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    app:dotsColor="@color/black"
+                    app:dotsCornerRadius="4dp"
+                    app:dotsSize="8dp"
+                    app:dotsSpacing="4dp" />
             </LinearLayout>
-        </ScrollView>
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Footer with Buttons -->
     <LinearLayout
         android:id="@+id/footerLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:background="#000000"
+        android:orientation="horizontal"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-            <!-- Bet points Column -->
+        <!-- Bet points Column -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/betPointsText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textStyle="bold"
-                        android:textSize="18sp"
-                        android:textColor="#F9FAFB"/>
-                </LinearLayout>
                 <TextView
-                    android:id="@+id/roomTypeText"
+                    android:id="@+id/betPointsText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="14sp"
-                    android:textColor="#8B97A2"/>
+                    android:textColor="#F9FAFB"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Fixed Buttons at the bottom -->
-            <LinearLayout
-                android:id="@+id/buttonContainer"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/roomTypeText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="#000000"
-                android:padding="16dp" >
+                android:layout_marginTop="4dp"
+                android:textColor="#8B97A2"
+                android:textSize="14sp" />
+        </LinearLayout>
 
-                <!-- Room Code Input for Private Rooms -->
-                <EditText
-                    android:id="@+id/codeInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter Room Code"
-                    android:padding="8dp"
-                    android:layout_margin="16dp"
-                    android:visibility="gone" />
-                <!-- Join Button -->
-                <Button
-                    android:id="@+id/joinButton"
-                    android:layout_width="130dp"
-                    android:layout_height="50dp"
-                    android:text="JOIN"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#4B39EF"
-                    android:visibility="gone" />
-                <!-- Bet Button -->
-                <Button
-                    android:id="@+id/betNowButton"
-                    android:layout_width="130dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="16dp"
-                    android:text="Bet"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#4B39EF" />
-            </LinearLayout>
+        <!-- Fixed Buttons at the bottom -->
+        <LinearLayout
+            android:id="@+id/buttonContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#000000"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <!-- Room Code Input for Private Rooms -->
+            <!-- Join Button -->
+            <Button
+                android:id="@+id/joinButton"
+                android:layout_width="130dp"
+                android:layout_height="50dp"
+                android:backgroundTint="#4B39EF"
+                android:text="JOIN"
+                android:textColor="#FFFFFF"
+                android:visibility="visible" />
+            <!-- Bet Button -->
+            <Button
+                android:id="@+id/betNowButton"
+                android:layout_width="130dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                android:backgroundTint="#4B39EF"
+                android:text="Bet"
+                android:textColor="#FFFFFF"
+                android:visibility="visible"
+                tools:visibility="gone" />
+            <EditText
+                android:id="@+id/codeInput"
+                android:layout_width="186dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:hint="Enter Room Code"
+                android:padding="8dp"
+                android:textColor="#A49292"
+                android:visibility="visible"
+                android:backgroundTint="#4B39EF"
+                tools:visibility="visible" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

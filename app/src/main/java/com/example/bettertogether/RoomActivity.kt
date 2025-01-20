@@ -149,7 +149,7 @@ class RoomActivity : BaseActivity() {
     private fun showCodeInput(roomId: String) {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE
-        codeInput.visibility = View.VISIBLE
+//        codeInput.visibility = View.VISIBLE
 
         joinButton.setOnClickListener {
             val enteredCode = codeInput.text.toString()
