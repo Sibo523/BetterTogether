@@ -17,28 +17,36 @@ class LoginActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("LoginActivityLog", "onCreate called")
         setContentView(R.layout.activity_login)
 
         // Set background based on the time of day
         if (isDayTime()) {
             updateSubtitleText("Good morning!")
             window.decorView.setBackgroundResource(R.drawable.good_morning_img) // Daytime background
+            Log.d("LoginActivityLog", "Set daytime background")
         } else {
             updateSubtitleText("Good night!")
             window.decorView.setBackgroundResource(R.drawable.good_night_img) // Nighttime background
+            Log.d("LoginActivityLog", "Set nighttime background")
         }
 
         // Check if the user is already signed in
         val currentUser = auth.currentUser
         if (currentUser != null) {
+            Log.d("LoginActivityLog", "User already signed in: ${currentUser.email}")
             checkAndCreateUser()
             goToMainScreen()
-        } else{ setupGoogleSignIn() }
+        } else {
+            Log.d("LoginActivityLog", "No user signed in, setting up Google Sign-In")
+            setupGoogleSignIn()
+        }
     }
 
     private fun isDayTime(): Boolean {
         val calendar = Calendar.getInstance()
         val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+        Log.d("LoginActivityLog", "Current hour of day: $hourOfDay")
         return hourOfDay in 6..18 // 6 AM to 6 PM is considered day time
     }
 
@@ -46,50 +54,58 @@ class LoginActivity : BaseActivity() {
         val subtitleTextView = findViewById<TextView>(R.id.subtitleText)
         subtitleTextView.text = text
         subtitleTextView.setTextColor(getColor(R.color.white))
+        Log.d("LoginActivityLog", "Subtitle updated to: $text")
     }
 
     private fun setupGoogleSignIn() {
         val googleSignInButton = findViewById<com.google.android.gms.common.SignInButton>(R.id.btnGoogleSignIn)
         googleSignInButton.setOnClickListener {
+            Log.d("LoginActivityLog", "Google Sign-In button clicked")
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build()
+            Log.d("LoginActivityLog", "GoogleSignInOptions built")
+
             val googleSignInClient = GoogleSignIn.getClient(this, gso)
+            Log.d("LoginActivityLog", "GoogleSignInClient initialized")
 
             val signInIntent = googleSignInClient.signInIntent
+            Log.d("LoginActivityLog", "Launching Google Sign-In intent")
             launcher.launch(signInIntent)
         }
     }
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.d("LoginActivity", "ActivityResult received with code: ${result.resultCode}")
+        Log.d("LoginActivityLog", "ActivityResult received with code: ${result.resultCode}, data: ${result.data}")
         if (result.resultCode == RESULT_OK) {
+            Log.d("LoginActivityLog", "Google Sign-In RESULT_OK, processing result")
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)
-                Log.d("LoginActivity", "Google sign-in successful: ${account.email}")
+                Log.d("LoginActivityLog", "Google sign-in successful: ${account.email}")
                 firebaseAuthWithGoogle(account)
             } catch (e: ApiException) {
-                Log.e("LoginActivity", "Google sign-in failed", e)
+                Log.e("LoginActivityLog", "Google sign-in failed with exception", e)
             }
         } else {
-            Log.w("LoginActivity", "ActivityResult returned with code: ${result.resultCode}")
+            Log.w("LoginActivityLog", "Google Sign-In result code not OK: ${result.resultCode}")
         }
     }
 
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
+        Log.d("LoginActivityLog", "Authenticating with Firebase using Google account")
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d("LoginActivity", "signInWithCredential:success")
+                    Log.d("LoginActivityLog", "signInWithCredential:success")
                     checkAndCreateUser()
                     goToMainScreen()
                 } else {
                     Log.w("LoginActivity", "signInWithCredential:failure", task.exception)
-                    Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    toast("Authentication failed: ${task.exception?.message}")
                 }
             }
     }
@@ -97,10 +113,11 @@ class LoginActivity : BaseActivity() {
     private fun checkAndCreateUser() {
         val user = auth.currentUser
         if (user != null) {
+            Log.d("LoginActivityLog", "Checking user in Firestore: ${user.uid}")
             val userRef = db.collection("users").document(user.uid)
             userRef.get().addOnSuccessListener { document ->
                 if (!document.exists()) {
-                    // Create a new user document
+                    Log.d("LoginActivityLog", "User not found in Firestore, creating new document")
                     val userData = hashMapOf(
                         "email" to user.email,
                         "displayName" to user.displayName,
@@ -122,10 +139,13 @@ class LoginActivity : BaseActivity() {
             }.addOnFailureListener { exception ->
                 Log.e("Firestore", "Error checking user document", exception)
             }
+        } else {
+            Log.w("LoginActivity", "No user authenticated, cannot check or create Firestore document")
         }
     }
 
     private fun goToMainScreen() {
+        Log.d("LoginActivityLog", "Navigating to HomeActivity")
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
         finish()
