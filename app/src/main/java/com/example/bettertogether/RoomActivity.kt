@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.firebase.firestore.DocumentSnapshot
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 
 class RoomActivity : BaseActivity() {
@@ -26,19 +27,23 @@ class RoomActivity : BaseActivity() {
     private lateinit var chatRecyclerView: RecyclerView
     private lateinit var messageInput: EditText
     private lateinit var sendButton: Button
-    private lateinit var joinButton: Button
-    private lateinit var codeInput: EditText
     private lateinit var betNowButton : Button
     private lateinit var roomImage : ImageView
 
     private var isParticipant: Boolean = false
     private var roomId: String = "null"
 
+    private lateinit var joinButton: Button
+    private lateinit var codeInput: EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
 
         roomId = intent.getStringExtra("roomId").toString()
+
+        joinButton = findViewById(R.id.joinButton)
+        codeInput = findViewById(R.id.codeInput)
 
         val viewPager: ViewPager2 = findViewById(R.id.viewPager)
         val adapter = AdapterRoomPager(this)
@@ -56,9 +61,6 @@ class RoomActivity : BaseActivity() {
                 }
             }
         })
-
-        adapter.getPageView(0)?.let { initRoomDetailsView(it) }
-        adapter.getPageView(1)?.let { initChatView(it) }
     }
 
     private fun initRoomDetailsView(view: View) {
@@ -69,64 +71,32 @@ class RoomActivity : BaseActivity() {
         participantsCountTextView = view.findViewById(R.id.participantsCount)
         roomExpirationTextView = view.findViewById(R.id.roomExpirationText)
         roomIsPublicTextView = view.findViewById(R.id.isPublicText)
-        joinButton = view.findViewById(R.id.joinButton)
         betNowButton = view.findViewById(R.id.betNowButton)
-        codeInput = view.findViewById(R.id.codeInput)
         roomImage = view.findViewById(R.id.roomImage)
 
-        if (roomId != "null") {
-            fetchRoomDetails(roomId) { isPublic, participantStatus ->
-                isParticipant = participantStatus
-                if(!isParticipant){
-                    if(isPublic){ showJoinButton(roomId) }
-                    else{ showCodeInput(roomId) }
-                }
-                if(auth.currentUser == null){ hideRoomFunctions() }
-                invalidateOptionsMenu()
-            }
-        } else {
+        if (roomId == "null") {
             toast("Room ID is missing")
             finish()
         }
+        getRoom(roomId)
+        invalidateOptionsMenu()
+        showRoomDetails(roomId)
     }
-    private fun hideRoomFunctions(){
-        joinButton.setOnClickListener {
-            navigateToLogin()
-        }
-    }
-
-    private fun fetchRoomDetails(roomId: String, callback: (Boolean, Boolean) -> Unit) {
+    private fun getRoom(roomId: String){
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // Populate UI with room details
-                    roomNameTextView.text = document.getString("name") ?: "N/A"
-                    roomTypeTextView.text = document.getString("betType") ?: "N/A"
-                    roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
-                    roomDescriptionTextView.text = document.getString("description") ?: "N/A"
-                    roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
-
                     val isPublic = document.getBoolean("isPublic") == true
-                    roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
-
-                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
-                    val numPaticipants = roomsParticipants.size ?: 1
-                    val maxParticipants = document.getString("maxParticipants")?.toIntOrNull() ?: 10
-                    participantsCountTextView.text = "$numPaticipants/$maxParticipants"
-
-                    val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
-                    val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
-                    val adapter = AdapterParticipantsPager(roomsParticipants)
-                    participantsViewPager.adapter = adapter
-                    dotsIndicator.attachTo(participantsViewPager)
-
-                    val imageUrl : String = document.getString("url") ?: "https://example.com/image.jpg"
-                    loadImageFromURL(imageUrl,roomImage)
-
                     // Check if the user is a participant
+                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
                     val currentUser = auth.currentUser
-                    val isParticipant = currentUser != null && roomsParticipants.any { it["id"] == currentUser.uid }
-                    callback(isPublic, isParticipant)
+                    isParticipant = currentUser != null && roomsParticipants.any { it["id"] == currentUser.uid }
+                    invalidateOptionsMenu()
+                    if(!isParticipant){
+                        if(isPublic){ showJoinButton(roomId) }
+                        else{ showCodeInput(roomId) }
+                    }
+                    if(auth.currentUser == null){ joinSendsToLogin() }
                 } else {
                     toast("Room not found")
                     finish()
@@ -149,7 +119,7 @@ class RoomActivity : BaseActivity() {
     private fun showCodeInput(roomId: String) {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE
-//        codeInput.visibility = View.VISIBLE
+        codeInput.visibility = View.VISIBLE
 
         joinButton.setOnClickListener {
             val enteredCode = codeInput.text.toString()
@@ -158,6 +128,11 @@ class RoomActivity : BaseActivity() {
             } else {
                 joinRoom(roomId, enteredCode)
             }
+        }
+    }
+    private fun joinSendsToLogin(){
+        joinButton.setOnClickListener {
+            navigateToLogin()
         }
     }
     private fun joinRoom(roomId: String, enteredCode: String?) {
@@ -202,6 +177,44 @@ class RoomActivity : BaseActivity() {
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
 
+    private fun showRoomDetails(roomId: String) {
+        db.collection("rooms").document(roomId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Populate UI with room details
+                    roomNameTextView.text = document.getString("name") ?: "N/A"
+                    roomTypeTextView.text = document.getString("betType") ?: "N/A"
+                    roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
+                    roomDescriptionTextView.text = document.getString("description") ?: "N/A"
+                    roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
+
+                    val isPublic = document.getBoolean("isPublic") == true
+                    roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
+
+                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
+                    val numPaticipants = roomsParticipants.size ?: 1
+                    val maxParticipants = document.getString("maxParticipants")?.toIntOrNull() ?: 10
+                    participantsCountTextView.text = "$numPaticipants/$maxParticipants"
+
+                    val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
+                    val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
+                    val adapter = AdapterParticipantsPager(roomsParticipants)
+                    participantsViewPager.adapter = adapter
+                    dotsIndicator.attachTo(participantsViewPager)
+
+                    val imageUrl : String = document.getString("url") ?: "https://example.com/image.jpg"
+                    loadImageFromURL(imageUrl,roomImage)
+                } else {
+                    toast("Room not found")
+                    finish()
+                }
+            }
+            .addOnFailureListener {
+                toast("Error fetching room details.")
+                finish()
+            }
+    }
+
     private fun initChatView(view: View) {
         chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
         messageInput = view.findViewById(R.id.messageInput)
@@ -215,6 +228,7 @@ class RoomActivity : BaseActivity() {
                 toast("Message cannot be empty.")
             }
         }
+        getRoom(roomId)
         setupChat(roomId)
     }
     @SuppressLint("NotifyDataSetChanged")
@@ -264,7 +278,7 @@ class RoomActivity : BaseActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.room_menu, menu)
         val leaveRoomItem = menu.findItem(R.id.action_leave_room)
-        leaveRoomItem.isVisible = isParticipant
+        leaveRoomItem?.isVisible = isParticipant
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

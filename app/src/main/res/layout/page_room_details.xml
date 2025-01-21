@@ -254,25 +254,6 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- Fixed Buttons at the bottom -->
-        <LinearLayout
-            android:id="@+id/buttonContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#000000"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <!-- Room Code Input for Private Rooms -->
-            <!-- Join Button -->
-            <Button
-                android:id="@+id/joinButton"
-                android:layout_width="130dp"
-                android:layout_height="50dp"
-                android:backgroundTint="#4B39EF"
-                android:text="JOIN"
-                android:textColor="#FFFFFF"
-                android:visibility="visible" />
             <!-- Bet Button -->
             <Button
                 android:id="@+id/betNowButton"
@@ -280,23 +261,9 @@
                 android:layout_height="50dp"
                 android:layout_marginStart="16dp"
                 android:backgroundTint="#4B39EF"
-                android:text="Bet"
+                android:text="@string/bet"
                 android:textColor="#FFFFFF"
-                android:visibility="visible"
-                tools:visibility="gone" />
-            <EditText
-                android:id="@+id/codeInput"
-                android:layout_width="186dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:hint="Enter Room Code"
-                android:padding="8dp"
-                android:textColor="#A49292"
-                android:visibility="visible"
-                android:backgroundTint="#4B39EF"
-                tools:visibility="visible" />
-
-        </LinearLayout>
+                android:visibility="visible" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

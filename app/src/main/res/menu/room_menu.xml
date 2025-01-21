@@ -4,6 +4,6 @@
     <item
         android:id="@+id/action_leave_room"
         android:title="Leave Room"
-        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:icon="@drawable/ic_leave"
         app:showAsAction="always" />
 </menu>
