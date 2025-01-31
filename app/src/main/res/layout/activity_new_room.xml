@@ -28,6 +28,36 @@
                 android:hint="Enter Room Name"
                 android:inputType="text" />
 
+            <!-- Description -->
+            <EditText
+                android:id="@+id/form_description_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Description"
+                android:inputType="textMultiLine" />
+
+            <!-- שדה לקליטת אפשרות -->
+            <EditText
+                android:id="@+id/poll_option_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter poll option"
+                android:inputType="text"
+                android:visibility="visible"/>
+            <!-- כפתור להוספת אפשרות -->
+            <Button
+                android:id="@+id/add_poll_option_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Option"
+                android:visibility="visible"/>
+            <!-- רשימה של האפשרויות שהוספו -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/poll_options_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible"/>
+
             <!-- Bet Number -->
             <EditText
                 android:id="@+id/form_number_input"
@@ -44,14 +74,6 @@
                 android:hint="Expiration Date"
                 android:focusable="false"
                 android:inputType="date" />
-
-            <!-- Description -->
-            <EditText
-                android:id="@+id/form_description_input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Description"
-                android:inputType="textMultiLine" />
 
             <!-- Checkboxes for Public Room and Event -->
             <LinearLayout

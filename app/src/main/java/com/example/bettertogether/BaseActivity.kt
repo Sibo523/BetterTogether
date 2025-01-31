@@ -146,6 +146,7 @@ abstract class BaseActivity : AppCompatActivity() {
         db.collection("rooms").document(roomId).delete()
             .addOnSuccessListener { toast("Room was deleted.") }
             .addOnFailureListener { exception -> toast("Error deleting empty room: ${exception.message}") }
+        navigateTo(HomeActivity::class.java)
     }
     protected fun addUserToRoom(roomId: String, userId: String, participantData: Map<String, Comparable<*>?>, callback: (Boolean) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)

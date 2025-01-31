@@ -187,7 +187,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     android:layout_marginEnd="24dp"
-                    android:text="Participants:"
+                    android:text="@string/participants"
                     android:textColor="#000000"
                     android:textSize="14sp" />
 
@@ -254,16 +254,26 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-            <!-- Bet Button -->
-            <Button
-                android:id="@+id/betNowButton"
-                android:layout_width="130dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="16dp"
-                android:backgroundTint="#4B39EF"
-                android:text="@string/bet"
-                android:textColor="#FFFFFF"
-                android:visibility="visible" />
+        <!-- Bet Button -->
+        <Button
+            android:id="@+id/betNowButton"
+            android:layout_width="130dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="#4B39EF"
+            android:text="@string/bet"
+            android:textColor="#FFFFFF"
+            android:visibility="visible" />
+        <!-- Close Bet Button -->
+        <Button
+            android:id="@+id/closeBetButton"
+            android:layout_width="130dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="#4B39EF"
+            android:text="@string/close_bet"
+            android:textColor="#FFFFFF"
+            android:visibility="gone" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

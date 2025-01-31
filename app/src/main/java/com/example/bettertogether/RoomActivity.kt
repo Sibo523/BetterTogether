@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 
 class RoomActivity : BaseActivity() {
@@ -25,6 +26,7 @@ class RoomActivity : BaseActivity() {
     private lateinit var roomExpirationTextView: TextView      // details
     private lateinit var roomIsPublicTextView: TextView        // details
     private lateinit var betNowButton : Button                 // details
+    private lateinit var closeBetButton : Button               // details
     private lateinit var roomImage : ImageView                 // details
     private lateinit var chatRecyclerView: RecyclerView        // -----  chat  -----
     private lateinit var messageInput: EditText                // chat
@@ -56,14 +58,14 @@ class RoomActivity : BaseActivity() {
                 val currentView = adapter.getPageView(position)
                 if (currentView != null) {
                     when (position) {
-                        0 -> initRoomDetailsView(currentView) // אתחול עמוד פרטי החדר
-                        1 -> initChatView(currentView)        // אתחול עמוד הצ'אט
+                        0 -> initRoomDetailsView(currentView)
+                        1 -> initChatView(currentView)
                     }
                 }
             }
         })
     }
-    private fun getRoom(roomId: String) {
+    private fun getRoom() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -105,18 +107,15 @@ class RoomActivity : BaseActivity() {
         roomExpirationTextView = view.findViewById(R.id.roomExpirationText)
         roomIsPublicTextView = view.findViewById(R.id.isPublicText)
         betNowButton = view.findViewById(R.id.betNowButton)
+        closeBetButton = view.findViewById(R.id.closeBetButton)
         roomImage = view.findViewById(R.id.roomImage)
-
-        betNowButton.setOnClickListener {
-            joinBet()
-        }
 
         if (roomId == "null") {
             toast("Room ID is missing")
             finish()
         }
-        getRoom(roomId)
-        showRoomDetails(roomId)
+        getRoom()
+        showRoomDetails()
     }
     private fun showJoinButton(roomId: String) {
         betNowButton.visibility = View.GONE
@@ -188,7 +187,7 @@ class RoomActivity : BaseActivity() {
             }
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
-    private fun showRoomDetails(roomId: String) {
+    private fun showRoomDetails() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -211,16 +210,21 @@ class RoomActivity : BaseActivity() {
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
                         val userId = currentUser.uid
-                        val userParticipant = roomsParticipants[userId] // גישה ישירה למפה במקום חיפוש בלולאה
-                        val hasAlreadyBet = userParticipant?.get("isBetting") as? Boolean ?: false
-                        if (hasAlreadyBet) {
-                            betNowButton.visibility = View.GONE
+                        val userParticipant = roomsParticipants[userId]
+                        val roomOwnerId = document.getString("createdBy") ?: "None"
+                        val isRoomOwner : Boolean = roomOwnerId == userId
+                        if(isRoomOwner){
+                            closeBetButton.visibility = View.VISIBLE
+                            closeBetButton.setOnClickListener{ showCloseBet() }
                         }
+                        val hasAlreadyBet = userParticipant?.get("isBetting") as? Boolean ?: false
+                        if(hasAlreadyBet){ betNowButton.visibility = View.GONE }
+                        else{ betNowButton.setOnClickListener{ showBetOptions() } }
                     }
 
                     val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
                     val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
-                    val adapter = AdapterParticipantsPager(roomsParticipants.values.toList()) // שימוש ב-values
+                    val adapter = AdapterParticipantsPager(roomsParticipants.values.toList())
                     participantsViewPager.adapter = adapter
                     dotsIndicator.attachTo(participantsViewPager)
 
@@ -236,7 +240,44 @@ class RoomActivity : BaseActivity() {
                 finish()
             }
     }
-    private fun joinBet() {
+    private fun showBetOptions() {
+        db.collection("rooms").document(roomId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val pollOptions = document.get("options") as? List<String> ?: emptyList()
+                    if (pollOptions.isEmpty()) {
+                        toast("No options available for betting.")
+                        return@addOnSuccessListener
+                    }
+
+                    var selectedOption: String? = null
+
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Choose your bet")
+
+                    builder.setSingleChoiceItems(pollOptions.toTypedArray(), -1) { _, which ->
+                        selectedOption = pollOptions[which]
+                    }
+
+                    builder.setPositiveButton("Confirm") { _, _ ->
+                        if (selectedOption != null) {
+                            joinBet(selectedOption!!)
+                        } else {
+                            toast("Please select an option.")
+                        }
+                    }
+
+                    builder.setNegativeButton("Cancel", null)
+
+                    val dialog = builder.create()
+                    dialog.show()
+                }
+            }
+            .addOnFailureListener {
+                toast("Error fetching betting options.")
+            }
+    }
+    private fun joinBet(selectedOption: String) {
         val currentUser = auth.currentUser ?: run {
             toast("User not authenticated")
             return
@@ -256,7 +297,7 @@ class RoomActivity : BaseActivity() {
                     .addOnSuccessListener {
                         betNowButton.visibility = View.GONE
                         toast("You have joined the bet! Remaining points: $newPoints")
-                        addUserToBet()
+                        addUserToBet(selectedOption)
                     }
                     .addOnFailureListener {
                         toast("Error updating points.")
@@ -266,23 +307,104 @@ class RoomActivity : BaseActivity() {
                 toast("Error fetching user details.")
             }
     }
-    private fun addUserToBet() {
+    private fun addUserToBet(selectedOption: String) {
         val currentUser = auth.currentUser ?: run {
             toast("User not authenticated")
             return
         }
         val userId = currentUser.uid
 
+        val updates = mapOf(
+            "participants.$userId.isBetting" to true,           // סימון שהמשתמש מהמר
+            "participants.$userId.betOption" to selectedOption  // שמירת האפשרות שבחר
+        )
+
         db.collection("rooms").document(roomId)
-            .update("participants.$userId.isBetting", true)
-            .addOnSuccessListener {
-                toast("You have joined the bet!")
+            .update(updates)
+            .addOnSuccessListener { toast("You have joined the bet with option: $selectedOption!") }
+            .addOnFailureListener { e -> toast("Failed to update bet status: ${e.message}") }
+    }
+    private fun showCloseBet() {
+        db.collection("rooms").document(roomId).get()
+            .addOnSuccessListener { document ->
+                if (!document.exists()) {
+                    toast("Room not found")
+                    return@addOnSuccessListener
+                }
+
+                val roomOwnerId = document.getString("createdBy") ?: "None"
+                val currentUser = auth.currentUser
+                if (currentUser?.uid != roomOwnerId) {
+                    toast("Only the room owner can close the bet")
+                    return@addOnSuccessListener
+                }
+
+                val pollOptions = document.get("options") as? List<String> ?: emptyList()
+                if (pollOptions.isEmpty()) {
+                    toast("No options available for closing the bet.")
+                    return@addOnSuccessListener
+                }
+
+                var selectedWinningOption: String? = null
+
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("Select the winning option")
+
+                builder.setSingleChoiceItems(pollOptions.toTypedArray(), -1) { _, which ->
+                    selectedWinningOption = pollOptions[which]
+                }
+
+                builder.setPositiveButton("Confirm") { _, _ ->
+                    if (selectedWinningOption != null) {
+                        processBetResults(document, selectedWinningOption!!)
+                    } else {
+                        toast("Please select a winning option.")
+                    }
+                }
+
+                builder.setNegativeButton("Cancel", null)
+
+                val dialog = builder.create()
+                dialog.show()
             }
-            .addOnFailureListener { e ->
-                toast("Failed to update bet status: ${e.message}")
+            .addOnFailureListener {
+                toast("Error fetching room details.")
             }
     }
+    private fun processBetResults(document: DocumentSnapshot, winningOption: String) {
+        val participants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        val betPoints = document.getLong("betPoints") ?: 0
 
+        val winners = participants.filter { (_, data) -> data["betOption"] == winningOption }
+        val losers = participants.filter { (_, data) -> data["betOption"] != winningOption }
+
+        if (losers.isEmpty()) {
+            toast("No losers found, cannot distribute winnings.")
+            return
+        }
+
+        val totalPot = participants.size * betPoints
+        val rewardPerWinner = totalPot / losers.size
+
+        val batch = db.batch()
+
+        winners.forEach { (userId, _) ->
+            val userRef = db.collection("users").document(userId)
+            batch.update(userRef, "currentPoints", FieldValue.increment(rewardPerWinner.toDouble()))
+        }
+
+        val roomRef = db.collection("rooms").document(roomId)
+        batch.update(roomRef, "status", "closed") // מעדכן שהחדר נסגר
+
+        batch.commit()
+            .addOnSuccessListener {
+                toast("Bet closed. Winners received $rewardPerWinner points.")
+                deleteRoom(roomId) // מוחק את החדר
+            }
+            .addOnFailureListener {
+                toast("Failed to process bet results.")
+            }
+    }
 
     private fun initChatView(view: View) {
         chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
@@ -292,20 +414,19 @@ class RoomActivity : BaseActivity() {
         sendButton.setOnClickListener {
             val messageText = messageInput.text.toString()
             if (messageText.isNotBlank()) {
-                sendMessage(roomId, messageText)
+                sendMessage(messageText)
             } else {
                 toast("Message cannot be empty.")
             }
         }
-        getRoom(roomId)
-        setupChat(roomId)
+        getRoom()
+        setupChat()
     }
     @SuppressLint("NotifyDataSetChanged")
-    private fun setupChat(roomId: String) {
+    private fun setupChat() {
         val messages = mutableListOf<Message>()
         val chatAdapter = AdapterChat(messages)
 
-        // אתחול RecyclerView לצ'אט
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
         chatRecyclerView.adapter = chatAdapter
 
@@ -329,7 +450,7 @@ class RoomActivity : BaseActivity() {
                 }
             }
     }
-    private fun sendMessage(roomId: String, messageText: String) {
+    private fun sendMessage(messageText: String) {
         val currentUser = auth.currentUser
         val senderName = currentUser?.displayName ?: currentUser?.email ?: "Anonymous"
 
@@ -379,8 +500,8 @@ class RoomActivity : BaseActivity() {
                         toast("Room not found.")
                         return@addOnSuccessListener
                     }
-                    val participants = document.get("participants") as? List<Map<String,Any>> ?: emptyList()
-                    val participantToRemove = participants.find { it["id"] == userId }  // Find the exact participant object to remove
+                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val participantToRemove = roomsParticipants[userId]
                     if (participantToRemove == null) {
                         toast("User not found in participants.")
                         return@addOnSuccessListener
@@ -389,7 +510,7 @@ class RoomActivity : BaseActivity() {
                         if (success) {
                             removeRoomFromUser(userId, roomId){ success2 ->
                                 if (success2) {   // Now remove the room from the user's rooms array
-                                    if(participants.size <= 1){ deleteRoom(roomId) } // Delete the room if no participants are left
+                                    if(roomsParticipants.size <= 1){ deleteRoom(roomId) } // Delete the room if no participants are left
                                     toast("You have left the room")
                                     navigateTo(RoomsActivity::class.java)
                                 }

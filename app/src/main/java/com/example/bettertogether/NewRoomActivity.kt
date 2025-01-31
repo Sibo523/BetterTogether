@@ -16,6 +16,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class NewRoomActivity : BaseActivity() {
 
@@ -31,6 +33,12 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var radioGroup: RadioGroup
     private lateinit var submitButton: Button
     private lateinit var uploadButton: Button
+    private lateinit var pollOptionInput: EditText
+    private lateinit var addPollOptionButton: Button
+    private lateinit var pollOptionsList: RecyclerView
+    private val pollOptions = mutableListOf<String>()
+    private lateinit var pollOptionsAdapter: AdapterPollOptions
+
     var uploadedImageUrl: String? = "null.png"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +58,22 @@ class NewRoomActivity : BaseActivity() {
         submitButton = findViewById(R.id.submit_button)
         uploadButton = findViewById(R.id.uploadButton)
 
+        pollOptionInput = findViewById(R.id.poll_option_input)
+        addPollOptionButton = findViewById(R.id.add_poll_option_button)
+        pollOptionsList = findViewById(R.id.poll_options_list)
+        pollOptionsAdapter = AdapterPollOptions(pollOptions)
+        pollOptionsList.layoutManager = LinearLayoutManager(this)
+        pollOptionsList.adapter = pollOptionsAdapter
+        addPollOptionButton.setOnClickListener {
+            val optionText1 = pollOptionInput.text.toString().trim()
+            if (optionText1.isNotEmpty()) {
+                pollOptions.add(0, optionText1)             // הוספת האופציה בראש הרשימה
+                pollOptionsAdapter.notifyItemInserted(0)
+                pollOptionsList.scrollToPosition(0)       // גלילה למעלה כדי להציג את האופציה החדשה
+                pollOptionInput.text.clear()
+            } else{ toast("Option cannot be empty") }
+        }
+
         checkUserRole { role ->
             checkbox_event.visibility = if(role=="owner") View.VISIBLE else View.GONE
         }
@@ -67,6 +91,10 @@ class NewRoomActivity : BaseActivity() {
     private fun validateInputs(): Boolean {
         if (editText.text.toString().isBlank()) {
             editText.error = "Bet subject cannot be empty"
+            return false
+        }
+        if (pollOptions.size < 2) {
+            pollOptionInput.error = "Add at least 2 options"
             return false
         }
         if (betAmountInput.text.toString().isBlank()) {
@@ -146,6 +174,7 @@ class NewRoomActivity : BaseActivity() {
             "isEvent" to isEvent,
             "isPublic" to isPublic,
             "name" to betSubject,
+            "options" to pollOptions,
             "betPoints" to betAmount,
             "maxParticipants" to maxParticipants,
             "description" to description,
