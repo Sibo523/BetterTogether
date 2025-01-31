@@ -81,19 +81,26 @@ class HomeActivity : BaseActivity() {
             .addOnSuccessListener { querySnapshot ->
                 roomsList.clear()
                 roomsList.addAll(querySnapshot.documents.map { document ->
-                    val participants = document.get("participants") as? List<*> ?: emptyList<Any>()
+                    val participants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val participantsCount = participants.size
+                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
+
                     mapOf(
                         "id" to document.id,
                         "name" to (document.getString("name") ?: "Unnamed Room"),
-                        "participantsCount" to participants.size,
-                        "maxParticipants" to (document.getString("maxParticipants")?.toIntOrNull() ?: 10),
+                        "participantsCount" to participantsCount,
+                        "maxParticipants" to maxParticipants,
                         "participants" to participants
                     )
-                }.sortedByDescending { it["participantsCount"] as Int })
-                roomsSliderAdapter.notifyDataSetChanged()
+                }.sortedByDescending { it["participantsCount"] as? Int ?: 0 }) // מיון נכון גם לערכים null
+
+                if (::roomsSliderAdapter.isInitialized) {
+                    roomsSliderAdapter.notifyDataSetChanged()
+                }
             }
             .addOnFailureListener { exception ->
                 toast("Error fetching popular rooms: ${exception.message}")
             }
     }
+
 }

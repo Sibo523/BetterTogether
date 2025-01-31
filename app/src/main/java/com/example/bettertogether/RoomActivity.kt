@@ -17,24 +17,25 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 
 class RoomActivity : BaseActivity() {
-    private lateinit var roomNameTextView: TextView
-    private lateinit var roomTypeTextView: TextView
-    private lateinit var participantsCountTextView: TextView
-    private lateinit var roomPointsTextView: TextView
-    private lateinit var roomDescriptionTextView: TextView
-    private lateinit var roomExpirationTextView: TextView
-    private lateinit var roomIsPublicTextView: TextView
-    private lateinit var chatRecyclerView: RecyclerView
-    private lateinit var messageInput: EditText
-    private lateinit var sendButton: Button
-    private lateinit var betNowButton : Button
-    private lateinit var roomImage : ImageView
+    private lateinit var roomNameTextView: TextView            // -----  details  -----
+    private lateinit var roomTypeTextView: TextView            // details
+    private lateinit var participantsCountTextView: TextView   // details
+    private lateinit var roomPointsTextView: TextView          // details
+    private lateinit var roomDescriptionTextView: TextView     // details
+    private lateinit var roomExpirationTextView: TextView      // details
+    private lateinit var roomIsPublicTextView: TextView        // details
+    private lateinit var betNowButton : Button                 // details
+    private lateinit var roomImage : ImageView                 // details
+    private lateinit var chatRecyclerView: RecyclerView        // -----  chat  -----
+    private lateinit var messageInput: EditText                // chat
+    private lateinit var sendButton: Button                    // chat
+    private lateinit var joinButton: Button                    // -----  both  -----
+    private lateinit var codeInput: EditText                   // both
 
     private var isParticipant: Boolean = false
     private var roomId: String = "null"
 
-    private lateinit var joinButton: Button
-    private lateinit var codeInput: EditText
+    private var betPoints: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +63,38 @@ class RoomActivity : BaseActivity() {
             }
         })
     }
+    private fun getRoom(roomId: String) {
+        db.collection("rooms").document(roomId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val isPublic = document.getBoolean("isPublic") == true
+                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+
+                    val currentUser = auth.currentUser
+                    isParticipant = currentUser != null && roomsParticipants.containsKey(currentUser.uid)
+
+                    invalidateOptionsMenu()
+                    if (!isParticipant) {
+                        if (isPublic) {
+                            showJoinButton(roomId)
+                        } else {
+                            showCodeInput(roomId)
+                        }
+                    }
+
+                    if (auth.currentUser == null) {
+                        joinSendsToLogin()
+                    }
+                } else {
+                    toast("Room not found")
+                    finish()
+                }
+            }
+            .addOnFailureListener {
+                toast("Error fetching room details.")
+                finish()
+            }
+    }
 
     private fun initRoomDetailsView(view: View) {
         roomNameTextView = view.findViewById(R.id.roomNameText)
@@ -74,38 +107,16 @@ class RoomActivity : BaseActivity() {
         betNowButton = view.findViewById(R.id.betNowButton)
         roomImage = view.findViewById(R.id.roomImage)
 
+        betNowButton.setOnClickListener {
+            joinBet()
+        }
+
         if (roomId == "null") {
             toast("Room ID is missing")
             finish()
         }
         getRoom(roomId)
-        invalidateOptionsMenu()
         showRoomDetails(roomId)
-    }
-    private fun getRoom(roomId: String){
-        db.collection("rooms").document(roomId).get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val isPublic = document.getBoolean("isPublic") == true
-                    // Check if the user is a participant
-                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
-                    val currentUser = auth.currentUser
-                    isParticipant = currentUser != null && roomsParticipants.any { it["id"] == currentUser.uid }
-                    invalidateOptionsMenu()
-                    if(!isParticipant){
-                        if(isPublic){ showJoinButton(roomId) }
-                        else{ showCodeInput(roomId) }
-                    }
-                    if(auth.currentUser == null){ joinSendsToLogin() }
-                } else {
-                    toast("Room not found")
-                    finish()
-                }
-            }
-            .addOnFailureListener {
-                toast("Error fetching room details.")
-                finish()
-            }
     }
     private fun showJoinButton(roomId: String) {
         betNowButton.visibility = View.GONE
@@ -142,6 +153,7 @@ class RoomActivity : BaseActivity() {
                 val isPublic = document.getBoolean("isPublic") == true
                 if (!isPublic && roomCode != enteredCode) {
                     toast("Incorrect room code.")
+                    return@addOnSuccessListener
                 }
                 val currentUser = auth.currentUser
                 if (currentUser == null) {
@@ -153,15 +165,15 @@ class RoomActivity : BaseActivity() {
                 val userUrl = currentUser.photoUrl
 
                 val participantData = mapOf(
-                    "id" to userId,
                     "name" to userName,
                     "role" to "participant",
                     "photoUrl" to userUrl,
+                    "isBetting" to false,
                     "joinedOn" to System.currentTimeMillis()
                 )
 
                 // Add to participants array in the room document
-                addUserToRoom(roomId, participantData){ success ->
+                addUserToRoom(roomId, userId, participantData) { success ->
                     if (success) {
                         val betSubject = (document.getString("name") ?: "Unnamed Room")
                         addRoomToUser(userId,roomId,betSubject,"participant",isPublic){ success2 ->
@@ -176,34 +188,44 @@ class RoomActivity : BaseActivity() {
             }
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
     }
-
     private fun showRoomDetails(roomId: String) {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
+                    betPoints = document.getLong("betPoints") ?: 0
                     // Populate UI with room details
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = document.getString("betType") ?: "N/A"
-                    roomPointsTextView.text = document.getString("betPoints") ?: "N/A"
+                    roomPointsTextView.text = document.getLong("betPoints")?.toString() ?: "N/A"
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
                     roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
 
                     val isPublic = document.getBoolean("isPublic") == true
                     roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
 
-                    val roomsParticipants = document.get("participants") as? List<Map<String, Any>> ?: emptyList()
-                    val numPaticipants = roomsParticipants.size ?: 1
-                    val maxParticipants = document.getString("maxParticipants")?.toIntOrNull() ?: 10
-                    participantsCountTextView.text = "$numPaticipants/$maxParticipants"
+                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val numParticipants = roomsParticipants.size
+                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
+                    participantsCountTextView.text = "$numParticipants/$maxParticipants"
+
+                    val currentUser = auth.currentUser
+                    if (currentUser != null) {
+                        val userId = currentUser.uid
+                        val userParticipant = roomsParticipants[userId] // גישה ישירה למפה במקום חיפוש בלולאה
+                        val hasAlreadyBet = userParticipant?.get("isBetting") as? Boolean ?: false
+                        if (hasAlreadyBet) {
+                            betNowButton.visibility = View.GONE
+                        }
+                    }
 
                     val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
                     val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
-                    val adapter = AdapterParticipantsPager(roomsParticipants)
+                    val adapter = AdapterParticipantsPager(roomsParticipants.values.toList()) // שימוש ב-values
                     participantsViewPager.adapter = adapter
                     dotsIndicator.attachTo(participantsViewPager)
 
-                    val imageUrl : String = document.getString("url") ?: "https://example.com/image.jpg"
-                    loadImageFromURL(imageUrl,roomImage)
+                    val imageUrl: String = document.getString("url") ?: "https://example.com/image.jpg"
+                    loadImageFromURL(imageUrl, roomImage)
                 } else {
                     toast("Room not found")
                     finish()
@@ -214,6 +236,53 @@ class RoomActivity : BaseActivity() {
                 finish()
             }
     }
+    private fun joinBet() {
+        val currentUser = auth.currentUser ?: run {
+            toast("User not authenticated")
+            return
+        }
+        val userId = currentUser.uid
+
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { userDoc ->
+                val userPoints = userDoc.getLong("currentPoints") ?: 0
+                if (userPoints < betPoints) {
+                    toast("You don't have enough points to join this bet")
+                    return@addOnSuccessListener
+                }
+                val newPoints = userPoints - betPoints
+                db.collection("users").document(userId)
+                    .update("currentPoints", newPoints)
+                    .addOnSuccessListener {
+                        betNowButton.visibility = View.GONE
+                        toast("You have joined the bet! Remaining points: $newPoints")
+                        addUserToBet()
+                    }
+                    .addOnFailureListener {
+                        toast("Error updating points.")
+                    }
+            }
+            .addOnFailureListener {
+                toast("Error fetching user details.")
+            }
+    }
+    private fun addUserToBet() {
+        val currentUser = auth.currentUser ?: run {
+            toast("User not authenticated")
+            return
+        }
+        val userId = currentUser.uid
+
+        db.collection("rooms").document(roomId)
+            .update("participants.$userId.isBetting", true)
+            .addOnSuccessListener {
+                toast("You have joined the bet!")
+            }
+            .addOnFailureListener { e ->
+                toast("Failed to update bet status: ${e.message}")
+            }
+    }
+
 
     private fun initChatView(view: View) {
         chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
@@ -316,7 +385,7 @@ class RoomActivity : BaseActivity() {
                         toast("User not found in participants.")
                         return@addOnSuccessListener
                     }
-                    removeUserFromRoom(roomId, participantToRemove){ success ->
+                    removeUserFromRoom(roomId, userId){ success ->
                         if (success) {
                             removeRoomFromUser(userId, roomId){ success2 ->
                                 if (success2) {   // Now remove the room from the user's rooms array

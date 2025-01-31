@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.google.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.google.firebase.analytics)
+    implementation("com.google.firebase:firebase-auth-ktx:latest_version")
+    implementation("com.google.android.gms:play-services-auth:latest_version")
 
     // Glide for image loading
     implementation(libs.glide.v4160)

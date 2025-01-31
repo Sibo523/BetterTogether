@@ -27,9 +27,9 @@ class AdapterRooms(
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         val roomDocument = rooms[position]
         val roomName = roomDocument.getString("name") ?: "Unnamed Room"
-        val participants = roomDocument.get("participants") as? List<*> ?: emptyList<Any>()
+        val participants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
         val isPublic = roomDocument.getBoolean("isPublic") ?: false
-        val maxParticipants = roomDocument.getString("maxParticipants")?.toIntOrNull() ?: 10
+        val maxParticipants = roomDocument.getLong("maxParticipants")?.toInt() ?: 10
 
         holder.roomNameTextView.text = roomName
         holder.participantsCounterTextView.text = "${participants.size}/$maxParticipants"

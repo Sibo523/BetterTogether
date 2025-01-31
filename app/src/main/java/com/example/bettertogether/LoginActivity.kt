@@ -6,11 +6,8 @@ import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.OAuthProvider
 import java.util.*
 
 class LoginActivity : BaseActivity() {
@@ -19,6 +16,8 @@ class LoginActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         Log.d("LoginActivityLog", "onCreate called")
         setContentView(R.layout.activity_login)
+
+        auth = FirebaseAuth.getInstance()
 
         // Set background based on the time of day
         if (isDayTime()) {
@@ -61,53 +60,20 @@ class LoginActivity : BaseActivity() {
         val googleSignInButton = findViewById<com.google.android.gms.common.SignInButton>(R.id.btnGoogleSignIn)
         googleSignInButton.setOnClickListener {
             Log.d("LoginActivityLog", "Google Sign-In button clicked")
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-            Log.d("LoginActivityLog", "GoogleSignInOptions built")
 
-            val googleSignInClient = GoogleSignIn.getClient(this, gso)
-            Log.d("LoginActivityLog", "GoogleSignInClient initialized")
+            val provider = OAuthProvider.newBuilder("google.com")
 
-            val signInIntent = googleSignInClient.signInIntent
-            Log.d("LoginActivityLog", "Launching Google Sign-In intent")
-            launcher.launch(signInIntent)
-        }
-    }
-
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.d("LoginActivityLog", "ActivityResult received with code: ${result.resultCode}, data: ${result.data}")
-        if (result.resultCode == RESULT_OK) {
-            Log.d("LoginActivityLog", "Google Sign-In RESULT_OK, processing result")
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                Log.d("LoginActivityLog", "Google sign-in successful: ${account.email}")
-                firebaseAuthWithGoogle(account)
-            } catch (e: ApiException) {
-                Log.e("LoginActivityLog", "Google sign-in failed with exception", e)
-            }
-        } else {
-            Log.w("LoginActivityLog", "Google Sign-In result code not OK: ${result.resultCode}")
-        }
-    }
-
-
-    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
-        Log.d("LoginActivityLog", "Authenticating with Firebase using Google account")
-        val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    Log.d("LoginActivityLog", "signInWithCredential:success")
+            auth.startActivityForSignInWithProvider(this, provider.build())
+                .addOnSuccessListener { authResult ->
+                    Log.d("LoginActivityLog", "Google sign-in successful: ${authResult.user?.email}")
                     checkAndCreateUser()
                     goToMainScreen()
-                } else {
-                    Log.w("LoginActivity", "signInWithCredential:failure", task.exception)
-                    toast("Authentication failed: ${task.exception?.message}")
                 }
-            }
+                .addOnFailureListener { e ->
+                    Log.e("LoginActivityLog", "Google sign-in failed", e)
+                    toast("Authentication failed: ${e.message}")
+                }
+        }
     }
 
     private fun checkAndCreateUser() {
@@ -122,7 +88,7 @@ class LoginActivity : BaseActivity() {
                         "email" to user.email,
                         "displayName" to user.displayName,
                         "createdAt" to System.currentTimeMillis(),
-                        "currentPoints" to 100,
+                        "currentPoints" to 1000,
                         "rooms" to emptyList<Map<String, Any>>(),
                         "photoUrl" to (user.photoUrl?.toString() ?: ""),
                         "role" to "client"

@@ -93,7 +93,7 @@ class NewRoomActivity : BaseActivity() {
             toast("Please select a ratio")
             return false
         }
-        if (checkbox_event.isChecked && uploadedImageUrl == "null.png") {
+        if (checkbox_event.isChecked && (uploadedImageUrl == "null.png" || uploadedImageUrl.isNullOrEmpty())) {
             toast("Please upload an image or wait for the event")
             return false
         }
@@ -122,8 +122,8 @@ class NewRoomActivity : BaseActivity() {
         val isPublic = checkbox_public.isChecked
         val isEvent = checkbox_event.isChecked
         val betSubject = editText.text.toString()
-        val betAmount = betAmountInput.text.toString()
-        val maxParticipants = maxParticipantsInput.text.toString()
+        val betAmount = betAmountInput.text.toString().toIntOrNull() ?: 10
+        val maxParticipants = maxParticipantsInput.text.toString().toIntOrNull() ?: 10
         val selectedDate = dateInput.text.toString()
         val description = descriptionInput.text.toString()
         val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
@@ -133,6 +133,15 @@ class NewRoomActivity : BaseActivity() {
         val userUrl = currentUser.photoUrl
         val url = uploadedImageUrl.toString()
 
+        val participantsMap = hashMapOf(
+            userId to hashMapOf(
+                "name" to userName,
+                "role" to "owner",
+                "photoUrl" to userUrl,
+                "isBetting" to false,
+                "joinedOn" to System.currentTimeMillis()
+            )
+        )
         val roomData = hashMapOf(
             "isEvent" to isEvent,
             "isPublic" to isPublic,
@@ -146,15 +155,7 @@ class NewRoomActivity : BaseActivity() {
             "createdOn" to System.currentTimeMillis(),
             "createdBy" to userId,
             "url" to url,
-            "participants" to mutableListOf(
-                hashMapOf(
-                    "id" to userId,
-                    "name" to userName,
-                    "role" to "owner",
-                    "photoUrl" to userUrl,
-                    "joinedOn" to System.currentTimeMillis()
-                )
-            )
+            "participants" to participantsMap
         )
         db.collection("rooms")
             .add(roomData)
