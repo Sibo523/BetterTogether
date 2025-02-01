@@ -67,7 +67,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     android:textStyle="bold"
                     android:layout_margin="8dp" />
-
                 <LinearLayout
                     android:id="@+id/sports_row"
                     android:layout_width="match_parent"
@@ -86,8 +85,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
                             android:src="@drawable/events_sports_ic_basketball"
                             android:contentDescription="Basketball" />
                         <TextView
@@ -106,8 +107,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
                             android:src="@drawable/events_sports_ic_soccer"
                             android:contentDescription="Soccer" />
                         <TextView
@@ -115,6 +118,28 @@
                             android:layout_height="wrap_content"
                             android:text="Soccer"
                             android:tag="Soccer"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Tennis -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
+                            android:src="@drawable/events_sports_ic_tennis"
+                            android:contentDescription="Tennis" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tennis"
+                            android:tag="Tennis"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -126,8 +151,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
                             android:src="@drawable/events_sports_ic_football"
                             android:contentDescription="Football" />
                         <TextView
@@ -146,8 +173,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
                             android:src="@drawable/events_sports_ic_boxing"
                             android:contentDescription="Boxing" />
                         <TextView
@@ -173,7 +202,6 @@
                     app:layout_constraintTop_toBottomOf="@id/sports_row"
                     android:textStyle="bold"
                     android:layout_margin="8dp" />
-
                 <LinearLayout
                     android:id="@+id/other_subjects_row"
                     android:layout_width="match_parent"
@@ -192,8 +220,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
                             android:src="@drawable/events_other_ic_politics"
                             android:contentDescription="Politics" />
                         <TextView

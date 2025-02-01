@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,8 +20,11 @@ class HomeActivity : BaseActivity() {
     private lateinit var imgViaURL: ImageView
     private val mainHandler = Handler(Looper.getMainLooper())
     private val imageUrls = mutableListOf<String>()
+    private val eventRoomsMap = mutableMapOf<String, String>()
     private var currentImageIndex = 0
     private val slideshowInterval = 8000L // 8 seconds
+    private var currentRoomId: String = ""
+    private lateinit var betButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +32,15 @@ class HomeActivity : BaseActivity() {
 
         // Slideshow ImageView
         imgViaURL = findViewById(R.id.imgViaURL)
+        betButton = findViewById(R.id.bet)
+
+        betButton.setOnClickListener {
+            if (currentRoomId.isNotEmpty()) {
+                openRoom(currentRoomId)
+            } else {
+                toast("No event selected.")
+            }
+        }
         eventsForSlideshow()
 
         // Rooms Slider
@@ -47,10 +60,15 @@ class HomeActivity : BaseActivity() {
             .whereEqualTo("isEvent", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
+                imageUrls.clear()
+                eventRoomsMap.clear()  // מנקים נתונים ישנים
+
                 for (document in querySnapshot.documents) {
                     val url = document.getString("url")
+                    val roomId = document.id  // ה- ID של החדר
                     if (url != null) {
                         imageUrls.add(url)
+                        eventRoomsMap[url] = roomId  // קישור בין URL ל-ID
                     }
                 }
 
@@ -69,7 +87,9 @@ class HomeActivity : BaseActivity() {
             override fun run() {
                 if (imageUrls.isNotEmpty()) {
                     val imageUrl = imageUrls[currentImageIndex]
-                    loadImageFromURL(imageUrl,imgViaURL)
+                    loadImageFromURL(imageUrl, imgViaURL)
+                    currentRoomId = eventRoomsMap[imageUrl] ?: ""
+
                     currentImageIndex = (currentImageIndex + 1) % imageUrls.size
                 }
                 mainHandler.postDelayed(this, slideshowInterval)
