@@ -1,20 +1,19 @@
 package com.example.bettertogether
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 
-class RoomsActivity : BaseActivity() {
+class RatingActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: AdapterRooms
     private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_rooms)
+        setContentView(R.layout.activity_rating)
 
         recyclerView = findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)

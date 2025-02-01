@@ -37,7 +37,7 @@
         <activity android:name=".HomeActivity" />
         <activity android:name=".NewRoomActivity" />
         <activity android:name=".ExplorerActivity" />
-        <activity android:name=".RoomsActivity" />
+        <activity android:name=".RatingActivity" />
         <activity android:name=".RoomActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".EventsBySubjectActivity" />

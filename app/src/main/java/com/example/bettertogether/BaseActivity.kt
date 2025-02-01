@@ -42,7 +42,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_star -> {
-                    navigateTo(RoomsActivity::class.java)
+                    navigateTo(RatingActivity::class.java)
                     true
                 }
                 R.id.nav_profile -> {

@@ -512,7 +512,7 @@ class RoomActivity : BaseActivity() {
                                 if (success2) {   // Now remove the room from the user's rooms array
                                     if(roomsParticipants.size <= 1){ deleteRoom(roomId) } // Delete the room if no participants are left
                                     toast("You have left the room")
-                                    navigateTo(RoomsActivity::class.java)
+                                    navigateTo(RatingActivity::class.java)
                                 }
                                 else { toast("Failed to remove room from user") }
                             }
