@@ -1,9 +1,12 @@
 package com.example.bettertogether
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -35,6 +38,8 @@ class HomeActivity : BaseActivity() {
         }
         roomsSlider.adapter = roomsSliderAdapter
         popularPublicRooms()
+
+        setupCategoryClickListeners()
     }
 
     private fun eventsForSlideshow() {
@@ -59,7 +64,6 @@ class HomeActivity : BaseActivity() {
                 toast("Failed to fetch events: ${exception.message}")
             }
     }
-
     private fun startSlideshow() {
         mainHandler.post(object : Runnable {
             override fun run() {
@@ -71,6 +75,28 @@ class HomeActivity : BaseActivity() {
                 mainHandler.postDelayed(this, slideshowInterval)
             }
         })
+    }
+
+    private fun setupCategoryClickListeners() {
+        val categoryRows = listOf(
+            findViewById<LinearLayout>(R.id.sports_row),
+            findViewById<LinearLayout>(R.id.other_subjects_row)
+        )
+
+        for (row in categoryRows) {
+            for (i in 0 until row.childCount) {
+                val categoryLayout = row.getChildAt(i) as LinearLayout
+                val categoryTextView = categoryLayout.getChildAt(1) as TextView  // ה-TextView שבתוך ה-LinearLayout
+
+                categoryLayout.setOnClickListener {
+                    val subject = categoryTextView.tag.toString()
+                    val intent = Intent(this, EventsBySubjectActivity::class.java).apply {
+                        putExtra("subject", subject)
+                    }
+                    startActivity(intent)
+                }
+            }
+        }
     }
 
     private fun popularPublicRooms() {

@@ -192,8 +192,8 @@ abstract class BaseActivity : AppCompatActivity() {
         if (!isDestroyed && !isFinishing) {
             Glide.with(this) // `this` הוא הקונטקסט, אם אתה נמצא בתוך Activity או Fragment.
                 .load(imageUrl) // כתובת ה-URL של התמונה.
-                .placeholder(R.drawable.ic_profile) // תמונה שתוצג בזמן הטעינה (אופציונלי).
-                .error(R.drawable.ic_profile) // תמונה שתוצג אם הטעינה נכשלה (אופציונלי).
+                .placeholder(R.drawable.room_placeholder_image) // תמונה שתוצג בזמן הטעינה (אופציונלי).
+                .error(R.drawable.room_placeholder_image) // תמונה שתוצג אם הטעינה נכשלה (אופציונלי).
                 .into(imageView)
         } else {
             Log.w("BaseActivity", "Attempted to load image for a destroyed or finishing activity")

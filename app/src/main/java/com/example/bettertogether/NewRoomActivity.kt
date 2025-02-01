@@ -24,12 +24,13 @@ class NewRoomActivity : BaseActivity() {
     // Declare views as class-level properties
     private lateinit var checkbox_public: CheckBox
     private lateinit var checkbox_event: CheckBox
-    private lateinit var editText: EditText
+    private lateinit var roomNameText: EditText
     private lateinit var betAmountInput: EditText
     private lateinit var maxParticipantsInput: EditText
     private lateinit var dateInput: EditText
     private lateinit var descriptionInput: EditText
     private lateinit var codeInput: EditText
+    private lateinit var eventSubjectInput: EditText
     private lateinit var radioGroup: RadioGroup
     private lateinit var submitButton: Button
     private lateinit var uploadButton: Button
@@ -48,12 +49,13 @@ class NewRoomActivity : BaseActivity() {
         // Initialize views once
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
-        editText = findViewById(R.id.form_text_input)
+        roomNameText = findViewById(R.id.room_name)
         betAmountInput = findViewById(R.id.form_number_input)
         maxParticipantsInput = findViewById(R.id.max_participants_input)
         dateInput = findViewById(R.id.form_date_input)
         descriptionInput = findViewById(R.id.form_description_input)
         codeInput = findViewById(R.id.form_code_input)
+        eventSubjectInput = findViewById(R.id.event_subject)
         radioGroup = findViewById(R.id.form_radio_group)
         submitButton = findViewById(R.id.submit_button)
         uploadButton = findViewById(R.id.uploadButton)
@@ -80,6 +82,9 @@ class NewRoomActivity : BaseActivity() {
         checkbox_public.setOnCheckedChangeListener { _, isChecked ->
             codeInput.visibility = if(isChecked) View.GONE else View.VISIBLE
         }
+        checkbox_event.setOnCheckedChangeListener { _, isChecked ->
+            eventSubjectInput.visibility = if(isChecked) View.VISIBLE else View.GONE
+        }
 
         uploadButton.setOnClickListener{ openGallery() }
 
@@ -89,8 +94,8 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun validateInputs(): Boolean {
-        if (editText.text.toString().isBlank()) {
-            editText.error = "Bet subject cannot be empty"
+        if (roomNameText.text.toString().isBlank()) {
+            roomNameText.error = "Bet subject cannot be empty"
             return false
         }
         if (pollOptions.size < 2) {
@@ -121,6 +126,10 @@ class NewRoomActivity : BaseActivity() {
             toast("Please select a ratio")
             return false
         }
+        if (checkbox_event.isChecked && eventSubjectInput.text.toString().isBlank()) {
+            toast("Event should have a subject")
+            return false
+        }
         if (checkbox_event.isChecked && (uploadedImageUrl == "null.png" || uploadedImageUrl.isNullOrEmpty())) {
             toast("Please upload an image or wait for the event")
             return false
@@ -149,13 +158,14 @@ class NewRoomActivity : BaseActivity() {
 
         val isPublic = checkbox_public.isChecked
         val isEvent = checkbox_event.isChecked
-        val betSubject = editText.text.toString()
+        val betSubject = roomNameText.text.toString()
         val betAmount = betAmountInput.text.toString().toIntOrNull() ?: 10
         val maxParticipants = maxParticipantsInput.text.toString().toIntOrNull() ?: 10
         val selectedDate = dateInput.text.toString()
         val description = descriptionInput.text.toString()
         val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
         val code = codeInput.text.toString()
+        val eventSubject = eventSubjectInput.text.toString()
         val userId = currentUser.uid
         val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
         val userUrl = currentUser.photoUrl
@@ -179,6 +189,7 @@ class NewRoomActivity : BaseActivity() {
             "maxParticipants" to maxParticipants,
             "description" to description,
             "code" to code,
+            "eventSubject" to eventSubject,
             "expiration" to selectedDate,
             "betType" to selectedRadio,
             "createdOn" to System.currentTimeMillis(),

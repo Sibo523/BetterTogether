@@ -50,11 +50,11 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Sports Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <!-- Sports Section -->
                 <TextView
                     android:id="@+id/sports_label"
                     android:layout_width="wrap_content"
@@ -94,6 +94,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Basketball"
+                            android:tag="Basketball"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -113,6 +114,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Soccer"
+                            android:tag="Soccer"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -132,6 +134,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Football"
+                            android:tag="Football"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -151,6 +154,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Boxing"
+                            android:tag="Boxing"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
@@ -196,6 +200,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Politics"
+                            android:tag="Politics"
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>

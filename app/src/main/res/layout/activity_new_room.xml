@@ -22,7 +22,7 @@
 
             <!-- Room Name -->
             <EditText
-                android:id="@+id/form_text_input"
+                android:id="@+id/room_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter Room Name"
@@ -110,6 +110,14 @@
                 android:layout_height="wrap_content"
                 android:hint="Room Code"
                 android:inputType="text" />
+            <!-- Event Subject -->
+            <EditText
+                android:id="@+id/event_subject"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Event Subject"
+                android:inputType="text"
+                android:visibility="gone" />
 
             <!-- Radio Group for Bet Type -->
             <RadioGroup
