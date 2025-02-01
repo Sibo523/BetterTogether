@@ -234,6 +234,94 @@
                             android:textColor="@android:color/white"
                             android:gravity="center" />
                     </LinearLayout>
+                    <!-- Music -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
+                            android:src="@drawable/events_other_ic_music"
+                            android:contentDescription="Music" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Music"
+                            android:tag="Music"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Gaming -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
+                            android:src="@drawable/events_other_ic_gaming"
+                            android:contentDescription="Gaming" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gaming"
+                            android:tag="Gaming"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Movies & TV -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
+                            android:src="@drawable/events_other_ic_tv"
+                            android:contentDescription="Movies &amp; TV" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Movies &amp; TV"
+                            android:tag="TV"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
+                    <!-- Celeb Gossip -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/circle_background"
+                            android:padding="8dp"
+                            android:src="@drawable/events_other_ic_gossip"
+                            android:contentDescription="Celeb Gossip" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Celeb Gossip"
+                            android:tag="Gossip"
+                            android:textColor="@android:color/white"
+                            android:gravity="center" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
