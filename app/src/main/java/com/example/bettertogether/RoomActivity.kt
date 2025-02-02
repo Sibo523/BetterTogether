@@ -17,6 +17,10 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.ViewGroup
+
 class RoomActivity : BaseActivity() {
     private lateinit var roomNameTextView: TextView            // -----  details  -----
     private lateinit var roomTypeTextView: TextView            // details
@@ -522,4 +526,53 @@ class RoomActivity : BaseActivity() {
                 .addOnFailureListener { exception -> toast("Error retrieving room data: ${exception.message}") }
         } ?: run { toast("Room ID is missing.") }
     }
+}
+
+
+data class Message(
+    val sender: String = "",
+    val message: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+class AdapterChat(private val messages: List<Message>) :
+    RecyclerView.Adapter<AdapterChat.ChatViewHolder>() {
+    class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val senderTextView: TextView = itemView.findViewById(R.id.sender_text)
+        val messageTextView: TextView = itemView.findViewById(R.id.message_text)
+    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_message, parent, false)
+        return ChatViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
+        val message = messages[position]
+        holder.senderTextView.text = message.sender
+        holder.messageTextView.text = message.message
+    }
+    override fun getItemCount(): Int {
+        return messages.size
+    }
+}
+
+class AdapterRoomPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomPager.ViewHolder>() {
+    private val pageViews = mutableMapOf<Int, View>() // שמירה על Views לפי position
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(context)
+        val layout = when (viewType) {
+            0 -> R.layout.page_room_details // עמוד פרטי החדר
+            1 -> R.layout.page_chat         // עמוד הצ'אט
+            else -> throw IllegalStateException("Invalid view type")
+        }
+        val view = inflater.inflate(layout, parent, false)
+        return ViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        pageViews[position] = holder.itemView // שמירת ה-View במפה
+    }
+    fun getPageView(position: Int): View? = pageViews[position] // גישה לעמוד לפי position
+    override fun getItemViewType(position: Int): Int = position // קביעת סוג העמוד
+    override fun getItemCount(): Int = 2 // שני עמודים בלבד
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }

@@ -3,58 +3,45 @@ package com.example.bettertogether
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldPath
+import android.widget.Toast
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RatingActivity : BaseActivity() {
+
     private lateinit var recyclerView: RecyclerView
-    private lateinit var roomsAdapter: AdapterRooms
-    private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
+    private lateinit var adapter: AdapterParticipantsPager
+    private val topUsersList = mutableListOf<Map<String, Any>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rating)
 
-        recyclerView = findViewById(R.id.rooms_recycler_view)
+        recyclerView = findViewById(R.id.rating_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        roomsAdapter = AdapterRooms(roomsList) { document ->
-            openRoom(document.id)
-        }
-        recyclerView.adapter = roomsAdapter
+        adapter = AdapterParticipantsPager(topUsersList)
+        recyclerView.adapter = adapter
 
-        loadUserRooms()
+        loadTopUsers()
     }
 
-    private fun loadUserRooms() {
-        val user = auth.currentUser
-        if(user == null){
-            toast("Please log in to see your rooms.")
-            navigateToLogin()
-        } else{
-            db.collection("users").document(user.uid)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        roomsList.clear()
-                        val roomIds = document.get("rooms") as? List<Map<String, Any>>
-                        if (roomIds != null && roomIds.size > 0) {
-                            val ids = roomIds.mapNotNull { it["roomId"] as? String }
-                            db.collection("rooms")
-                                .whereIn(FieldPath.documentId(), ids)
-                                .get()
-                                .addOnSuccessListener { querySnapshot ->
-                                    roomsList.addAll(querySnapshot.documents)
-                                    roomsAdapter.notifyDataSetChanged()
-                                }
-                                .addOnFailureListener { exception ->
-                                    toast("Error fetching rooms: ${exception.message}")
-                                }
-                        }
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    toast("Error fetching user data: ${exception.message}")
-                }
-        }
+    private fun loadTopUsers() {
+        db.collection("users")
+            .orderBy("currentPoints", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(20)
+            .get()
+            .addOnSuccessListener { documents ->
+                topUsersList.clear()
+                topUsersList.addAll(documents.map { document ->
+                    mapOf(
+                        "name" to (document.getString("displayName") ?: "Unknown"),
+                        "role" to "Top User",
+                        "photoUrl" to (document.getString("photoUrl") ?: "")
+                    )
+                })
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error fetching top users: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }

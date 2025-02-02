@@ -1,13 +1,19 @@
 package com.example.bettertogether
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.SearchView
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
+
+import android.content.Context
 
 class ExplorerActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -131,4 +137,61 @@ class ExplorerActivity : BaseActivity() {
                 }
         }
     }
+}
+
+
+class AdapterRooms(
+    private val rooms: List<DocumentSnapshot>, // List of Firestore document snapshots
+    private val onRoomClick: (DocumentSnapshot) -> Unit // Callback for handling room clicks
+) : RecyclerView.Adapter<AdapterRooms.RoomViewHolder>() {
+    class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val roomNameTextView: TextView = view.findViewById(R.id.room_name)
+        val participantsCounterTextView: TextView = view.findViewById(R.id.participants_counter)
+        val lockIconImageView: ImageView = view.findViewById(R.id.lock_icon)
+    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_room, parent, false)
+        return RoomViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
+        val roomDocument = rooms[position]
+        val roomName = roomDocument.getString("name") ?: "Unnamed Room"
+        val participants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        val isPublic = roomDocument.getBoolean("isPublic") ?: false
+        val maxParticipants = roomDocument.getLong("maxParticipants")?.toInt() ?: 10
+
+        holder.roomNameTextView.text = roomName
+        holder.participantsCounterTextView.text = "${participants.size}/$maxParticipants"
+        holder.lockIconImageView.visibility = if (isPublic) View.GONE else View.VISIBLE
+
+        holder.itemView.setOnClickListener {
+            onRoomClick(roomDocument) // Pass the full document snapshot to the callback
+        }
+    }
+    override fun getItemCount(): Int {
+        return rooms.size
+    }
+}
+
+
+class AdapterRoomsPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomsPager.ViewHolder>() {
+    private val pageViews = mutableMapOf<Int, View>() // שמירה על Views לפי position
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(context)
+        val layout = when (viewType) {
+            0 -> R.layout.page_explorer
+            1 -> R.layout.page_rooms
+            else -> throw IllegalStateException("Invalid view type")
+        }
+        val view = inflater.inflate(layout, parent, false)
+        return ViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        pageViews[position] = holder.itemView // שמירת ה-View במפה
+    }
+    fun getPageView(position: Int): View? = pageViews[position] // גישה לעמוד לפי position
+    override fun getItemViewType(position: Int): Int = position // קביעת סוג העמוד
+    override fun getItemCount(): Int = 2 // שני עמודים בלבד
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }
