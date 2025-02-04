@@ -219,7 +219,6 @@ class NewRoomActivity : BaseActivity() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 101)
     }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -230,7 +229,6 @@ class NewRoomActivity : BaseActivity() {
             }
         }
     }
-
     private fun uploadImageToImgur(uri: Uri) {
         try {
             // Get InputStream from the Uri

@@ -30,7 +30,7 @@ class EventsBySubjectActivity : BaseActivity() {
         subjectTitle.text = subject
 
         eventsAdapter = AdapterEvents(eventsList) { event ->
-            // כאן ניתן להוסיף מעבר לעמוד הפרטים של האירוע
+            openRoom(event.id)
         }
         eventsRecyclerView.layoutManager = LinearLayoutManager(this)
         eventsRecyclerView.adapter = eventsAdapter
