@@ -18,6 +18,7 @@ import android.content.Context
 class ExplorerActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: AdapterRooms
+    private lateinit var yourRoomsAdapter: AdapterEvents
     private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
     private val filteredRoomsList = mutableListOf<DocumentSnapshot>() // Filtered list for search
 
@@ -99,10 +100,10 @@ class ExplorerActivity : BaseActivity() {
     private fun initRoomsView(view: View){
         recyclerView = view.findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        roomsAdapter = AdapterRooms(roomsList) { document ->
+        yourRoomsAdapter = AdapterEvents(roomsList) { document ->
             openRoom(document.id)
         }
-        recyclerView.adapter = roomsAdapter
+        recyclerView.adapter = yourRoomsAdapter
 
         loadUserRooms()
     }
@@ -126,7 +127,7 @@ class ExplorerActivity : BaseActivity() {
                             .get()
                             .addOnSuccessListener { querySnapshot ->
                                 roomsList.addAll(querySnapshot.documents)
-                                roomsAdapter.notifyDataSetChanged()
+                                yourRoomsAdapter.notifyDataSetChanged()
                             }
                             .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
                     }
@@ -143,7 +144,7 @@ class AdapterRooms(
 ) : RecyclerView.Adapter<AdapterRooms.RoomViewHolder>() {
     class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val roomNameTextView: TextView = view.findViewById(R.id.room_name)
-        val participantsCounterTextView: TextView = view.findViewById(R.id.participants_counter)
+        val participantsCounterTextView: TextView = view.findViewById(R.id.participants_count)
         val lockIconImageView: ImageView = view.findViewById(R.id.lock_icon)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
@@ -170,7 +171,6 @@ class AdapterRooms(
         return rooms.size
     }
 }
-
 
 class AdapterRoomsPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomsPager.ViewHolder>() {
     private val pageViews = mutableMapOf<Int, View>() // שמירה על Views לפי position

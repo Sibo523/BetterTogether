@@ -33,12 +33,12 @@
         android:layout_height="24dp"
         android:src="@drawable/room_ic_lock"
         android:contentDescription="@string/lock_icon"
-        android:layout_toStartOf="@id/participants_counter"
+        android:layout_toStartOf="@id/participants_count"
         android:layout_centerVertical="true"
         android:visibility="gone" />
     <!-- Participants counter -->
     <TextView
-        android:id="@+id/participants_counter"
+        android:id="@+id/participants_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
