@@ -8,21 +8,62 @@
     android:orientation="vertical"
     android:background="#292D38">
 
+    <!-- Top Navigation Tabs -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tab_users"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="USERS"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:background="?attr/selectableItemBackground"
+            android:padding="10dp"/>
+
+        <TextView
+            android:id="@+id/tab_rooms"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="ROOMS"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:background="?attr/selectableItemBackground"
+            android:padding="10dp"/>
+    </LinearLayout>
+
+    <!-- Indicator Line -->
+    <View
+        android:id="@+id/indicator"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="@android:color/white" />
+
     <!-- Search Bar -->
-    <android.widget.SearchView
+    <androidx.appcompat.widget.SearchView
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Search rooms"
+        android:queryHint="Search users or rooms"
         android:background="@drawable/rounded_background"
-        android:iconifiedByDefault="false" />
+        android:iconifiedByDefault="false"/>
 
-    <!-- RecyclerView for Rooms -->
+    <!-- RecyclerView for Listing -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/explorer_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp" />
-
+        android:padding="8dp"/>
 </LinearLayout>

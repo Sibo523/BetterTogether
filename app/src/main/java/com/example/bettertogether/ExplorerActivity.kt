@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.SearchView
+import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,13 +14,20 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 
 import android.content.Context
+import com.bumptech.glide.Glide
 
 class ExplorerActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: AdapterRooms
+    private lateinit var usersAdapter: AdapterUsers
     private lateinit var yourRoomsAdapter: AdapterEvents
-    private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
-    private val filteredRoomsList = mutableListOf<DocumentSnapshot>() // Filtered list for search
+    private val docList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
+    private val filteredDocList = mutableListOf<DocumentSnapshot>() // Filtered list for search
+
+    private lateinit var tabUsers: TextView
+    private lateinit var tabRooms: TextView
+    private lateinit var indicator: View
+    private var isUsersTabActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,64 +50,98 @@ class ExplorerActivity : BaseActivity() {
             }
         })
     }
-
     private fun initExplorerView(view: View){
         recyclerView = view.findViewById(R.id.explorer_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        roomsAdapter = AdapterRooms(filteredRoomsList) { document ->
-            openRoom(document.id)
-        }
+        roomsAdapter = AdapterRooms(filteredDocList) { document -> openRoom(document.id) }
+        usersAdapter = AdapterUsers(filteredDocList) { document -> openUser(document.id) }
         recyclerView.adapter = roomsAdapter
 
-        loadAllRooms()
+        tabUsers = findViewById(R.id.tab_users)
+        tabRooms = findViewById(R.id.tab_rooms)
+        indicator = findViewById(R.id.indicator)
+        activateTabRooms()
+        tabUsers.setOnClickListener { activateTabUsers() }
+        tabRooms.setOnClickListener { activateTabRooms() }
+
         val searchView = view.findViewById<SearchView>(R.id.search_view)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                filterRooms(query)
+                filterDocs(query)
                 return true
             }
             override fun onQueryTextChange(newText: String?): Boolean {
-                filterRooms(newText)
+                filterDocs(newText)
                 return true
             }
         })
+    }
+    private fun activateTabUsers() {
+        isUsersTabActive = true
+        tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
+        tabRooms.setTextColor(resources.getColor(android.R.color.darker_gray, null))
+        indicator.animate().translationX(tabUsers.width.toFloat()).setDuration(200).start()
+        recyclerView.adapter = usersAdapter
+        loadAllUsers()
+    }
+    private fun activateTabRooms() {
+        isUsersTabActive = false
+        tabRooms.setTextColor(resources.getColor(android.R.color.white, null))
+        tabUsers.setTextColor(resources.getColor(android.R.color.darker_gray, null))
+        indicator.animate().translationX(0f).setDuration(200).start()
+        recyclerView.adapter = roomsAdapter
+        loadAllRooms()
     }
     private fun loadAllRooms() {
         db.collection("rooms")
             .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
-                roomsList.clear()
-                roomsList.addAll(querySnapshot.documents)
-                filteredRoomsList.clear()
-                filteredRoomsList.addAll(roomsList) // Initially display all rooms
+                docList.clear()
+                docList.addAll(querySnapshot.documents)
+                filteredDocList.clear()
+                filteredDocList.addAll(docList)
                 roomsAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
-    private fun filterRooms(query: String?) {
+    private fun loadAllUsers() {
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                docList.clear()
+                docList.addAll(querySnapshot.documents)
+                filteredDocList.clear()
+                filteredDocList.addAll(docList)
+                usersAdapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                toast("Error fetching users: ${exception.message}")
+            }
+    }
+    private fun filterDocs(query: String?) {
         val searchQuery = query?.trim() ?: ""
-        filteredRoomsList.clear()
+        filteredDocList.clear()
 
         if (searchQuery.isEmpty()) {
-            filteredRoomsList.addAll(roomsList) // Show all rooms if search is empty
+            filteredDocList.addAll(docList)
         } else {
-            filteredRoomsList.addAll(
-                roomsList.filter { document ->
-                    val roomName = document.getString("name") ?: "Unnamed Room"
-                    roomName.contains(searchQuery, ignoreCase = true)
+            filteredDocList.addAll(
+                docList.filter { document ->
+                    val name = document.getString("name") ?: document.getString("displayName") ?: "Unnamed"
+                    name.contains(searchQuery, ignoreCase = true)
                 }
             )
         }
-        roomsAdapter.notifyDataSetChanged() // Refresh the adapter
+        recyclerView.adapter?.notifyDataSetChanged()
     }
 
     private fun initRoomsView(view: View){
         recyclerView = view.findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        yourRoomsAdapter = AdapterEvents(roomsList) { document ->
+        yourRoomsAdapter = AdapterEvents(docList) { document ->
             openRoom(document.id)
         }
         recyclerView.adapter = yourRoomsAdapter
@@ -118,7 +159,7 @@ class ExplorerActivity : BaseActivity() {
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    roomsList.clear()
+                    docList.clear()
                     val roomIds = getUserActiveRooms(document)
                     if (roomIds.size > 0) {
                         val ids = roomIds.mapNotNull { it["roomId"] as? String }
@@ -126,7 +167,7 @@ class ExplorerActivity : BaseActivity() {
                             .whereIn(FieldPath.documentId(), ids)
                             .get()
                             .addOnSuccessListener { querySnapshot ->
-                                roomsList.addAll(querySnapshot.documents)
+                                docList.addAll(querySnapshot.documents)
                                 yourRoomsAdapter.notifyDataSetChanged()
                             }
                             .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
@@ -137,10 +178,49 @@ class ExplorerActivity : BaseActivity() {
     }
 }
 
+class AdapterUsers(
+    private val participants: List<DocumentSnapshot>,
+    private val onUserClick: (DocumentSnapshot) -> Unit
+) : RecyclerView.Adapter<AdapterUsers.UserViewHolder>() {
+    class UserViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val nameTextView: TextView = itemView.findViewById(R.id.participantName)
+        val roleTextView: TextView = itemView.findViewById(R.id.participantRole)
+        val profileImageView: ImageView = itemView.findViewById(R.id.participantImage)
+        val pointsTextView: TextView = itemView.findViewById(R.id.participantPoints)
+        val rankTextView: TextView = itemView.findViewById(R.id.participantRank)
+    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_top_participant, parent, false)
+        return UserViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+        val document = participants[position]
+        val name = document.getString("displayName") ?: "Unknown"
+        val role = document.getString("role") ?: "No Role"
+        val imageUrl = document.getString("photoUrl") ?: ""
+        val points = document.getLong("currentPoints") ?: 0L
+
+        holder.nameTextView.text = name
+        holder.roleTextView.text = role
+        holder.pointsTextView.text = "Points: $points"
+        Glide.with(holder.profileImageView.context)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_profile)
+            .error(R.drawable.ic_profile)
+            .into(holder.profileImageView)
+        holder.itemView.setOnClickListener {
+            onUserClick(document)
+        }
+        holder.rankTextView.text = (position + 1).toString()
+    }
+    override fun getItemCount(): Int {
+        return participants.size
+    }
+}
 
 class AdapterRooms(
-    private val rooms: List<DocumentSnapshot>, // List of Firestore document snapshots
-    private val onRoomClick: (DocumentSnapshot) -> Unit // Callback for handling room clicks
+    private val rooms: List<DocumentSnapshot>,
+    private val onRoomClick: (DocumentSnapshot) -> Unit
 ) : RecyclerView.Adapter<AdapterRooms.RoomViewHolder>() {
     class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val roomNameTextView: TextView = view.findViewById(R.id.room_name)
@@ -164,7 +244,7 @@ class AdapterRooms(
         holder.lockIconImageView.visibility = if (isPublic) View.GONE else View.VISIBLE
 
         holder.itemView.setOnClickListener {
-            onRoomClick(roomDocument) // Pass the full document snapshot to the callback
+            onRoomClick(roomDocument)
         }
     }
     override fun getItemCount(): Int {

@@ -61,8 +61,6 @@ class AdapterParticipants(private val participants: List<DocumentSnapshot>) :
         val roleTextView: TextView = itemView.findViewById(R.id.participantRole)
         val profileImageView: ImageView = itemView.findViewById(R.id.participantImage)
         val pointsTextView: TextView = itemView.findViewById(R.id.participantPoints)
-
-        // NEW: Rank TextView
         val rankTextView: TextView = itemView.findViewById(R.id.participantRank)
     }
 

@@ -39,6 +39,7 @@
         <activity android:name=".ExplorerActivity" />
         <activity android:name=".RatingActivity" />
         <activity android:name=".RoomActivity" />
+        <activity android:name=".UserProfileActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".EventsBySubjectActivity" />
     </application>

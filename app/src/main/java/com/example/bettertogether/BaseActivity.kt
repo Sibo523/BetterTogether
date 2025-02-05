@@ -74,6 +74,11 @@ abstract class BaseActivity : AppCompatActivity() {
         intent.putExtra("roomId", roomId)
         startActivity(intent)
     }
+    protected fun openUser(userId: String) {
+        val intent = Intent(this, UserProfileActivity::class.java)
+        intent.putExtra("userId", userId)
+        startActivity(intent)
+    }
 
     protected fun checkUserRole(callback: (String?) -> Unit) {
         val currentUser = auth.currentUser
@@ -203,6 +208,14 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun getUserActiveRooms(userDoc: DocumentSnapshot): List<Map<String, Any>> {
         val roomIds = userDoc.get("rooms") as? List<Map<String, Any>> ?: emptyList()
         return roomIds.filter { it["isActive"] == true }
+    }
+    protected fun getUserActiveFriends(userDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val friends = userDoc.get("friends") as? Map<String, Map<String, Any>> ?: emptyMap()
+        return friends.filterValues { it["isActive"] == true }
+    }
+    protected fun getUserActiveReceivedRequests(userDoc: DocumentSnapshot): Map<String, Any> {
+        val pendingRequests = userDoc.get("receivedRequests") as? Map<String, Any> ?: emptyMap()
+        return pendingRequests
     }
 
     protected fun loadUserPhoto(imageView:ImageView){
