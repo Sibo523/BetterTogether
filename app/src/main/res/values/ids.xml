@@ -3,4 +3,5 @@
     <item name="form_layout" type="id" />
     <item name="subject_title" type="id" />
     <item name="events_recycler_view" type="id" />
+    <item name="rating_recycler_view" type="id" />
 </resources>

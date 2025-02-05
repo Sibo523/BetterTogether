@@ -1,49 +1,58 @@
-<androidx.constraintlayout.widget.ConstraintLayout
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:orientation="horizontal"
+    android:padding="8dp">
 
-    <!-- Left column: name & rating -->
+    <!-- 1. PROFILE IMAGE (LEFT) -->
+    <ImageView
+        android:id="@+id/participantImage"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_profile"
+        android:scaleType="centerCrop"/>
+
+    <!-- 2. VERTICAL LAYOUT FOR NAME, ROLE, AND POINTS (CENTER) -->
     <LinearLayout
         android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/participantImage"
-        android:layout_marginEnd="8dp">
+        android:layout_marginStart="8dp">
 
         <TextView
             android:id="@+id/participantName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User Name"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="Name"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
 
         <TextView
             android:id="@+id/participantRole"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:text="Role"
-            android:textSize="14sp"
-            android:textColor="#8B97A2" />
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/participantPoints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Points: 0"
+            android:textSize="14sp"/>
     </LinearLayout>
 
-    <!-- Right column: user photo -->
-    <ImageView
-        android:id="@+id/participantImage"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_profile"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- 3. RANK TEXTVIEW (RIGHT) -->
+    <TextView
+        android:id="@+id/participantRank"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|end"
+        android:layout_marginStart="8dp"
+        android:text="1"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+</LinearLayout>
