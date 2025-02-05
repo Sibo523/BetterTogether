@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/black">
+
+    <!-- (Optional) Search Bar for filtering users -->
+    <SearchView
+        android:id="@+id/search_view_users"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Search users..."
+        android:iconifiedByDefault="false"
+        android:padding="8dp"
+        android:background="@drawable/rounded_background" />
+
+    <!-- Title (optional) -->
+    <TextView
+        android:id="@+id/title_users"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Users"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_horizontal" />
+
+    <!-- RecyclerView for displaying the user list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/users_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp" />
+</LinearLayout>
