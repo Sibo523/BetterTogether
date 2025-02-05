@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#292D38">
+    android:padding="16dp"
+    android:background="@color/main">
 
     <!-- Search Bar -->
     <android.widget.SearchView
@@ -15,14 +14,14 @@
         android:layout_height="wrap_content"
         android:queryHint="Search rooms"
         android:background="@drawable/rounded_background"
-        android:iconifiedByDefault="false" />
+        android:iconifiedByDefault="false"
+        android:padding="8dp" />
 
     <!-- RecyclerView for Rooms -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/explorer_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:padding="8dp" />
 
 </LinearLayout>

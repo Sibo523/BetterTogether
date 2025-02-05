@@ -1,105 +1,146 @@
 package com.example.bettertogether
 
+import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.SearchView
-import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 
-import android.content.Context
-
 class ExplorerActivity : BaseActivity() {
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: AdapterRooms
     private lateinit var yourRoomsAdapter: AdapterEvents
-    private val roomsList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
-    private val filteredRoomsList = mutableListOf<DocumentSnapshot>() // Filtered list for search
+
+    // For "Users" tab
+    private lateinit var usersRecyclerView: RecyclerView
+    private lateinit var usersAdapter: AdapterUsers
+
+    // These are the "All Rooms" data (for the Explorer tab, page 0)
+    private val roomsList = mutableListOf<DocumentSnapshot>()        // Full room list
+    private val filteredRoomsList = mutableListOf<DocumentSnapshot>() // Filtered subset
+
+    // These are for the "Users" tab, page 2
+    private val usersList = mutableListOf<DocumentSnapshot>()
+    // If you want user-search functionality, you could also do a filteredUsersList.
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_explorer)
 
         val viewPager: ViewPager2 = findViewById(R.id.viewPager)
-        val adapter = AdapterRoomsPager(this)
-        viewPager.adapter = adapter
+        val pagerAdapter = AdapterRoomsPager(this)
+        viewPager.adapter = pagerAdapter
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                val currentView = adapter.getPageView(position)
+                val currentView = pagerAdapter.getPageView(position)
                 if (currentView != null) {
                     when (position) {
-                        0 -> initExplorerView(currentView)
-                        1 -> initRoomsView(currentView)
+                        0 -> initExplorerView(currentView) // "All Rooms"
+                        1 -> initMyRoomsView(currentView)   // "Your Rooms"
+                        2 -> initUsersView(currentView)     // "Users"
                     }
                 }
             }
         })
     }
 
-    private fun initExplorerView(view: View){
+    // -------------------------------------------------------------------
+    // Page 0: Explorer (All Rooms)
+    // -------------------------------------------------------------------
+    private fun initExplorerView(view: View) {
         recyclerView = view.findViewById(R.id.explorer_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
         roomsAdapter = AdapterRooms(filteredRoomsList) { document ->
             openRoom(document.id)
         }
         recyclerView.adapter = roomsAdapter
 
+        // Load all rooms from Firestore
         loadAllRooms()
+
+        // Set up search bar to filter rooms
         val searchView = view.findViewById<SearchView>(R.id.search_view)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 filterRooms(query)
                 return true
             }
+
             override fun onQueryTextChange(newText: String?): Boolean {
                 filterRooms(newText)
                 return true
             }
         })
     }
+
+    /**
+     *  Fetch *all* rooms from Firestore and store them in roomsList + filteredRoomsList
+     */
     private fun loadAllRooms() {
         db.collection("rooms")
-            .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 roomsList.clear()
-                roomsList.addAll(querySnapshot.documents)
                 filteredRoomsList.clear()
-                filteredRoomsList.addAll(roomsList) // Initially display all rooms
+
+                if (querySnapshot.isEmpty) {
+                    toast("No rooms found")
+                    roomsAdapter.notifyDataSetChanged()
+                    return@addOnSuccessListener
+                }
+
+                // Populate the lists
+                roomsList.addAll(querySnapshot.documents)
+                // By default, show everything in the "filteredRoomsList"
+                filteredRoomsList.addAll(roomsList)
+
+                // Notify the adapter
                 roomsAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
+
+    /**
+     * Filter the rooms based on the query string
+     */
     private fun filterRooms(query: String?) {
         val searchQuery = query?.trim() ?: ""
         filteredRoomsList.clear()
 
         if (searchQuery.isEmpty()) {
-            filteredRoomsList.addAll(roomsList) // Show all rooms if search is empty
+            // Show all rooms
+            filteredRoomsList.addAll(roomsList)
         } else {
-            filteredRoomsList.addAll(
-                roomsList.filter { document ->
-                    val roomName = document.getString("name") ?: "Unnamed Room"
-                    roomName.contains(searchQuery, ignoreCase = true)
-                }
-            )
+            // Show only matching rooms
+            val filtered = roomsList.filter { doc ->
+                val roomName = doc.getString("name") ?: "Unnamed Room"
+                roomName.contains(searchQuery, ignoreCase = true)
+            }
+            filteredRoomsList.addAll(filtered)
         }
-        roomsAdapter.notifyDataSetChanged() // Refresh the adapter
+
+        roomsAdapter.notifyDataSetChanged()
     }
 
-    private fun initRoomsView(view: View){
+    // -------------------------------------------------------------------
+    // Page 1: "Your Rooms" (rooms for the current user)
+    // -------------------------------------------------------------------
+    private fun initMyRoomsView(view: View) {
+        // Recycle the same variable 'recyclerView' or create a separate one
         recyclerView = view.findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // This adapter is for the current user's rooms
         yourRoomsAdapter = AdapterEvents(roomsList) { document ->
             openRoom(document.id)
         }
@@ -107,21 +148,28 @@ class ExplorerActivity : BaseActivity() {
 
         loadUserRooms()
     }
+
+    /**
+     * Load only the current user's rooms (by reading from user doc, then rooms collection).
+     */
     private fun loadUserRooms() {
-        val user = auth.currentUser
-        if(user == null){
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
             toast("Please log in to see your rooms.")
             navigateToLogin()
             return
         }
-        db.collection("users").document(user.uid)
+
+        db.collection("users").document(currentUser.uid)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    roomsList.clear()
-                    val roomIds = getUserActiveRooms(document)
-                    if (roomIds.size > 0) {
+                    roomsList.clear() // Reuse roomsList for "my rooms"
+                    val roomIds = getUserActiveRooms(document) // Your custom function
+
+                    if (roomIds.isNotEmpty()) {
                         val ids = roomIds.mapNotNull { it["roomId"] as? String }
+
                         db.collection("rooms")
                             .whereIn(FieldPath.documentId(), ids)
                             .get()
@@ -129,67 +177,83 @@ class ExplorerActivity : BaseActivity() {
                                 roomsList.addAll(querySnapshot.documents)
                                 yourRoomsAdapter.notifyDataSetChanged()
                             }
-                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
+                            .addOnFailureListener { exception ->
+                                toast("Error fetching rooms: ${exception.message}")
+                            }
+                    } else {
+                        // If user has no rooms, maybe notify the adapter now
+                        yourRoomsAdapter.notifyDataSetChanged()
                     }
+                } else {
+                    toast("No user data found.")
                 }
             }
-            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
+            .addOnFailureListener { exception ->
+                toast("Error fetching user data: ${exception.message}")
+            }
     }
-}
 
+    // -------------------------------------------------------------------
+    // Page 2: "Users" (all users from Firestore)
+    // -------------------------------------------------------------------
+    private fun initUsersView(view: View) {
+        // Set up RecyclerView
+        usersRecyclerView = view.findViewById(R.id.users_recycler_view)
+        usersRecyclerView.layoutManager = LinearLayoutManager(this)
 
-class AdapterRooms(
-    private val rooms: List<DocumentSnapshot>, // List of Firestore document snapshots
-    private val onRoomClick: (DocumentSnapshot) -> Unit // Callback for handling room clicks
-) : RecyclerView.Adapter<AdapterRooms.RoomViewHolder>() {
-    class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val roomNameTextView: TextView = view.findViewById(R.id.room_name)
-        val participantsCounterTextView: TextView = view.findViewById(R.id.participants_count)
-        val lockIconImageView: ImageView = view.findViewById(R.id.lock_icon)
-    }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_room, parent, false)
-        return RoomViewHolder(view)
-    }
-    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        val roomDocument = rooms[position]
-        val roomName = roomDocument.getString("name") ?: "Unnamed Room"
-        var roomsParticipants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
-        roomsParticipants = roomsParticipants.filterValues { it["isActive"] == true }
-        val isPublic = roomDocument.getBoolean("isPublic") ?: false
-        val maxParticipants = roomDocument.getLong("maxParticipants")?.toInt() ?: 10
-
-        holder.roomNameTextView.text = roomName
-        holder.participantsCounterTextView.text = "${roomsParticipants.size}/$maxParticipants"
-        holder.lockIconImageView.visibility = if (isPublic) View.GONE else View.VISIBLE
-
-        holder.itemView.setOnClickListener {
-            onRoomClick(roomDocument) // Pass the full document snapshot to the callback
+        // Create the adapter
+        usersAdapter = AdapterUsers(usersList) { userDocument ->
+            // This callback is triggered when user item is clicked
+            openUserProfile(userDocument.id)
         }
-    }
-    override fun getItemCount(): Int {
-        return rooms.size
-    }
-}
+        usersRecyclerView.adapter = usersAdapter
 
-class AdapterRoomsPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomsPager.ViewHolder>() {
-    private val pageViews = mutableMapOf<Int, View>() // שמירה על Views לפי position
+        // Load all users from Firestore
+        loadAllUsers()
+    }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val inflater = LayoutInflater.from(context)
-        val layout = when (viewType) {
-            0 -> R.layout.page_explorer
-            1 -> R.layout.page_rooms
-            else -> throw IllegalStateException("Invalid view type")
-        }
-        val view = inflater.inflate(layout, parent, false)
-        return ViewHolder(view)
+    /**
+     * Query Firestore for all users and update our 'usersList'
+     */
+    private fun loadAllUsers() {
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                usersList.clear()
+
+                if (querySnapshot.isEmpty) {
+                    toast("No users found")
+                    usersAdapter.notifyDataSetChanged()
+                    return@addOnSuccessListener
+                }
+
+                usersList.addAll(querySnapshot.documents)
+                usersAdapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                toast("Error fetching users: ${exception.message}")
+            }
     }
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        pageViews[position] = holder.itemView // שמירת ה-View במפה
+
+    // -------------------------------------------------------------------
+    // Navigation Helpers
+    // -------------------------------------------------------------------
+    /**
+     * Called by AdapterRooms and AdapterEvents when a user taps on a room
+     */
+    override fun openRoom(roomId: String) {
+        // Example: open your chat or room activity
+        toast("Open Room: $roomId")
+        // startActivity(Intent(...))
     }
-    fun getPageView(position: Int): View? = pageViews[position] // גישה לעמוד לפי position
-    override fun getItemViewType(position: Int): Int = position // קביעת סוג העמוד
-    override fun getItemCount(): Int = 2 // שני עמודים בלבד
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    /**
+     * Called by AdapterUsers when a user taps on a user
+     */
+    private fun openUserProfile(userId: String) {
+        // Launch ProfileActivity and pass that user’s ID
+        val intent = Intent(this, ProfileActivity::class.java)
+        intent.putExtra("USER_ID_KEY", userId)
+        startActivity(intent)
+    }
 }

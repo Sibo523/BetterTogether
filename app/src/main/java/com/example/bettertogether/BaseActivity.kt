@@ -69,7 +69,7 @@ abstract class BaseActivity : AppCompatActivity() {
             finish()
         }
     }
-    protected fun openRoom(roomId: String) {
+    protected open fun openRoom(roomId: String) {
         val intent = Intent(this, RoomActivity::class.java)
         intent.putExtra("roomId", roomId)
         startActivity(intent)
