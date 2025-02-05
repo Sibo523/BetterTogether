@@ -42,6 +42,7 @@ class EventsBySubjectActivity : BaseActivity() {
         db.collection("rooms")
             .whereEqualTo("isEvent", true)
             .whereEqualTo("eventSubject", subject)
+            .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { documents ->
                 eventsList.clear()
@@ -63,6 +64,7 @@ class AdapterEvents(
         val eventImage: ImageView = view.findViewById(R.id.event_image)
         val eventName: TextView = view.findViewById(R.id.event_name)
         val eventDate: TextView = view.findViewById(R.id.event_date)
+        val eventParticipantsCounter: TextView = view.findViewById(R.id.participants_count)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_event, parent, false)
@@ -73,9 +75,13 @@ class AdapterEvents(
         val eventName = event.getString("name") ?: "Unnamed Event"
         val eventDate = event.getString("expiration") ?: "No Date"
         val eventImageUrl = event.getString("url") ?: ""
+        var roomsParticipants = event.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        roomsParticipants = roomsParticipants.filterValues { it["isActive"] == true }
+        val maxParticipants = event.getLong("maxParticipants")?.toInt() ?: 10
 
         holder.eventName.text = eventName
         holder.eventDate.text = eventDate
+        holder.eventParticipantsCounter.text = "${roomsParticipants.size}/$maxParticipants"
         Glide.with(holder.itemView.context)
             .load(eventImageUrl)
             .placeholder(R.drawable.room_placeholder_image)

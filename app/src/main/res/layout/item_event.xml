@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:padding="8dp"
     android:background="@drawable/rounded_background"
     android:elevation="4dp">
@@ -12,24 +13,47 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/room_placeholder_image" />
+        android:src="@drawable/room_placeholder_image"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/event_name"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Event Name"
         android:textSize="18sp"
         android:textStyle="bold"
         android:paddingTop="8dp"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toBottomOf="@id/event_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
 
     <TextView
         android:id="@+id/event_date"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Event Date"
         android:textSize="14sp"
-        android:paddingTop="4dp"
-        android:textColor="@android:color/darker_gray" />
-</LinearLayout>
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/event_name"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp" />
+
+    <TextView
+        android:id="@+id/participants_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="x/x"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/event_name"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

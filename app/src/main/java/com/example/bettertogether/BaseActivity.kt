@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.DocumentSnapshot
 
 abstract class BaseActivity : AppCompatActivity() {
     protected lateinit var auth: FirebaseAuth
@@ -104,7 +105,8 @@ abstract class BaseActivity : AppCompatActivity() {
             "roomName" to betSubject,
             "joinedOn" to System.currentTimeMillis(),
             "role" to role,
-            "isPublic" to isPublic
+            "isPublic" to isPublic,
+            "isActive" to true
         )
         db.collection("users").document(userId)
             .update("rooms", FieldValue.arrayUnion(userRoomData))
@@ -122,15 +124,13 @@ abstract class BaseActivity : AppCompatActivity() {
                     callback(false)
                     return@addOnSuccessListener
                 }
-                val rooms = userDocument.get("rooms") as? List<Map<String, Any>> ?: emptyList()
-                val roomToRemove = rooms.find { it["roomId"] == roomId }
-                if (roomToRemove == null) {
-                    toast("Room not found in user data.")
-                    callback(false)
-                    return@addOnSuccessListener
+                val rooms = getUserActiveRooms(userDocument)
+                val updatedRooms = rooms.map { room ->
+                    if(room["roomId"] == roomId){ room.toMutableMap().apply { this["isActive"] = false } }
+                    else{ room }
                 }
                 db.collection("users").document(userId)
-                    .update("rooms", FieldValue.arrayRemove(roomToRemove))
+                    .update("rooms", updatedRooms)
                     .addOnSuccessListener { callback(true) }
                     .addOnFailureListener { exception ->
                         toast("Error updating user data: ${exception.message}")
@@ -143,9 +143,10 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
     protected fun deleteRoom(roomId:String){
-        db.collection("rooms").document(roomId).delete()
-            .addOnSuccessListener { toast("Room was deleted.") }
-            .addOnFailureListener { exception -> toast("Error deleting empty room: ${exception.message}") }
+        db.collection("rooms").document(roomId)
+            .update("isActive", false)
+            .addOnSuccessListener { toast("Room was deactivated.") }
+            .addOnFailureListener { exception -> toast("Error deactivating room: ${exception.message}") }
         navigateTo(HomeActivity::class.java)
     }
     protected fun addUserToRoom(roomId: String, userId: String, participantData: Map<String, Comparable<*>?>, callback: (Boolean) -> Unit) {
@@ -168,18 +169,40 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun removeUserFromRoom(roomId: String, userId: String, callback: (Boolean) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)
         roomRef.get().addOnSuccessListener { document ->
-            if (!document.exists() || !document.contains("participants.$userId")) {
+            if (!document.exists()) {
+                toast("Room document not found.")
+                callback(false)
+                return@addOnSuccessListener
+            }
+            val roomParticipants = getActiveParticipants(document)
+            if (!roomParticipants.containsKey(userId)) {
                 toast("User not found in room.")
                 callback(false)
                 return@addOnSuccessListener
             }
-            roomRef.update("participants.$userId", FieldValue.delete())
+            val updatedParticipants = roomParticipants.mapValues { (id, data) ->
+                if(id == userId){ data.toMutableMap().apply { this["isActive"] = false } }
+                else{ data }
+            }
+            roomRef.update("participants", updatedParticipants)
                 .addOnSuccessListener { callback(true) }
                 .addOnFailureListener { exception ->
-                    toast("Error removing user from room: ${exception.message}")
+                    toast("Error updating room data: ${exception.message}")
                     callback(false)
                 }
+        }.addOnFailureListener { exception ->
+            toast("Error retrieving room data: ${exception.message}")
+            callback(false)
         }
+    }
+
+    protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        return roomsParticipants.filterValues { it["isActive"] == true }
+    }
+    protected fun getUserActiveRooms(userDoc: DocumentSnapshot): List<Map<String, Any>> {
+        val roomIds = userDoc.get("rooms") as? List<Map<String, Any>> ?: emptyList()
+        return roomIds.filter { it["isActive"] == true }
     }
 
     protected fun loadUserPhoto(imageView:ImageView){

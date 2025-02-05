@@ -16,7 +16,7 @@ class RatingActivity : BaseActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AdapterParticipants
-    private val topUsersList = mutableListOf<DocumentSnapshot>()  // שמירה של כל הדוקומנט עצמו
+    private val topUsersList = mutableListOf<DocumentSnapshot>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +41,7 @@ class RatingActivity : BaseActivity() {
                 adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error fetching top users: ${exception.message}", Toast.LENGTH_SHORT).show()
+                toast("Error fetching top users: ${exception.message}")
             }
     }
 }

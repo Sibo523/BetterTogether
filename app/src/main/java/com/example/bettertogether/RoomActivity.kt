@@ -75,19 +75,22 @@ class RoomActivity : BaseActivity() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
+                    val isActive = document.getBoolean("isActive") == true
+                    if(!isActive){
+                        toast("Room not active")
+                        finish()
+                    }
+
                     val isPublic = document.getBoolean("isPublic") == true
-                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val roomsParticipants = getActiveParticipants(document)
 
                     val currentUser = auth.currentUser
-                    isParticipant = currentUser != null && roomsParticipants.containsKey(currentUser.uid)
+                    isParticipant = currentUser != null && roomsParticipants[currentUser.uid]?.get("isActive") == true
 
                     invalidateOptionsMenu()
                     if (!isParticipant) {
-                        if (isPublic) {
-                            showJoinButton(roomId)
-                        } else {
-                            showCodeInput(roomId)
-                        }
+                        if(isPublic){ showJoinButton(roomId) }
+                        else{ showCodeInput(roomId) }
                     }
 
                     if (auth.currentUser == null) {
@@ -169,36 +172,61 @@ class RoomActivity : BaseActivity() {
                 val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
                 val userUrl = currentUser.photoUrl
 
-                val participantData = mapOf(
-                    "name" to userName,
-                    "role" to "participant",
-                    "photoUrl" to userUrl,
-                    "isBetting" to false,
-                    "joinedOn" to System.currentTimeMillis()
-                )
-
-                // Add to participants array in the room document
-                addUserToRoom(roomId, userId, participantData) { success ->
-                    if (success) {
-                        val betSubject = (document.getString("name") ?: "Unnamed Room")
-                        addRoomToUser(userId,roomId,betSubject,"participant",isPublic){ success2 ->
-                            if (success2) {
-                                toast("User added successfully")
-                                recreate() // Refresh the activity to show the chat
-                            }
-                            else { toast("Failed to add room from user") }
+                val participants = getActiveParticipants(document).toMutableMap()
+                if (participants.containsKey(userId)){  // המשתמש כבר קיים - עדכן את isActive ל- true
+                    val updatedParticipant = participants[userId]?.toMutableMap() ?: mutableMapOf()
+                    updatedParticipant["isActive"] = true
+                    participants[userId] = updatedParticipant
+                    db.collection("rooms").document(roomId).update("participants", participants)
+                        .addOnSuccessListener {
+                            updateUserRoomEntry(userId, roomId, true)
                         }
-                    } else { toast("Failed to add user from room") }
+                        .addOnFailureListener { toast("Failed to reactivate user in room") }
+                } else {
+                    val participantData = mapOf(
+                        "name" to userName,
+                        "role" to "participant",
+                        "photoUrl" to userUrl,
+                        "isBetting" to false,
+                        "joinedOn" to System.currentTimeMillis(),
+                        "isActive" to true
+                    )
+                    addUserToRoom(roomId, userId, participantData) { success ->
+                        if (success) {
+                            val betSubject = (document.getString("name") ?: "Unnamed Room")
+                            addRoomToUser(userId, roomId, betSubject, "participant", isPublic) { success2 ->
+                                if (success2) {
+                                    toast("User added successfully")
+                                    recreate()
+                                }
+                                else{ toast("Failed to add room from user") }
+                            }
+                        } else{ toast("Failed to add user from room") }
+                    }
                 }
             }
             .addOnFailureListener { exception -> toast("Error joining room: ${exception.message}") }
+    }
+    private fun updateUserRoomEntry(userId: String, roomId: String, isActive: Boolean) {
+        val userRef = db.collection("users").document(userId)
+        userRef.get().addOnSuccessListener { userDoc ->
+            val rooms = getUserActiveRooms(userDoc).toMutableList()
+            val roomIndex = rooms.indexOfFirst { it["roomId"] == roomId }
+            if (roomIndex != -1) {
+                val updatedRoomEntry = rooms[roomIndex].toMutableMap()
+                updatedRoomEntry["isActive"] = isActive
+                rooms[roomIndex] = updatedRoomEntry
+                userRef.update("rooms", rooms)
+                    .addOnSuccessListener { toast("User room reactivated") }
+                    .addOnFailureListener { toast("Failed to reactivate room in user data") }
+            }
+        }
     }
     private fun showRoomDetails() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     betPoints = document.getLong("betPoints") ?: 0
-                    // Populate UI with room details
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = document.getString("betType") ?: "N/A"
                     roomPointsTextView.text = document.getLong("betPoints")?.toString() ?: "N/A"
@@ -208,7 +236,7 @@ class RoomActivity : BaseActivity() {
                     val isPublic = document.getBoolean("isPublic") == true
                     roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
 
-                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val roomsParticipants = getActiveParticipants(document)
                     val numParticipants = roomsParticipants.size
                     val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
                     participantsCountTextView.text = "$numParticipants/$maxParticipants"
@@ -378,18 +406,18 @@ class RoomActivity : BaseActivity() {
             }
     }
     private fun processBetResults(document: DocumentSnapshot, winningOption: String) {
-        val participants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        val roomsParticipants = getActiveParticipants(document)
         val betPoints = document.getLong("betPoints") ?: 0
 
-        val winners = participants.filter { (_, data) -> data["betOption"] == winningOption }
-        val losers = participants.filter { (_, data) -> data["betOption"] != winningOption }
+        val winners = roomsParticipants.filter { (_, data) -> data["betOption"] == winningOption }
+        val losers = roomsParticipants.filter { (_, data) -> data["betOption"] != winningOption }
 
         if (losers.isEmpty()) {
             toast("No losers found, cannot distribute winnings.")
             return
         }
 
-        val totalPot = participants.size * betPoints
+        val totalPot = roomsParticipants.size * betPoints
         val rewardPerWinner = totalPot / losers.size
 
         val batch = db.batch()
@@ -506,7 +534,7 @@ class RoomActivity : BaseActivity() {
                         toast("Room not found.")
                         return@addOnSuccessListener
                     }
-                    val roomsParticipants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+                    val roomsParticipants = getActiveParticipants(document)
                     val participantToRemove = roomsParticipants[userId]
                     if (participantToRemove == null) {
                         toast("User not found in participants.")

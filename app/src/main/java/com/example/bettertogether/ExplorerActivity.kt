@@ -66,6 +66,7 @@ class ExplorerActivity : BaseActivity() {
     }
     private fun loadAllRooms() {
         db.collection("rooms")
+            .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 roomsList.clear()
@@ -110,32 +111,28 @@ class ExplorerActivity : BaseActivity() {
         if(user == null){
             toast("Please log in to see your rooms.")
             navigateToLogin()
-        } else{
-            db.collection("users").document(user.uid)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        roomsList.clear()
-                        val roomIds = document.get("rooms") as? List<Map<String, Any>>
-                        if (roomIds != null && roomIds.size > 0) {
-                            val ids = roomIds.mapNotNull { it["roomId"] as? String }
-                            db.collection("rooms")
-                                .whereIn(FieldPath.documentId(), ids)
-                                .get()
-                                .addOnSuccessListener { querySnapshot ->
-                                    roomsList.addAll(querySnapshot.documents)
-                                    roomsAdapter.notifyDataSetChanged()
-                                }
-                                .addOnFailureListener { exception ->
-                                    toast("Error fetching rooms: ${exception.message}")
-                                }
-                        }
+            return
+        }
+        db.collection("users").document(user.uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    roomsList.clear()
+                    val roomIds = getUserActiveRooms(document)
+                    if (roomIds.size > 0) {
+                        val ids = roomIds.mapNotNull { it["roomId"] as? String }
+                        db.collection("rooms")
+                            .whereIn(FieldPath.documentId(), ids)
+                            .get()
+                            .addOnSuccessListener { querySnapshot ->
+                                roomsList.addAll(querySnapshot.documents)
+                                roomsAdapter.notifyDataSetChanged()
+                            }
+                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
                     }
                 }
-                .addOnFailureListener { exception ->
-                    toast("Error fetching user data: ${exception.message}")
-                }
-        }
+            }
+            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
     }
 }
 
@@ -156,12 +153,13 @@ class AdapterRooms(
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         val roomDocument = rooms[position]
         val roomName = roomDocument.getString("name") ?: "Unnamed Room"
-        val participants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        var roomsParticipants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        roomsParticipants = roomsParticipants.filterValues { it["isActive"] == true }
         val isPublic = roomDocument.getBoolean("isPublic") ?: false
         val maxParticipants = roomDocument.getLong("maxParticipants")?.toInt() ?: 10
 
         holder.roomNameTextView.text = roomName
-        holder.participantsCounterTextView.text = "${participants.size}/$maxParticipants"
+        holder.participantsCounterTextView.text = "${roomsParticipants.size}/$maxParticipants"
         holder.lockIconImageView.visibility = if (isPublic) View.GONE else View.VISIBLE
 
         holder.itemView.setOnClickListener {

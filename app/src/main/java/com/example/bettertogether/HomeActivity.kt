@@ -61,29 +61,23 @@ class HomeActivity : BaseActivity() {
     private fun eventsForSlideshow() {
         db.collection("rooms")
             .whereEqualTo("isEvent", true)
+            .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 imageUrls.clear()
-                eventRoomsMap.clear()  // מנקים נתונים ישנים
-
+                eventRoomsMap.clear()
                 for (document in querySnapshot.documents) {
                     val url = document.getString("url")
-                    val roomId = document.id  // ה- ID של החדר
+                    val roomId = document.id
                     if (url != null) {
                         imageUrls.add(url)
-                        eventRoomsMap[url] = roomId  // קישור בין URL ל-ID
+                        eventRoomsMap[url] = roomId
                     }
                 }
-
-                if (imageUrls.isNotEmpty()) {
-                    startSlideshow()
-                } else {
-                    toast("No images found in events.")
-                }
+                if(imageUrls.isNotEmpty()){ startSlideshow() }
+                else{ toast("No images found in events.") }
             }
-            .addOnFailureListener { exception ->
-                toast("Failed to fetch events: ${exception.message}")
-            }
+            .addOnFailureListener { exception -> toast("Failed to fetch events: ${exception.message}") }
     }
     private fun startSlideshow() {
         mainHandler.post(object : Runnable {
@@ -109,7 +103,7 @@ class HomeActivity : BaseActivity() {
         for (row in categoryRows) {
             for (i in 0 until row.childCount) {
                 val categoryLayout = row.getChildAt(i) as LinearLayout
-                val categoryTextView = categoryLayout.getChildAt(1) as TextView  // ה-TextView שבתוך ה-LinearLayout
+                val categoryTextView = categoryLayout.getChildAt(1) as TextView
 
                 categoryLayout.setOnClickListener {
                     val subject = categoryTextView.tag.toString()
@@ -126,12 +120,13 @@ class HomeActivity : BaseActivity() {
         db.collection("rooms")
             .whereEqualTo("isEvent", false)
             .whereEqualTo("isPublic", true)
+            .whereEqualTo("isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 roomsList.clear()
                 roomsList.addAll(querySnapshot.documents.map { document ->
-                    val participants = document.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
-                    val participantsCount = participants.size
+                    val roomsParticipants = getActiveParticipants(document)
+                    val participantsCount = roomsParticipants.size
                     val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
 
                     mapOf(
@@ -139,7 +134,7 @@ class HomeActivity : BaseActivity() {
                         "name" to (document.getString("name") ?: "Unnamed Room"),
                         "participantsCount" to participantsCount,
                         "maxParticipants" to maxParticipants,
-                        "participants" to participants
+                        "participants" to roomsParticipants
                     )
                 }.sortedByDescending { it["participantsCount"] as? Int ?: 0 }) // מיון נכון גם לערכים null
 

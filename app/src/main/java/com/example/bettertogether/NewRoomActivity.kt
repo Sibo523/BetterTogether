@@ -182,7 +182,8 @@ class NewRoomActivity : BaseActivity() {
                 "role" to "owner",
                 "photoUrl" to userUrl,
                 "isBetting" to false,
-                "joinedOn" to System.currentTimeMillis()
+                "joinedOn" to System.currentTimeMillis(),
+                "isActive" to true
             )
         )
         val roomData = hashMapOf(
@@ -200,7 +201,8 @@ class NewRoomActivity : BaseActivity() {
             "createdOn" to System.currentTimeMillis(),
             "createdBy" to userId,
             "url" to url,
-            "participants" to participantsMap
+            "participants" to participantsMap,
+            "isActive" to true
         )
         db.collection("rooms")
             .add(roomData)
@@ -231,7 +233,6 @@ class NewRoomActivity : BaseActivity() {
     }
     private fun uploadImageToImgur(uri: Uri) {
         try {
-            // Get InputStream from the Uri
             val inputStream = contentResolver.openInputStream(uri)
             val imageBytes = inputStream?.readBytes() ?: throw Exception("Failed to read image data")
             val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
