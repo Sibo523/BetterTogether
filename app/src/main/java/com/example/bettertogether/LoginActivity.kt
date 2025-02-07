@@ -6,7 +6,11 @@ import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
 import java.util.*
 
@@ -61,20 +65,53 @@ class LoginActivity : BaseActivity() {
         googleSignInButton.setOnClickListener {
             Log.d("LoginActivityLog", "Google Sign-In button clicked")
 
-            val provider = OAuthProvider.newBuilder("google.com")
+            // אם המשתמש מנותק, נוודא שהוא באמת מנותק לפני התחברות
+            auth.signOut()
 
-            auth.startActivityForSignInWithProvider(this, provider.build())
-                .addOnSuccessListener { authResult ->
-                    Log.d("LoginActivityLog", "Google sign-in successful: ${authResult.user?.email}")
-                    checkAndCreateUser()
-                    goToMainScreen()
-                }
-                .addOnFailureListener { e ->
+            val googleSignInClient = GoogleSignIn.getClient(
+                this,
+                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build()
+            )
+
+            val signInIntent = googleSignInClient.signInIntent
+            signInLauncher.launch(signInIntent)
+        }
+    }
+
+    // תוצאה מחלון Google Sign-In
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data: Intent? = result.data
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                try {
+                    val account = task.getResult(ApiException::class.java)!!
+                    firebaseAuthWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
                     Log.e("LoginActivityLog", "Google sign-in failed", e)
                     toast("Authentication failed: ${e.message}")
                 }
+            }
         }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("LoginActivityLog", "Google sign-in successful: ${auth.currentUser?.email}")
+                    checkAndCreateUser()
+                    goToMainScreen()
+                } else {
+                    Log.e("LoginActivityLog", "Google authentication failed", task.exception)
+                    toast("Authentication failed: ${task.exception?.message}")
+                }
+            }
     }
+
 
     private fun checkAndCreateUser() {
         val user = auth.currentUser

@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="Expiration Date"
-                android:textColor="#000000"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
             <!-- Image Section (analogous to the Container with Stack in Flutter) -->
@@ -73,7 +73,7 @@
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="24dp"
-                android:textColor="#000000"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
             <!-- Participants Count row -->
@@ -90,7 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:textColor="#000000"
+                    android:textColor="@color/black"
                     android:textSize="12sp" />
 
                 <TextView
@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:text="participants"
-                    android:textColor="#000000"
+                    android:textColor="@color/black"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -111,7 +111,7 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="24dp"
                 android:text="DESCRIPTION"
-                android:textColor="#000000"
+                android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold" />
             <!-- Description Body -->
@@ -122,7 +122,7 @@
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="24dp"
-                android:textColor="#000000"
+                android:textColor="@color/black"
                 android:textSize="14sp" />
 
             <!-- Amenities title -->
@@ -133,7 +133,7 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="24dp"
                 android:text="Amenities"
-                android:textColor="#000000"
+                android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold" />
             <!-- Horizontal scroll for amenities icons -->
@@ -188,7 +188,7 @@
                     android:layout_marginStart="24dp"
                     android:layout_marginEnd="24dp"
                     android:text="@string/participants"
-                    android:textColor="#000000"
+                    android:textColor="@color/black"
                     android:textSize="14sp" />
 
                 <androidx.viewpager2.widget.ViewPager2
@@ -240,7 +240,7 @@
                     android:id="@+id/betPointsText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#000000"
+                    android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -250,7 +250,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#000000"
+                android:textColor="@color/white"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -262,7 +262,7 @@
             android:layout_marginStart="16dp"
             android:backgroundTint="#4B39EF"
             android:text="@string/bet"
-            android:textColor="#000000"
+            android:textColor="@color/white"
             android:visibility="visible" />
         <!-- Close Bet Button -->
         <Button
@@ -272,7 +272,7 @@
             android:layout_marginStart="16dp"
             android:backgroundTint="#4B39EF"
             android:text="@string/close_bet"
-            android:textColor="#000000"
+            android:textColor="@color/white"
             android:visibility="gone" />
     </LinearLayout>
 

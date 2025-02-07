@@ -40,12 +40,9 @@ class UserProfileActivity : BaseActivity() {
                     val userName = document.getString("displayName") ?: "Unknown"
                     val userPoints = document.getLong("currentPoints") ?: 0
                     val userImageUrl = document.getString("photoUrl") ?: ""
-
                     userNameTextView.text = userName
                     userPointsTextView.text = "Points: $userPoints"
-
                     loadImageFromURL(userImageUrl, profileImageView)
-
                     checkFriendshipStatus()
                 } else {
                     toast("User not found.")
@@ -60,11 +57,11 @@ class UserProfileActivity : BaseActivity() {
 
     private fun checkFriendshipStatus() {
         val userRef = db.collection("users").document(currentUserId)
-
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val friends = getUserActiveFriends(document)
-                val pendingRequests = getUserActiveReceivedRequests(document)
+                val receivedRequests = getUserActiveReceivedRequests(document)
+                val sentRequests = getUserActiveSentRequests(document)
 
                 when {
                     friends.containsKey(userId) -> {
@@ -72,10 +69,16 @@ class UserProfileActivity : BaseActivity() {
                         actionButton.text = "Remove Friend"
                         actionButton.setOnClickListener { removeFriend() }
                     }
-                    pendingRequests.containsKey(userId) -> {
+                    receivedRequests.containsKey(userId) -> {
                         friendStatusTextView.text = "Friend request received"
                         actionButton.text = "Accept Request"
                         actionButton.setOnClickListener { acceptFriendRequest() }
+                    }
+                    sentRequests.containsKey(userId) -> {
+                        friendStatusTextView.text = "Friend request sent"
+                        actionButton.text = "Cancel Request"
+                        actionButton.isEnabled = true
+                        actionButton.setOnClickListener { cancelFriendRequest() }
                     }
                     else -> {
                         friendStatusTextView.text = "Not Friends"
@@ -88,17 +91,23 @@ class UserProfileActivity : BaseActivity() {
     }
 
     private fun sendFriendRequest() {
-        db.collection("users").document(userId)
-            .update("pendingRequests.$currentUserId", true)
-            .addOnSuccessListener {
-                toast("Friend request sent!")
-                actionButton.isEnabled = false
-            }
-            .addOnFailureListener { e ->
-                toast("Error sending request: ${e.message}")
-            }
-    }
+        val userRef = db.collection("users").document(currentUserId)
+        val otherUserRef = db.collection("users").document(userId)
 
+        db.runBatch { batch ->
+            batch.update(userRef, "sentRequests.$userId", true)
+            batch.update(otherUserRef, "receivedRequests.$currentUserId", true)
+        }.addOnSuccessListener {
+            toast("Friend request sent!")
+
+            friendStatusTextView.text = "Friend request sent"
+            actionButton.text = "Cancel Request"
+            actionButton.isEnabled = true
+            actionButton.setOnClickListener { cancelFriendRequest() }
+        }.addOnFailureListener { e ->
+            toast("Error sending request: ${e.message}")
+        }
+    }
     private fun acceptFriendRequest() {
         val userRef = db.collection("users").document(currentUserId)
         val otherUserRef = db.collection("users").document(userId)
@@ -107,21 +116,20 @@ class UserProfileActivity : BaseActivity() {
             val userDoc = transaction.get(userRef)
             val otherUserDoc = transaction.get(otherUserRef)
 
-            val userFriends = getUserActiveFriends(userDoc)
-            val otherUserFriends = getUserActiveFriends(otherUserDoc)
+            val newUserFriend = mapOf(
+                "name" to (otherUserDoc.getString("displayName") ?: ""),
+                "isActive" to true
+            )
+            val newOtherUserFriend = mapOf(
+                "name" to (userDoc.getString("displayName") ?: ""),
+                "isActive" to true
+            )
 
-            val newUserFriend = mapOf("name" to otherUserDoc.getString("displayName")!!)
-            val newOtherUserFriend = mapOf("name" to userDoc.getString("displayName")!!)
+            transaction.update(userRef, "friends.$userId", newUserFriend)
+            transaction.update(otherUserRef, "friends.$currentUserId", newOtherUserFriend)
 
-            val updatedUserFriends = userFriends.toMutableMap()
-            updatedUserFriends[userId] = newUserFriend
-
-            val updatedOtherUserFriends = otherUserFriends.toMutableMap()
-            updatedOtherUserFriends[currentUserId] = newOtherUserFriend
-
-            transaction.update(userRef, "friends", updatedUserFriends)
-            transaction.update(otherUserRef, "friends", updatedOtherUserFriends)
-            transaction.update(userRef, "pendingRequests.$userId", FieldValue.delete())
+            transaction.update(userRef, "receivedRequests.$userId", FieldValue.delete())
+            transaction.update(otherUserRef, "sentRequests.$currentUserId", FieldValue.delete())
         }.addOnSuccessListener {
             toast("You are now friends!")
             checkFriendshipStatus()
@@ -129,31 +137,42 @@ class UserProfileActivity : BaseActivity() {
             toast("Error accepting request: ${e.message}")
         }
     }
+    private fun cancelFriendRequest() {
+        val userRef = db.collection("users").document(currentUserId)
+        val otherUserRef = db.collection("users").document(userId)
 
+        db.runBatch { batch ->
+            batch.update(userRef, "sentRequests.$userId", FieldValue.delete())
+            batch.update(otherUserRef, "receivedRequests.$currentUserId", FieldValue.delete())
+        }.addOnSuccessListener {
+            toast("Friend request canceled!")
+
+            friendStatusTextView.text = "Not Friends"
+            actionButton.text = "Send Friend Request"
+            actionButton.isEnabled = true
+            actionButton.setOnClickListener { sendFriendRequest() }
+        }.addOnFailureListener { e ->
+            toast("Error canceling request: ${e.message}")
+        }
+    }
     private fun removeFriend() {
         val userRef = db.collection("users").document(currentUserId)
         val otherUserRef = db.collection("users").document(userId)
 
-        db.runTransaction { transaction ->
-            val userDoc = transaction.get(userRef)
-            val otherUserDoc = transaction.get(otherUserRef)
+        val userUpdate = mapOf("friends.$userId.isActive" to false)
+        val otherUserUpdate = mapOf("friends.$currentUserId.isActive" to false)
 
-            val userFriends = getUserActiveFriends(userDoc)
-            val otherUserFriends = getUserActiveFriends(otherUserDoc)
+        db.runBatch { batch ->
+            batch.update(userRef, userUpdate)
+            batch.update(otherUserRef, otherUserUpdate)
 
-            val updatedUserFriends = userFriends.toMutableMap()
-            updatedUserFriends.remove(userId)
-
-            val updatedOtherUserFriends = otherUserFriends.toMutableMap()
-            updatedOtherUserFriends.remove(currentUserId)
-
-            transaction.update(userRef, "friends", updatedUserFriends)
-            transaction.update(otherUserRef, "friends", updatedOtherUserFriends)
+            batch.update(userRef, "sentRequests.$userId", FieldValue.delete())
+            batch.update(otherUserRef, "receivedRequests.$currentUserId", FieldValue.delete())
         }.addOnSuccessListener {
-            toast("Friend removed.")
+            toast("Friend deactivated.")
             checkFriendshipStatus()
         }.addOnFailureListener { e ->
-            toast("Error removing friend: ${e.message}")
+            toast("Error deactivating friend: ${e.message}")
         }
     }
 }

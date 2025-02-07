@@ -214,8 +214,12 @@ abstract class BaseActivity : AppCompatActivity() {
         return friends.filterValues { it["isActive"] == true }
     }
     protected fun getUserActiveReceivedRequests(userDoc: DocumentSnapshot): Map<String, Any> {
-        val pendingRequests = userDoc.get("receivedRequests") as? Map<String, Any> ?: emptyMap()
-        return pendingRequests
+        val receivedRequests = userDoc.get("receivedRequests") as? Map<String, Any> ?: emptyMap()
+        return receivedRequests
+    }
+    protected fun getUserActiveSentRequests(userDoc: DocumentSnapshot): Map<String, Any> {
+        val sentRequests = userDoc.get("sentRequests") as? Map<String, Any> ?: emptyMap()
+        return sentRequests
     }
 
     protected fun loadUserPhoto(imageView:ImageView){
