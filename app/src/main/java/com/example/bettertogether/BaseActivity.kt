@@ -10,6 +10,8 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.QuerySnapshot
 
 abstract class BaseActivity : AppCompatActivity() {
     protected lateinit var auth: FirebaseAuth
@@ -220,6 +222,63 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun getUserActiveSentRequests(userDoc: DocumentSnapshot): Map<String, Any> {
         val sentRequests = userDoc.get("sentRequests") as? Map<String, Any> ?: emptyMap()
         return sentRequests
+    }
+
+    protected fun showPopularPublicRooms(list:MutableList<Map<String,Any>>, sliderAdapter:AdapterPopularRooms){
+        db.collection("rooms")
+            .whereEqualTo("isEvent", false)
+            .whereEqualTo("isPublic", true)
+            .whereEqualTo("isActive", true)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                list.clear()
+                list.addAll(querySnapshot.documents.map { document ->
+                    val roomsParticipants = getActiveParticipants(document)
+                    val participantsCount = roomsParticipants.size
+                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
+
+                    mapOf(
+                        "id" to document.id,
+                        "name" to (document.getString("name") ?: "Unnamed Room"),
+                        "participantsCount" to participantsCount,
+                        "maxParticipants" to maxParticipants,
+                        "participants" to roomsParticipants
+                    )
+                }.sortedByDescending { it["participantsCount"] as? Int ?: 0 })
+                sliderAdapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception -> toast("Error fetching rooms: ${exception.message}") }
+    }
+    protected fun loadUserRooms(userId:String, docList:MutableList<DocumentSnapshot>, roomsAdapter:AdapterEvents){
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    docList.clear()
+                    val roomIds = getUserActiveRooms(document)
+                    if (roomIds.size > 0) {
+                        val ids = roomIds.mapNotNull { it["roomId"] as? String }
+                        db.collection("rooms")
+                            .whereIn(FieldPath.documentId(), ids)
+                            .get()
+                            .addOnSuccessListener { querySnapshot ->
+                                docList.addAll(querySnapshot.documents)
+                                roomsAdapter.notifyDataSetChanged()
+                            }
+                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
+                    }
+                }
+            }
+            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
+    }
+    protected fun loadMyRooms(docList:MutableList<DocumentSnapshot>, roomsAdapter:AdapterEvents) {
+        val user = auth.currentUser
+        if(user == null){
+            toast("Please log in to see your rooms.")
+            navigateToLogin()
+            return
+        }
+        loadUserRooms(user.uid,docList,roomsAdapter)
     }
 
     protected fun loadUserPhoto(imageView:ImageView){

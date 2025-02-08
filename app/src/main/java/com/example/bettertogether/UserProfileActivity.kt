@@ -4,15 +4,25 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 
 class UserProfileActivity : BaseActivity() {
-
     private lateinit var profileImageView: ImageView
     private lateinit var userNameTextView: TextView
     private lateinit var userPointsTextView: TextView
     private lateinit var friendStatusTextView: TextView
     private lateinit var actionButton: Button
+
+    private lateinit var roomsSlider: RecyclerView
+    private lateinit var roomsSliderAdapter: AdapterEvents
+    private val roomsList = mutableListOf<DocumentSnapshot>()
+    private lateinit var eventsSlider: RecyclerView
+    private lateinit var eventsSliderAdapter: AdapterEvents
+    private val eventsList = mutableListOf<DocumentSnapshot>()
 
     private lateinit var userId: String
     private lateinit var currentUserId: String
@@ -30,6 +40,16 @@ class UserProfileActivity : BaseActivity() {
         userId = intent.getStringExtra("userId") ?: return finish()
         currentUserId = auth.currentUser?.uid ?: return finish()
 
+        roomsSlider = findViewById(R.id.rooms_slider)
+        roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        roomsSliderAdapter = AdapterEvents(roomsList) { room -> openRoom(room["id"] as String) }
+        roomsSlider.adapter = roomsSliderAdapter
+
+        eventsSlider = findViewById(R.id.events_slider)
+        eventsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        eventsSliderAdapter = AdapterEvents(eventsList) { event -> openRoom(event["id"] as String) }
+        eventsSlider.adapter = eventsSliderAdapter
+
         loadUserProfile()
     }
 
@@ -40,9 +60,34 @@ class UserProfileActivity : BaseActivity() {
                     val userName = document.getString("displayName") ?: "Unknown"
                     val userPoints = document.getLong("currentPoints") ?: 0
                     val userImageUrl = document.getString("photoUrl") ?: ""
+
                     userNameTextView.text = userName
                     userPointsTextView.text = "Points: $userPoints"
                     loadImageFromURL(userImageUrl, profileImageView)
+
+                    val roomIds = getUserActiveRooms(document)
+                    if (roomIds.size > 0) {
+                        val ids = roomIds.mapNotNull { it["roomId"] as? String }
+                        db.collection("rooms")
+                            .whereIn(FieldPath.documentId(), ids)
+                            .whereEqualTo("isEvent", false)
+                            .get()
+                            .addOnSuccessListener { querySnapshot ->
+                                roomsList.addAll(querySnapshot.documents)
+                                roomsSliderAdapter.notifyDataSetChanged()
+                            }
+                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
+                        db.collection("rooms")
+                            .whereIn(FieldPath.documentId(), ids)
+                            .whereEqualTo("isEvent", true)
+                            .get()
+                            .addOnSuccessListener { querySnapshot ->
+                                eventsList.addAll(querySnapshot.documents)
+                                eventsSliderAdapter.notifyDataSetChanged()
+                            }
+                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
+                    }
+
                     checkFriendshipStatus()
                 } else {
                     toast("User not found.")

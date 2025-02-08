@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldPath
 
 import android.content.Context
 import com.bumptech.glide.Glide
@@ -146,35 +145,7 @@ class ExplorerActivity : BaseActivity() {
         }
         recyclerView.adapter = yourRoomsAdapter
 
-        loadUserRooms()
-    }
-    private fun loadUserRooms() {
-        val user = auth.currentUser
-        if(user == null){
-            toast("Please log in to see your rooms.")
-            navigateToLogin()
-            return
-        }
-        db.collection("users").document(user.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    docList.clear()
-                    val roomIds = getUserActiveRooms(document)
-                    if (roomIds.size > 0) {
-                        val ids = roomIds.mapNotNull { it["roomId"] as? String }
-                        db.collection("rooms")
-                            .whereIn(FieldPath.documentId(), ids)
-                            .get()
-                            .addOnSuccessListener { querySnapshot ->
-                                docList.addAll(querySnapshot.documents)
-                                yourRoomsAdapter.notifyDataSetChanged()
-                            }
-                            .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
-                    }
-                }
-            }
-            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
+        loadMyRooms(docList,yourRoomsAdapter)
     }
 }
 

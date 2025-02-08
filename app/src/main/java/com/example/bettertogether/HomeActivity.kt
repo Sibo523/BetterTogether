@@ -38,22 +38,17 @@ class HomeActivity : BaseActivity() {
         betButton = findViewById(R.id.bet)
 
         betButton.setOnClickListener {
-            if (currentRoomId.isNotEmpty()) {
-                openRoom(currentRoomId)
-            } else {
-                toast("No event selected.")
-            }
+            if (currentRoomId.isNotEmpty()) { openRoom(currentRoomId) }
+            else { toast("No event selected.") }
         }
         eventsForSlideshow()
 
         // Rooms Slider
         roomsSlider = findViewById(R.id.rooms_slider)
         roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        roomsSliderAdapter = AdapterPopularRooms(roomsList) { roomId ->
-            openRoom(roomId)
-        }
+        roomsSliderAdapter = AdapterPopularRooms(roomsList){ roomId -> openRoom(roomId) }
         roomsSlider.adapter = roomsSliderAdapter
-        popularPublicRooms()
+        showPopularPublicRooms(roomsList,roomsSliderAdapter)
 
         setupCategoryClickListeners()
     }
@@ -114,37 +109,6 @@ class HomeActivity : BaseActivity() {
                 }
             }
         }
-    }
-
-    private fun popularPublicRooms() {
-        db.collection("rooms")
-            .whereEqualTo("isEvent", false)
-            .whereEqualTo("isPublic", true)
-            .whereEqualTo("isActive", true)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                roomsList.clear()
-                roomsList.addAll(querySnapshot.documents.map { document ->
-                    val roomsParticipants = getActiveParticipants(document)
-                    val participantsCount = roomsParticipants.size
-                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
-
-                    mapOf(
-                        "id" to document.id,
-                        "name" to (document.getString("name") ?: "Unnamed Room"),
-                        "participantsCount" to participantsCount,
-                        "maxParticipants" to maxParticipants,
-                        "participants" to roomsParticipants
-                    )
-                }.sortedByDescending { it["participantsCount"] as? Int ?: 0 }) // מיון נכון גם לערכים null
-
-                if (::roomsSliderAdapter.isInitialized) {
-                    roomsSliderAdapter.notifyDataSetChanged()
-                }
-            }
-            .addOnFailureListener { exception ->
-                toast("Error fetching popular rooms: ${exception.message}")
-            }
     }
 }
 
