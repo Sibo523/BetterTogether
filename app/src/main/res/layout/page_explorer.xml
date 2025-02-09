@@ -58,7 +58,8 @@
         android:layout_height="wrap_content"
         android:queryHint="Search users or rooms"
         android:background="@drawable/rounded_background"
-        android:iconifiedByDefault="false"/>
+        android:iconifiedByDefault="false"
+        android:layout_margin="10dp"/>
 
     <!-- RecyclerView for Listing -->
     <androidx.recyclerview.widget.RecyclerView
