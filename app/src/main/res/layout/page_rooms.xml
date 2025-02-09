@@ -8,7 +8,46 @@
     android:background="@color/main"
     android:orientation="vertical">
 
-    <!-- Scrollable Content -->
+    <!-- טאבים לבחירת חדרים או חברים -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/tab_my_rooms"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Your Rooms"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackground" />
+        <TextView
+            android:id="@+id/tab_my_friends"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Your Friends"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="18sp"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackground" />
+    </LinearLayout>
+
+    <!-- פס סימון לטאב הפעיל -->
+    <View
+        android:id="@+id/indicator_rooms"
+        android:layout_width="50dp"
+        android:layout_height="4dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="2dp"/>
+
+    <!-- תוכן גלילה -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -20,17 +59,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Your Rooms"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:textColor="@android:color/white"
-                android:paddingBottom="16dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rooms_recycler_view"

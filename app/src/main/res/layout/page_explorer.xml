@@ -17,6 +17,18 @@
         android:gravity="center">
 
         <TextView
+            android:id="@+id/tab_rooms"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="ROOMS"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:background="?attr/selectableItemBackground"
+            android:padding="10dp"/>
+        <TextView
             android:id="@+id/tab_users"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -29,26 +41,15 @@
             android:background="?attr/selectableItemBackground"
             android:padding="10dp"/>
 
-        <TextView
-            android:id="@+id/tab_rooms"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="ROOMS"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@android:color/white"
-            android:background="?attr/selectableItemBackground"
-            android:padding="10dp"/>
     </LinearLayout>
 
     <!-- Indicator Line -->
     <View
         android:id="@+id/indicator"
-        android:layout_width="match_parent"
+        android:layout_width="50dp"
         android:layout_height="4dp"
-        android:background="@android:color/white" />
+        android:background="@android:color/white"
+        android:layout_marginTop="2dp"/>
 
     <!-- Search Bar -->
     <androidx.appcompat.widget.SearchView

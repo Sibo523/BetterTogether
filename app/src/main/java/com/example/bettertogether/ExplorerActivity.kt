@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 
 import android.content.Context
 import com.bumptech.glide.Glide
@@ -26,6 +27,9 @@ class ExplorerActivity : BaseActivity() {
     private lateinit var tabUsers: TextView
     private lateinit var tabRooms: TextView
     private lateinit var indicator: View
+    private lateinit var tabMyRooms: TextView
+    private lateinit var tabMyFriends: TextView
+    private lateinit var indicatorMy: View
     private var isUsersTabActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +83,10 @@ class ExplorerActivity : BaseActivity() {
         isUsersTabActive = true
         tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
         tabRooms.setTextColor(resources.getColor(android.R.color.darker_gray, null))
-        indicator.animate().translationX(tabUsers.width.toFloat()).setDuration(200).start()
+        indicator.layoutParams.width = tabRooms.width
+        indicator.requestLayout()
+        indicator.animate().translationX(tabUsers.width.toFloat()).setDuration(400).start()
+
         recyclerView.adapter = usersAdapter
         loadAllUsers()
     }
@@ -87,7 +94,10 @@ class ExplorerActivity : BaseActivity() {
         isUsersTabActive = false
         tabRooms.setTextColor(resources.getColor(android.R.color.white, null))
         tabUsers.setTextColor(resources.getColor(android.R.color.darker_gray, null))
-        indicator.animate().translationX(0f).setDuration(200).start()
+        indicator.layoutParams.width = tabUsers.width
+        indicator.requestLayout()
+        indicator.animate().translationX(0f).setDuration(400).start()
+
         recyclerView.adapter = roomsAdapter
         loadAllRooms()
     }
@@ -137,15 +147,78 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter?.notifyDataSetChanged()
     }
 
-    private fun initRoomsView(view: View){
+    private fun initRoomsView(view: View) {
         recyclerView = view.findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        yourRoomsAdapter = AdapterEvents(docList) { document ->
-            openRoom(document.id)
-        }
+        yourRoomsAdapter = AdapterEvents(docList) { document -> openRoom(document.id) }
+        usersAdapter = AdapterUsers(docList) { document -> openUser(document.id) }
         recyclerView.adapter = yourRoomsAdapter
 
-        loadMyRooms(docList,yourRoomsAdapter)
+        tabMyRooms = view.findViewById(R.id.tab_my_rooms)
+        tabMyFriends = view.findViewById(R.id.tab_my_friends)
+        indicatorMy = view.findViewById(R.id.indicator_rooms)
+
+        activateTabMyRooms()
+
+        tabMyRooms.setOnClickListener { activateTabMyRooms() }
+        tabMyFriends.setOnClickListener { activateTabMyFriends() }
+    }
+    private fun activateTabMyRooms() {
+        isUsersTabActive = false
+        tabMyRooms.setTextColor(resources.getColor(android.R.color.white, null))
+        tabMyFriends.setTextColor(resources.getColor(android.R.color.darker_gray, null))
+        indicatorMy.layoutParams.width = tabMyFriends.width
+        indicatorMy.requestLayout()
+        indicatorMy.animate().translationX(0f).setDuration(400).start()
+
+        recyclerView.adapter = yourRoomsAdapter
+        loadMyRooms(docList, yourRoomsAdapter)
+    }
+    private fun activateTabMyFriends() {
+        isUsersTabActive = true
+        tabMyFriends.setTextColor(resources.getColor(android.R.color.white, null))
+        tabMyRooms.setTextColor(resources.getColor(android.R.color.darker_gray, null))
+        indicatorMy.layoutParams.width = tabMyRooms.width
+        indicatorMy.requestLayout()
+        indicatorMy.animate().translationX(tabMyFriends.width.toFloat()).setDuration(400).start()
+
+        recyclerView.adapter = usersAdapter
+        loadMyFriends(docList, usersAdapter)
+    }
+    protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
+        val user = auth.currentUser
+        if (user == null) {
+            toast("Please log in to see your friends.")
+            navigateToLogin()
+            return
+        }
+        db.collection("users").document(user.uid).get()
+            .addOnSuccessListener { document ->
+                if (!document.exists()) {
+                    toast("User not found.")
+                    return@addOnSuccessListener
+                }
+
+                val friends = getUserActiveFriends(document)
+                val friendIds = friends.keys.toList()
+
+                if (friendIds.isEmpty()) {
+                    docList.clear()
+                    usersAdapter.notifyDataSetChanged()
+                    return@addOnSuccessListener
+                }
+
+                db.collection("users")
+                    .whereIn(FieldPath.documentId(), friendIds)
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        docList.clear()
+                        docList.addAll(querySnapshot.documents)
+                        usersAdapter.notifyDataSetChanged()
+                    }
+                    .addOnFailureListener{ exception -> toast("Error fetching friends: ${exception.message}") }
+            }
+            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
     }
 }
 
