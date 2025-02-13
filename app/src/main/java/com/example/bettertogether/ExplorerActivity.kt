@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
-
 import android.content.Context
 import com.bumptech.glide.Glide
 
@@ -53,21 +52,33 @@ class ExplorerActivity : BaseActivity() {
             }
         })
     }
-    private fun initExplorerView(view: View){
+
+    private fun initExplorerView(view: View) {
         recyclerView = view.findViewById(R.id.explorer_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
         roomsAdapter = AdapterRooms(filteredDocList) { document -> openRoom(document.id) }
         usersAdapter = AdapterUsers(filteredDocList) { document -> openUser(document.id) }
         recyclerView.adapter = roomsAdapter
 
-        tabUsers = findViewById(R.id.tab_users)
-        tabRooms = findViewById(R.id.tab_rooms)
-        indicator = findViewById(R.id.indicator)
+        tabUsers = view.findViewById(R.id.tab_users)
+        tabRooms = view.findViewById(R.id.tab_rooms)
+        indicator = view.findViewById(R.id.indicator)
         activateTabRooms()
         tabUsers.setOnClickListener { activateTabUsers() }
         tabRooms.setOnClickListener { activateTabRooms() }
 
         val searchView = view.findViewById<SearchView>(R.id.search_view)
+        // Make sure the internal search plate is clickable over the full area.
+        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
+        searchPlate?.apply {
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                searchView.requestFocus()
+            }
+        }
+        searchView.isIconified = false
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 filterDocs(query)
@@ -79,6 +90,7 @@ class ExplorerActivity : BaseActivity() {
             }
         })
     }
+
     private fun activateTabUsers() {
         isUsersTabActive = true
         tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
@@ -90,6 +102,7 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadAllUsers()
     }
+
     private fun activateTabRooms() {
         isUsersTabActive = false
         tabRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -101,6 +114,7 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = roomsAdapter
         loadAllRooms()
     }
+
     private fun loadAllRooms() {
         db.collection("rooms")
             .whereEqualTo("isActive", true)
@@ -116,6 +130,7 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
+
     private fun loadAllUsers() {
         db.collection("users")
             .get()
@@ -130,6 +145,7 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching users: ${exception.message}")
             }
     }
+
     private fun filterDocs(query: String?) {
         val searchQuery = query?.trim() ?: ""
         filteredDocList.clear()
@@ -139,7 +155,9 @@ class ExplorerActivity : BaseActivity() {
         } else {
             filteredDocList.addAll(
                 docList.filter { document ->
-                    val name = document.getString("name") ?: document.getString("displayName") ?: "Unnamed"
+                    val name = document.getString("name")
+                        ?: document.getString("displayName")
+                        ?: "Unnamed"
                     name.contains(searchQuery, ignoreCase = true)
                 }
             )
@@ -163,6 +181,7 @@ class ExplorerActivity : BaseActivity() {
         tabMyRooms.setOnClickListener { activateTabMyRooms() }
         tabMyFriends.setOnClickListener { activateTabMyFriends() }
     }
+
     private fun activateTabMyRooms() {
         isUsersTabActive = false
         tabMyRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -174,6 +193,7 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = yourRoomsAdapter
         loadMyRooms(docList, yourRoomsAdapter)
     }
+
     private fun activateTabMyFriends() {
         isUsersTabActive = true
         tabMyFriends.setTextColor(resources.getColor(android.R.color.white, null))
@@ -185,6 +205,7 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadMyFriends(docList, usersAdapter)
     }
+
     protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
         val user = auth.currentUser
         if (user == null) {
@@ -216,12 +237,17 @@ class ExplorerActivity : BaseActivity() {
                         docList.addAll(querySnapshot.documents)
                         usersAdapter.notifyDataSetChanged()
                     }
-                    .addOnFailureListener{ exception -> toast("Error fetching friends: ${exception.message}") }
+                    .addOnFailureListener { exception ->
+                        toast("Error fetching friends: ${exception.message}")
+                    }
             }
-            .addOnFailureListener{ exception -> toast("Error fetching user data: ${exception.message}") }
+            .addOnFailureListener { exception ->
+                toast("Error fetching user data: ${exception.message}")
+            }
     }
 }
 
+// Adapter for displaying Users
 class AdapterUsers(
     private val participants: List<DocumentSnapshot>,
     private val onUserClick: (DocumentSnapshot) -> Unit
@@ -234,7 +260,8 @@ class AdapterUsers(
         val rankTextView: TextView = itemView.findViewById(R.id.participantRank)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_top_participant, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_top_participant, parent, false)
         return UserViewHolder(view)
     }
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
@@ -257,11 +284,10 @@ class AdapterUsers(
         }
         holder.rankTextView.text = (position + 1).toString()
     }
-    override fun getItemCount(): Int {
-        return participants.size
-    }
+    override fun getItemCount(): Int = participants.size
 }
 
+// Adapter for displaying Rooms
 class AdapterRooms(
     private val rooms: List<DocumentSnapshot>,
     private val onRoomClick: (DocumentSnapshot) -> Unit
@@ -272,7 +298,8 @@ class AdapterRooms(
         val lockIconImageView: ImageView = view.findViewById(R.id.lock_icon)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_room, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_room, parent, false)
         return RoomViewHolder(view)
     }
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
@@ -291,13 +318,12 @@ class AdapterRooms(
             onRoomClick(roomDocument)
         }
     }
-    override fun getItemCount(): Int {
-        return rooms.size
-    }
+    override fun getItemCount(): Int = rooms.size
 }
 
+// Adapter for handling pages (Explorer and Rooms)
 class AdapterRoomsPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomsPager.ViewHolder>() {
-    private val pageViews = mutableMapOf<Int, View>() // שמירה על Views לפי position
+    private val pageViews = mutableMapOf<Int, View>() // Save views by position
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(context)
@@ -310,10 +336,10 @@ class AdapterRoomsPager(private val context: Context) : RecyclerView.Adapter<Ada
         return ViewHolder(view)
     }
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        pageViews[position] = holder.itemView // שמירת ה-View במפה
+        pageViews[position] = holder.itemView // Save the view in map
     }
-    fun getPageView(position: Int): View? = pageViews[position] // גישה לעמוד לפי position
-    override fun getItemViewType(position: Int): Int = position // קביעת סוג העמוד
-    override fun getItemCount(): Int = 2 // שני עמודים בלבד
+    fun getPageView(position: Int): View? = pageViews[position] // Access page by position
+    override fun getItemViewType(position: Int): Int = position // Determine page type by position
+    override fun getItemCount(): Int = 2 // Only two pages
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }
