@@ -142,18 +142,19 @@ class ProfileActivity : BaseActivity() {
                 override fun onResponse(call: Call<ImgurResponse>, response: Response<ImgurResponse>) {
                     if (response.isSuccessful) {
                         uploadedImageUrl = response.body()?.data?.link
-                        Toast.makeText(this@ProfileActivity, "Image uploaded: $uploadedImageUrl", Toast.LENGTH_LONG).show()
+                        toast("Image uploaded: $uploadedImageUrl")
                         updateUserPhoto(uploadedImageUrl!!)
+                        updateUserPhotoInRooms(uploadedImageUrl!!)
                     } else {
-                        Toast.makeText(this@ProfileActivity, "Image upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
+                        toast("Image upload failed: ${response.message()}")
                     }
                 }
                 override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
-                    Toast.makeText(this@ProfileActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                    toast("Error: ${t.message}")
                 }
             })
         } catch (e: Exception) {
-            Toast.makeText(this, "Error uploading image: ${e.message}", Toast.LENGTH_SHORT).show()
+            toast("Error uploading image: ${e.message}")
         }
     }
 
@@ -171,15 +172,39 @@ class ProfileActivity : BaseActivity() {
                 db.collection("users").document(user.uid)
                     .update("photoUrl", photoUrl)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Profile image updated!", Toast.LENGTH_SHORT).show()
+                        toast("Profile image updated!")
                         loadUserPhoto(photoUrl)
                     }
                     .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Failed to update Firestore: ${exception.message}", Toast.LENGTH_LONG).show()
+                        toast("Failed to update Firestore: ${exception.message}")
                     }
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Failed to update profile: ${exception.message}", Toast.LENGTH_LONG).show()
+                toast("Failed to update profile: ${exception.message}")
+            }
+    }
+    private fun updateUserPhotoInRooms(photoUrl: String) {
+        val user = auth.currentUser ?: return
+        val userId = user.uid
+        val roomsCollection = db.collection("rooms")
+        roomsCollection.whereGreaterThan("participants.$userId.joinedOn", 0).get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot.documents) {
+                    val roomId = document.id
+
+                    val participantField = "participants.$userId.photoUrl"
+                    roomsCollection.document(roomId)
+                        .update(participantField, photoUrl)
+                        .addOnSuccessListener {
+                            toast("Updated photo in room: $roomId")
+                        }
+                        .addOnFailureListener { exception ->
+                            toast("Failed to update photo in room $roomId: ${exception.message}")
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                toast("Failed to get rooms: ${exception.message}")
             }
     }
 
@@ -222,13 +247,13 @@ class ProfileActivity : BaseActivity() {
                 "mobile", newMobile
             )
             .addOnSuccessListener {
-                Toast.makeText(this, "Profile data updated successfully!", Toast.LENGTH_SHORT).show()
+                toast("Profile data updated successfully!")
                 isDataEditMode = false
                 setDataFieldsEnabled(false)
                 editDataButton.text = "Edit Profile Data"
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(this, "Failed to update profile data: ${exception.message}", Toast.LENGTH_LONG).show()
+                toast("Failed to update profile data: ${exception.message}")
             }
     }
 
