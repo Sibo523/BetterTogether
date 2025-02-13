@@ -28,34 +28,31 @@ abstract class BaseActivity : AppCompatActivity() {
     }
     protected fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        if(bottomNav == null){ return }
+        if (bottomNav == null) return
+
+        val currentActivity = this::class.java
+        bottomNav.selectedItemId = when (currentActivity) {
+            HomeActivity::class.java -> R.id.nav_home
+            ExplorerActivity::class.java -> R.id.nav_explorer
+            NewRoomActivity::class.java -> R.id.nav_add
+            RatingActivity::class.java -> R.id.nav_star
+            ProfileActivity::class.java -> R.id.nav_profile
+            else -> R.id.nav_home
+        }
 
         bottomNav.setOnItemSelectedListener { item ->
+            if(bottomNav.selectedItemId == item.itemId){ return@setOnItemSelectedListener false }
             when (item.itemId) {
-                R.id.nav_home -> {
-                    navigateTo(HomeActivity::class.java)
-                    true
-                }
-                R.id.nav_explorer -> {
-                    navigateTo(ExplorerActivity::class.java)
-                    true
-                }
-                R.id.nav_add -> {
-                    navigateTo(NewRoomActivity::class.java)
-                    true
-                }
-                R.id.nav_star -> {
-                    navigateTo(RatingActivity::class.java)
-                    true
-                }
-                R.id.nav_profile -> {
-                    navigateTo(ProfileActivity::class.java)
-                    true
-                }
-                else -> false
+                R.id.nav_home -> navigateTo(HomeActivity::class.java)
+                R.id.nav_explorer -> navigateTo(ExplorerActivity::class.java)
+                R.id.nav_add -> navigateTo(NewRoomActivity::class.java)
+                R.id.nav_star -> navigateTo(RatingActivity::class.java)
+                R.id.nav_profile -> navigateTo(ProfileActivity::class.java)
             }
+            true
         }
     }
+
 
     protected fun navigateToLogin(){
         val intent = Intent(this, LoginActivity::class.java).apply {
