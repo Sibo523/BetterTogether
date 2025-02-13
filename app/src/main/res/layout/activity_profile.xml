@@ -21,6 +21,7 @@
             android:layout_marginTop="10dp"
             android:padding="15dp">
 
+            <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -31,6 +32,7 @@
                 android:layout_gravity="center"
                 android:textColor="@color/black"/>
 
+            <!-- Profile Card: Image & Name -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -41,22 +43,38 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="0dp"
                     android:padding="15dp">
 
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/profile_image"
-                        android:layout_width="150dp"
-                        android:layout_height="150dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/room_placeholder_image"/>
+                    <!-- Profile Image with overlay edit icon -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/profile_image"
+                            android:layout_width="150dp"
+                            android:layout_height="150dp"
+                            android:src="@drawable/room_placeholder_image"
+                            android:contentDescription="Profile Image"/>
+
+                        <ImageView
+                            android:id="@+id/edit_image_button"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="bottom|end"
+                            android:src="@drawable/ic_edit"
+                            android:contentDescription="Edit Profile Image"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                    </FrameLayout>
+
+                    <!-- Profile Name -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginTop="15dp"
                         android:orientation="horizontal">
-
                         <TextView
                             android:id="@+id/profile_name"
                             android:layout_width="wrap_content"
@@ -67,22 +85,11 @@
                             android:fontFamily="@font/poppinsmedium"
                             android:textColor="@color/black"
                             android:textStyle="bold"/>
-
-                        <!--com.airbnb.lottie.LottieAnimationView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"  the fucking verified checkmark
-                            android:layout_marginBottom="1dp"
-                            android:layout_marginStart="3dp"
-                            app:lottie_rawRes="TODOOOOOOOOOOOOOOOOOO"
-                            app:lottie_autoPlay="true"
-                            app:lottie_loop="true"/-->
-
                     </LinearLayout>
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- About Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -108,35 +115,34 @@
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_bio"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="30dp"
                             android:textColor="@color/black"
-                            android:text="@string/bio"
+                            android:hint="@string/bio"
                             android:fontFamily="@font/poppinsregular"
                             android:textSize="15sp"
-                            android:layout_alignParentStart="true" />
+                            android:background="@null"
+                            android:enabled="false"/>
                     </RelativeLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- User Information Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 app:cardCornerRadius="10dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="15dp">
 
+                    <!-- Username -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -146,40 +152,25 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/black"
-                            android:text="@string/user_information"
-                            android:fontFamily="@font/poppinsmedium"
-                            android:textSize="15sp"
-                            android:layout_alignParentStart="true"
-                            android:textStyle="bold"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginEnd="10dp"
-                        android:layout_marginTop="15dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/black"
                             android:text="@string/username"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_username_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOOOO"
+                            android:hint="Enter username"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
-                            android:textStyle="bold"/>
+                            android:background="@null"
+                            android:enabled="false"/>
                     </RelativeLayout>
 
+                    <!-- Gender -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -195,18 +186,20 @@
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_gender_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOOO"
+                            android:hint="Enter gender"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
-                            android:textStyle="bold"/>
+                            android:background="@null"
+                            android:enabled="false"/>
                     </RelativeLayout>
 
+                    <!-- Age -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -222,18 +215,21 @@
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_age_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOO"
+                            android:hint="Enter age"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
-                            android:textStyle="bold"/>
+                            android:background="@null"
+                            android:enabled="false"
+                            android:inputType="number"/>
                     </RelativeLayout>
 
+                    <!-- Date of Birth -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -249,18 +245,20 @@
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_dob_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOOOOOOO"
+                            android:hint="Enter DOB"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
-                            android:textStyle="bold"/>
+                            android:background="@null"
+                            android:enabled="false"/>
                     </RelativeLayout>
 
+                    <!-- Mobile -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -276,18 +274,21 @@
                             android:textSize="15sp"
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
-                        <TextView
+                        <EditText
                             android:id="@+id/profile_mobile_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOOOOO"
+                            android:hint="Enter mobile"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
-                            android:textStyle="bold"/>
+                            android:background="@null"
+                            android:enabled="false"
+                            android:inputType="phone"/>
                     </RelativeLayout>
 
+                    <!-- Email (read-only) -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -308,29 +309,38 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#6E6C6C"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOOOOO"
+                            android:text="N/A"
                             android:fontFamily="@font/poppinsmedium"
                             android:textSize="15sp"
                             android:layout_alignParentEnd="true"
                             android:textStyle="bold"/>
                     </RelativeLayout>
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Edit Data Button -->
+            <Button
+                android:id="@+id/edit_data_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edit Profile Data"
+                android:layout_marginTop="20dp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="?attr/colorPrimary"
+                android:padding="12dp" />
+
+            <!-- Social Media Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="30dp"
                 app:cardCornerRadius="10dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="15dp">
-
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -346,38 +356,32 @@
                             android:layout_alignParentStart="true"
                             android:textStyle="bold"/>
                     </RelativeLayout>
-
                     <GridLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:useDefaultMargins="true"
                         android:rowCount="1"
                         android:columnCount="3">
-
                         <com.airbnb.lottie.LottieAnimationView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             app:lottie_loop="true"
                             app:lottie_autoPlay="true"
                             app:lottie_rawRes="@raw/twitter"/>
-
                         <com.airbnb.lottie.LottieAnimationView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             app:lottie_loop="true"
                             app:lottie_autoPlay="true"
                             app:lottie_rawRes="@raw/linkedin"/>
-
                         <com.airbnb.lottie.LottieAnimationView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             app:lottie_loop="true"
                             app:lottie_autoPlay="true"
                             app:lottie_rawRes="@raw/whatsapp"/>
-
                     </GridLayout>
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Sign Out Button -->
@@ -386,7 +390,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/sign_out"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="?attr/colorPrimary"
                 android:padding="12dp" />
@@ -395,4 +399,3 @@
     </ScrollView>
 
 </LinearLayout>
-
