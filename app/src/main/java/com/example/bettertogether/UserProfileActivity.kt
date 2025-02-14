@@ -42,12 +42,12 @@ class UserProfileActivity : BaseActivity() {
 
         roomsSlider = findViewById(R.id.rooms_slider)
         roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        roomsSliderAdapter = AdapterEvents(roomsList) { room -> openRoom(room["id"] as String) }
+        roomsSliderAdapter = AdapterEvents(roomsList) { room -> openRoom(room.id) }
         roomsSlider.adapter = roomsSliderAdapter
 
         eventsSlider = findViewById(R.id.events_slider)
         eventsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        eventsSliderAdapter = AdapterEvents(eventsList) { event -> openRoom(event["id"] as String) }
+        eventsSliderAdapter = AdapterEvents(eventsList) { event -> openRoom(event.id) }
         eventsSlider.adapter = eventsSliderAdapter
 
         loadUserProfile()

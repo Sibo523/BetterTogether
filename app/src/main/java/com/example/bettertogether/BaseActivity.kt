@@ -31,28 +31,33 @@ abstract class BaseActivity : AppCompatActivity() {
         if (bottomNav == null) return
 
         val currentActivity = this::class.java
-        bottomNav.selectedItemId = when (currentActivity) {
+        val selectedItemId = when (currentActivity) {
             HomeActivity::class.java -> R.id.nav_home
             ExplorerActivity::class.java -> R.id.nav_explorer
             NewRoomActivity::class.java -> R.id.nav_add
             RatingActivity::class.java -> R.id.nav_star
             ProfileActivity::class.java -> R.id.nav_profile
-            else -> R.id.nav_home
+            else -> 0
         }
-
+        if (selectedItemId != 0) { bottomNav.selectedItemId = selectedItemId }
+        else {
+            bottomNav.menu.setGroupCheckable(0, true, false)
+            for (i in 0 until bottomNav.menu.size()) {
+                bottomNav.menu.getItem(i).isChecked = false
+            }
+        }
         bottomNav.setOnItemSelectedListener { item ->
-            if(bottomNav.selectedItemId == item.itemId){ return@setOnItemSelectedListener false }
             when (item.itemId) {
                 R.id.nav_home -> navigateTo(HomeActivity::class.java)
                 R.id.nav_explorer -> navigateTo(ExplorerActivity::class.java)
                 R.id.nav_add -> navigateTo(NewRoomActivity::class.java)
                 R.id.nav_star -> navigateTo(RatingActivity::class.java)
                 R.id.nav_profile -> navigateTo(ProfileActivity::class.java)
+                else -> return@setOnItemSelectedListener false
             }
             true
         }
     }
-
 
     protected fun navigateToLogin(){
         val intent = Intent(this, LoginActivity::class.java).apply {
@@ -72,6 +77,7 @@ abstract class BaseActivity : AppCompatActivity() {
         val intent = Intent(this, RoomActivity::class.java)
         intent.putExtra("roomId", roomId)
         startActivity(intent)
+        finish()
     }
     protected fun openUser(userId: String) {
         val intent = Intent(this, UserProfileActivity::class.java)
@@ -221,7 +227,7 @@ abstract class BaseActivity : AppCompatActivity() {
         return sentRequests
     }
 
-    protected fun showPopularPublicRooms(list:MutableList<Map<String,Any>>, sliderAdapter:AdapterPopularRooms){
+    protected fun showPopularPublicRooms(list: MutableList<DocumentSnapshot>, sliderAdapter: AdapterEvents) {
         db.collection("rooms")
             .whereEqualTo("isEvent", false)
             .whereEqualTo("isPublic", true)
@@ -229,22 +235,17 @@ abstract class BaseActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 list.clear()
-                list.addAll(querySnapshot.documents.map { document ->
-                    val roomsParticipants = getActiveParticipants(document)
-                    val participantsCount = roomsParticipants.size
-                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
-
-                    mapOf(
-                        "id" to document.id,
-                        "name" to (document.getString("name") ?: "Unnamed Room"),
-                        "participantsCount" to participantsCount,
-                        "maxParticipants" to maxParticipants,
-                        "participants" to roomsParticipants
-                    )
-                }.sortedByDescending { it["participantsCount"] as? Int ?: 0 })
+                list.addAll(
+                    querySnapshot.documents.sortedByDescending {
+                        val participants = getActiveParticipants(it)
+                        participants.size
+                    }
+                )
                 sliderAdapter.notifyDataSetChanged()
             }
-            .addOnFailureListener { exception -> toast("Error fetching rooms: ${exception.message}") }
+            .addOnFailureListener { exception ->
+                toast("Error fetching rooms: ${exception.message}")
+            }
     }
     protected fun loadUserRooms(userId:String, docList:MutableList<DocumentSnapshot>, roomsAdapter:AdapterEvents){
         db.collection("users").document(userId)

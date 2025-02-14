@@ -14,11 +14,12 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.firebase.firestore.DocumentSnapshot
 
 class HomeActivity : BaseActivity() {
     private lateinit var roomsSlider: RecyclerView
-    private lateinit var roomsSliderAdapter: AdapterPopularRooms
-    private val roomsList = mutableListOf<Map<String, Any>>()
+    private lateinit var roomsSliderAdapter: AdapterEvents
+    private val roomsList = mutableListOf<DocumentSnapshot>()
 
     private lateinit var imgViaURL: ImageView
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -46,7 +47,7 @@ class HomeActivity : BaseActivity() {
         // Rooms Slider
         roomsSlider = findViewById(R.id.rooms_slider)
         roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        roomsSliderAdapter = AdapterPopularRooms(roomsList){ roomId -> openRoom(roomId) }
+        roomsSliderAdapter = AdapterEvents(roomsList){ room -> openRoom(room.id) }
         roomsSlider.adapter = roomsSliderAdapter
         showPopularPublicRooms(roomsList,roomsSliderAdapter)
 

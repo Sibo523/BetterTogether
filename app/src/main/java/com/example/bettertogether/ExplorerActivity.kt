@@ -90,7 +90,6 @@ class ExplorerActivity : BaseActivity() {
             }
         })
     }
-
     private fun activateTabUsers() {
         isUsersTabActive = true
         tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
@@ -102,7 +101,6 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadAllUsers()
     }
-
     private fun activateTabRooms() {
         isUsersTabActive = false
         tabRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -114,7 +112,6 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = roomsAdapter
         loadAllRooms()
     }
-
     private fun loadAllRooms() {
         db.collection("rooms")
             .whereEqualTo("isActive", true)
@@ -130,7 +127,6 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
-
     private fun loadAllUsers() {
         db.collection("users")
             .get()
@@ -145,7 +141,6 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching users: ${exception.message}")
             }
     }
-
     private fun filterDocs(query: String?) {
         val searchQuery = query?.trim() ?: ""
         filteredDocList.clear()
@@ -181,7 +176,6 @@ class ExplorerActivity : BaseActivity() {
         tabMyRooms.setOnClickListener { activateTabMyRooms() }
         tabMyFriends.setOnClickListener { activateTabMyFriends() }
     }
-
     private fun activateTabMyRooms() {
         isUsersTabActive = false
         tabMyRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -193,7 +187,6 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = yourRoomsAdapter
         loadMyRooms(docList, yourRoomsAdapter)
     }
-
     private fun activateTabMyFriends() {
         isUsersTabActive = true
         tabMyFriends.setTextColor(resources.getColor(android.R.color.white, null))
@@ -205,7 +198,6 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadMyFriends(docList, usersAdapter)
     }
-
     protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
         val user = auth.currentUser
         if (user == null) {
