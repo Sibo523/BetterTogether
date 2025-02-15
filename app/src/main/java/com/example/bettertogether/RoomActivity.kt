@@ -241,24 +241,34 @@ class RoomActivity : BaseActivity() {
                     val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
                     participantsCountTextView.text = "$numParticipants/$maxParticipants"
 
+                    var isRoomCreator = false
+                    var hasAlreadyBet = false
+                    var isRoomOwner = false
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
                         val userId = currentUser.uid
                         val userParticipant = roomsParticipants[userId]
-                        val roomOwnerId = document.getString("createdBy") ?: "None"
-                        val isRoomOwner : Boolean = roomOwnerId == userId
-                        if(isRoomOwner){
-                            closeBetButton.visibility = View.VISIBLE
-                            closeBetButton.setOnClickListener{ showCloseBet() }
-                        }
-                        val hasAlreadyBet = userParticipant?.get("isBetting") as? Boolean ?: false
-                        if(hasAlreadyBet){ betNowButton.visibility = View.GONE }
-                        else{ betNowButton.setOnClickListener{ showBetOptions() } }
+                        val roomCreatorId = document.getString("createdBy") ?: "None"
+                        isRoomCreator = roomCreatorId == userId
+                        hasAlreadyBet = userParticipant?.get("isBetting") as? Boolean ?: false
+                        val userRole = roomsParticipants[userId]?.get("role") as? String ?: "participant"
+                        isRoomOwner = userRole == "owner"
                     }
+                    if(isRoomCreator){
+                        closeBetButton.visibility = View.VISIBLE
+                        closeBetButton.setOnClickListener{ showCloseBet() }
+                    }
+                    if(hasAlreadyBet){ betNowButton.visibility = View.GONE }
+                    else{ betNowButton.setOnClickListener{ showBetOptions() } }
 
                     val participantsViewPager = findViewById<ViewPager2>(R.id.participantsViewPager)
                     val dotsIndicator = findViewById<DotsIndicator>(R.id.participantsDotsIndicator)
-                    val adapter = AdapterParticipantsPager(roomsParticipants.values.toList())
+                    val adapter = AdapterParticipantsPager(
+                        roomsParticipants,
+                        isRoomOwner,
+                        { clickedUserId -> openUser(clickedUserId) },
+                        { targetUserId, newRole -> changeUserRole(targetUserId, newRole) }
+                    )
                     participantsViewPager.adapter = adapter
                     dotsIndicator.attachTo(participantsViewPager)
 
@@ -499,6 +509,19 @@ class RoomActivity : BaseActivity() {
             }
     }
 
+    private fun changeUserRole(userId: String, newRole: String) {
+        val roomRef = db.collection("rooms").document(roomId)
+        val participantField = "participants.$userId.role"
+
+        roomRef.update(participantField, newRole)
+            .addOnSuccessListener {
+                toast("User role updated to $newRole")
+                showRoomDetails()
+            }
+            .addOnFailureListener { e ->
+                toast("Failed to update role: ${e.message}")
+            }
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.room_menu, menu)
         val leaveRoomItem = menu.findItem(R.id.action_leave_room)
@@ -558,19 +581,28 @@ class RoomActivity : BaseActivity() {
     }
 }
 
-class AdapterParticipantsPager(private val participants: List<Map<String, Any>>) :
+class AdapterParticipantsPager(
+    private val participants: Map<String, Map<String, Any>>,
+    private val isRoomOwner: Boolean, // האם המשתמש הנוכחי הוא בעל החדר
+    private val onUserClick: (String) -> Unit, // מעבר לעמוד משתמש
+    private val onRoleChange: (String, String) -> Unit
+) :
     RecyclerView.Adapter<AdapterParticipantsPager.ParticipantViewHolder>() {
     class ParticipantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.participantName)
         val roleTextView: TextView = itemView.findViewById(R.id.participantRole)
         val profileImageView: ImageView = itemView.findViewById(R.id.participantImage)
+        val changeRoleButton: Button = itemView.findViewById(R.id.changeRoleButton)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_participant, parent, false)
         return ParticipantViewHolder(view)
     }
     override fun onBindViewHolder(holder: ParticipantViewHolder, position: Int) {
-        val participant = participants[position]
+        val entry = participants.entries.elementAt(position)
+        val userId = entry.key
+        val participant = entry.value
+
         holder.nameTextView.text = participant["name"] as? String ?: "Unknown"
         holder.roleTextView.text = participant["role"] as? String ?: "No Role"
         var imageUrl  = participant["photoUrl"]
@@ -579,8 +611,28 @@ class AdapterParticipantsPager(private val participants: List<Map<String, Any>>)
             .placeholder(R.drawable.ic_profile)
             .error(R.drawable.ic_profile)
             .into(holder.profileImageView)
+
+        holder.itemView.setOnClickListener { onUserClick(userId) }
+        if (isRoomOwner) {
+            holder.changeRoleButton.visibility = View.VISIBLE
+            holder.changeRoleButton.setOnClickListener {
+                showRoleChangeDialog(holder.itemView.context, userId, onRoleChange)
+            }
+        }
+        else { holder.changeRoleButton.visibility = View.GONE }
     }
     override fun getItemCount(): Int = participants.size
+    private fun showRoleChangeDialog(context: Context, userId: String, onRoleChange: (String, String) -> Unit) {
+        val roles = arrayOf("participant", "moderator", "owner")
+        AlertDialog.Builder(context)
+            .setTitle("Change Role")
+            .setItems(roles) { _, which ->
+                val selectedRole = roles[which]
+                onRoleChange(userId, selectedRole)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
 }
 
 data class Message(

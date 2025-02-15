@@ -5,15 +5,16 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Left column: name & rating -->
+    <!-- Left column: name & role -->
     <LinearLayout
+        android:id="@+id/participantInfoContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/participantImage"
+        app:layout_constraintEnd_toStartOf="@id/changeRoleButton"
         android:layout_marginEnd="8dp">
 
         <TextView
@@ -34,6 +35,19 @@
             android:textSize="14sp"
             android:textColor="#8B97A2" />
     </LinearLayout>
+
+    <!-- Change Role Button -->
+    <Button
+        android:id="@+id/changeRoleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Role"
+        android:padding="8dp"
+        app:layout_constraintStart_toEndOf="@id/participantInfoContainer"
+        app:layout_constraintEnd_toStartOf="@id/participantImage"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="8dp"/>
 
     <!-- Right column: user photo -->
     <ImageView
