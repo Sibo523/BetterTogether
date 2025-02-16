@@ -74,6 +74,8 @@ dependencies {
 
     // Glide for image loading
     implementation(libs.glide.v4160)
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.core)
     annotationProcessor(libs.compiler.v4160)
 
     // Testing dependencies
@@ -88,6 +90,7 @@ dependencies {
     androidTestImplementation ("androidx.test:runner:1.5.2")
     androidTestImplementation ("androidx.test:rules:1.5.0")
     androidTestImplementation ("androidx.test.espresso:espresso-intents:3.5.1")
+    //androidTestImplementation("org.robolectric:robolectric:4.9")
     // Imgur for uploading an image
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")

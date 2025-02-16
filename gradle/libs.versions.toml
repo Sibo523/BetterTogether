@@ -42,6 +42,8 @@ uiGraphics = "1.7.6"
 uiTestManifest = "1.7.6"
 uiTooling = "1.7.6"
 uiToolingPreview = "1.7.6"
+junitKtx = "1.2.1"
+core = "1.47.0"
 
 [libraries]
 androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
@@ -98,6 +100,8 @@ ui-graphics = { module = "androidx.compose.ui:ui-graphics", version.ref = "uiGra
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestManifest" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiTooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
+core = { group = "com.google.ar", name = "core", version.ref = "core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
