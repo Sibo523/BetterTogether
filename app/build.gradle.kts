@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.core)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.espresso.contrib)
     annotationProcessor(libs.compiler.v4160)
 
     // Testing dependencies
@@ -113,4 +114,9 @@ dependencies {
 repositories {
     google()
     mavenCentral()
+}
+
+configurations.all {
+    // Exclude protobuf-lite from all dependencies to avoid duplicate classes.
+    exclude("com.google.protobuf","protobuf-lite")
 }

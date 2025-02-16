@@ -1,5 +1,18 @@
-package com.example.bettertogether;
+/**
+ *
+ * UI Test: Verifying visibilities of the code input
+ *
+ */
+/**
+ *
+ * Explanation:
+ *      NewRoomActivityTest.java launches the activity and verifies that the code input is initially visible.
+ *      When the public checkbox is clicked, it then confirms that the code input is hidden.
+ *
+ */
 
+
+package com.example.bettertogether;
 import static androidx.test.espresso.Espresso.onView;
 
 import androidx.test.core.app.ActivityScenario;
