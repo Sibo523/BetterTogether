@@ -40,6 +40,8 @@ class RoomActivity : BaseActivity() {
     private lateinit var joinButton: Button                    // -----  both  -----
     private lateinit var codeInput: EditText                   // both
 
+    private var userRole: String = "participant"
+    private var userStatus: String = "client"
     private var isParticipant: Boolean = false
     private var roomId: String = "null"
 
@@ -76,26 +78,33 @@ class RoomActivity : BaseActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val isActive = document.getBoolean("isActive") == true
-                    if(!isActive){
+                    if (!isActive) {
                         toast("Room not active")
-                        finish()
+                        navigateTo(HomeActivity::class.java)
                     }
 
                     val isPublic = document.getBoolean("isPublic") == true
                     val roomsParticipants = getActiveParticipants(document)
 
                     val currentUser = auth.currentUser
-                    isParticipant = currentUser != null && roomsParticipants[currentUser.uid]?.get("isActive") == true
+                    if (currentUser != null) {
+                        isParticipant = roomsParticipants[currentUser.uid]?.get("isActive") == true
+                        userRole = roomsParticipants [currentUser.uid]?.get("role").toString()
+
+                        getUserStatus(currentUser.uid) { status -> if(status != null){ userStatus = status } }
+                    }
 
                     invalidateOptionsMenu()
                     if (!isParticipant) {
                         if(isPublic){ showJoinButton(roomId) }
                         else{ showCodeInput(roomId) }
                     }
-
-                    if (auth.currentUser == null) {
-                        joinSendsToLogin()
+                    if(userRole == "banned" || userStatus == "banned"){
+                        toast("You are banned!")
+                        navigateTo(HomeActivity::class.java)
                     }
+
+                    if (auth.currentUser == null) { joinSendsToLogin() }
                 } else {
                     toast("Room not found")
                     finish()
@@ -455,12 +464,15 @@ class RoomActivity : BaseActivity() {
         messageInput = view.findViewById(R.id.messageInput)
         sendButton = view.findViewById(R.id.sendButton)
 
-        sendButton.setOnClickListener {
-            val messageText = messageInput.text.toString()
-            if (messageText.isNotBlank()) {
-                sendMessage(messageText)
-            } else {
-                toast("Message cannot be empty.")
+        if(userRole == "muted participant" || userStatus == "muted client"){ sendButton.text = "Muted" }
+        else {
+            sendButton.setOnClickListener {
+                val messageText = messageInput.text.toString()
+                if (messageText.isNotBlank()) {
+                    sendMessage(messageText)
+                } else {
+                    toast("Message cannot be empty.")
+                }
             }
         }
         getRoom()
@@ -583,8 +595,8 @@ class RoomActivity : BaseActivity() {
 
 class AdapterParticipantsPager(
     private val participants: Map<String, Map<String, Any>>,
-    private val isRoomOwner: Boolean, // האם המשתמש הנוכחי הוא בעל החדר
-    private val onUserClick: (String) -> Unit, // מעבר לעמוד משתמש
+    private val isRoomOwner: Boolean,
+    private val onUserClick: (String) -> Unit,
     private val onRoleChange: (String, String) -> Unit
 ) :
     RecyclerView.Adapter<AdapterParticipantsPager.ParticipantViewHolder>() {
@@ -623,7 +635,7 @@ class AdapterParticipantsPager(
     }
     override fun getItemCount(): Int = participants.size
     private fun showRoleChangeDialog(context: Context, userId: String, onRoleChange: (String, String) -> Unit) {
-        val roles = arrayOf("participant", "moderator", "owner")
+        val roles = arrayOf("participant", "warned participant", "muted participant", "banned", "owner")
         AlertDialog.Builder(context)
             .setTitle("Change Role")
             .setItems(roles) { _, which ->

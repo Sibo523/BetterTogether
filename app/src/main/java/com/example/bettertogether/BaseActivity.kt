@@ -11,7 +11,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.QuerySnapshot
 
 abstract class BaseActivity : AppCompatActivity() {
     protected lateinit var auth: FirebaseAuth
@@ -225,6 +224,19 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun getUserActiveSentRequests(userDoc: DocumentSnapshot): Map<String, Any> {
         val sentRequests = userDoc.get("sentRequests") as? Map<String, Any> ?: emptyMap()
         return sentRequests
+    }
+    protected fun getUserStatus(userId: String, callback: (String?) -> Unit) {
+        val userRef = db.collection("users").document(userId)
+
+        userRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val status = document.getString("role") ?: "Unknown"
+                    callback(status)
+                }
+                else { callback(null) }
+            }
+            .addOnFailureListener { callback(null) }
     }
 
     protected fun showPopularPublicRooms(list: MutableList<DocumentSnapshot>, sliderAdapter: AdapterEvents) {

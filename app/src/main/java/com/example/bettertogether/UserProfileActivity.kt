@@ -1,9 +1,11 @@
 package com.example.bettertogether
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FieldValue
@@ -16,6 +18,7 @@ class UserProfileActivity : BaseActivity() {
     private lateinit var userPointsTextView: TextView
     private lateinit var friendStatusTextView: TextView
     private lateinit var actionButton: Button
+    private lateinit var changeStatusButton: Button
 
     private lateinit var roomsSlider: RecyclerView
     private lateinit var roomsSliderAdapter: AdapterEvents
@@ -36,6 +39,8 @@ class UserProfileActivity : BaseActivity() {
         userPointsTextView = findViewById(R.id.userPointsTextView)
         friendStatusTextView = findViewById(R.id.friendStatusTextView)
         actionButton = findViewById(R.id.actionButton)
+        changeStatusButton = findViewById(R.id.changeStatusButton)
+        changeStatusButton.setOnClickListener { showStatusChangeDialog() }
 
         userId = intent.getStringExtra("userId") ?: return finish()
         currentUserId = auth.currentUser?.uid ?: return finish()
@@ -220,4 +225,48 @@ class UserProfileActivity : BaseActivity() {
             toast("Error deactivating friend: ${e.message}")
         }
     }
+
+    private fun showStatusChangeDialog() {
+        val roles = arrayOf("client", "warned client", "muted client", "banned", "owner")
+        AlertDialog.Builder(this)
+            .setTitle("Change Status")
+            .setItems(roles) { _, which ->
+                val selectedRole = roles[which]
+                changeUserStatus(selectedRole)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    private fun changeUserStatus(newRole: String) {
+        val userRef = db.collection("users").document(userId)
+
+        userRef.update("role", newRole)
+            .addOnSuccessListener {
+                toast("User role updated to $newRole in users")
+                if (newRole == "banned") {
+                    removeUserFromAllRooms(userId)
+                }
+            }
+            .addOnFailureListener { e -> toast("Failed to update role in users: ${e.message}") }
+    }
+    private fun removeUserFromAllRooms(userId: String) {
+        db.collection("rooms").whereEqualTo("participants.$userId.isActive", true)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot.documents) {
+                    val roomId = document.id
+                    removeUserFromRoom(roomId, userId) { success ->
+                        if (success) {
+                            toast("User removed from room $roomId")
+                        } else {
+                            toast("Failed to remove user from room $roomId")
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                toast("Error fetching user's rooms: ${e.message}")
+            }
+    }
+
 }
