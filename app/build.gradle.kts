@@ -2,20 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    // Add this line for Firebase:
+    // Firebase and KAPT plugins:
     id("com.google.gms.google-services")
     id("kotlin-kapt")
-
 }
 
 android {
     namespace = "com.example.bettertogether"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.bettertogether"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -76,6 +75,7 @@ dependencies {
     implementation(libs.glide.v4160)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.core)
+    implementation(libs.androidx.work.runtime.ktx)
     annotationProcessor(libs.compiler.v4160)
 
     // Testing dependencies
@@ -85,27 +85,29 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
     implementation("com.airbnb.android:lottie:5.2.0")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation ("androidx.test:runner:1.5.2")
-    androidTestImplementation ("androidx.test:rules:1.5.0")
-    androidTestImplementation ("androidx.test.espresso:espresso-intents:3.5.1")
-    //androidTestImplementation("org.robolectric:robolectric:4.9")
-    // Imgur for uploading an image
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.9.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
 
-    // SearchView
-    implementation ("androidx.appcompat:appcompat:1.6.1")
+    // Retrofit & OkHttp for network requests (Imgur image upload)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
+    // SearchView dependency (AppCompat)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+
+    // Glide (again) and its annotation processor
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")
 
+    // Dots indicator for viewpager
     implementation("com.tbuonomo:dotsindicator:4.3")
-//    implementation("com.tbuonomo.andrui:viewpagerdotsindicator:4.3")
-//
-//    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    // Uncomment below if needed:
+    // implementation("com.tbuonomo.andrui:viewpagerdotsindicator:4.3")
+    // implementation("androidx.viewpager2:viewpager2:1.1.0")
 }
 
 repositories {
