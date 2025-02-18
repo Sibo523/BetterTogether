@@ -92,6 +92,9 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
 
+    //
+    implementation("com.android.volley:volley:1.2.1")
+
     // Retrofit & OkHttp for network requests (Imgur image upload)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

@@ -23,6 +23,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import android.content.Context
 
 class NewRoomActivity : BaseActivity() {
 
@@ -95,9 +99,25 @@ class NewRoomActivity : BaseActivity() {
 
         dateInput.setOnClickListener{ showDatePicker() }
 
-        submitButton.setOnClickListener{ if(validateInputs()){ submitForm() } }
+        submitButton.setOnClickListener{
+            val allTexts = listOf(roomNameText.text.toString(), descriptionInput.text.toString()) + pollOptions
+            checkBadWords(this,allTexts) { containsBadWords ->
+                if (containsBadWords) { toast("Your input contains inappropriate language.") }
+                else if(validateInputs()){ submitForm() }
+            }
+        }
     }
 
+    private fun checkBadWords(context: Context,texts: List<String>, callback: (Boolean) -> Unit) {
+        val combinedText = texts.joinToString(" ")
+        val url = "https://www.purgomalum.com/service/containsprofanity?text=${combinedText}"
+
+        val request = StringRequest(Request.Method.GET, url,
+            { response -> callback(response.toBoolean()) },
+            { error -> callback(false) }) // במקרה של שגיאה מחזירים false
+
+        Volley.newRequestQueue(context).add(request)
+    }
     private fun validateInputs(): Boolean {
         if (roomNameText.text.toString().isBlank()) {
             roomNameText.error = "Bet subject cannot be empty"
