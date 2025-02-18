@@ -16,7 +16,7 @@
     <color name="background_grey">#FF2E2E2E</color>
 
     <!-- Missing colors -->
-    <color name="background_color">#FF2E2E2E</color> <!-- Dark background -->
+    <color name="background_color">#F9FAFB</color> <!-- Dark background -->
     <color name="primaryTextColor">#FFFFFFFF</color> <!-- White for primary text -->
     <color name="secondaryTextColor">#FFB0B0B0</color> <!-- Light grey for secondary text -->
     <color name="fabColor">#FF4A90E2</color> <!-- Blue for floating action button -->
