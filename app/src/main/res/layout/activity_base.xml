@@ -3,14 +3,33 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" >
+
+    <!-- קו שחור עליון -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="@color/purple_700" />
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:background="@color/purple_500"
+        android:elevation="0dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="Better Together"
+        app:titleTextColor="@android:color/white" />
 
     <!-- FrameLayout עבור התוכן -->
     <FrameLayout
         android:id="@+id/activity_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="56dp" />
+        android:layout_marginTop="80dp"
+        android:layout_marginBottom="58dp" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -18,9 +37,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:menu="@menu/navbar"
+        android:background="@color/purple_500"
         app:itemIconSize="36dp"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/white"
-        android:background="?attr/colorPrimary" />
+        app:menu="@menu/navbar"
+        android:layout_marginBottom="24dp" />
+
+    <!-- קו שחור עליון -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_gravity="bottom"
+        android:background="@color/black" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

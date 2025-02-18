@@ -12,7 +12,7 @@
         android:name=".BetterTogetherApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label=""
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BetterTogether">
@@ -39,7 +39,6 @@
         <activity android:name=".NewRoomActivity"
             android:exported="true">
         </activity>
-
         <activity android:name=".ExplorerActivity" />
         <activity android:name=".RatingActivity" />
         <activity android:name=".RoomActivity" />
