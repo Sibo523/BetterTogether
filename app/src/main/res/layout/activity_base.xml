@@ -29,7 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="80dp"
-        android:layout_marginBottom="58dp" />
+        android:paddingBottom="80dp" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -41,14 +41,7 @@
         app:itemIconSize="36dp"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/white"
-        app:menu="@menu/navbar"
-        android:layout_marginBottom="24dp" />
+        app:menu="@menu/navbar" />
 
-    <!-- קו שחור עליון -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:layout_gravity="bottom"
-        android:background="@color/black" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
