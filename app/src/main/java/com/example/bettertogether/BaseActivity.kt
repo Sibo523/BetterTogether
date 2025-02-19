@@ -21,6 +21,8 @@ import androidx.work.*
 import java.util.concurrent.TimeUnit
 
 abstract class BaseActivity : AppCompatActivity() {
+    protected lateinit var leaveRoomItem : ImageView             // details
+
     protected lateinit var auth: FirebaseAuth
     protected lateinit var db: FirebaseFirestore
 
@@ -40,6 +42,8 @@ abstract class BaseActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
+        leaveRoomItem = findViewById(R.id.action_leave_room)
 
         setupBottomNavigation()
         requestNotificationPermissionIfNeeded()

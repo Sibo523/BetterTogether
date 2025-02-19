@@ -11,6 +11,17 @@
         android:layout_height="24dp"
         android:background="@color/purple_700" />
 
+    <ImageView
+        android:id="@+id/action_leave_room"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:padding="8dp"
+        android:layout_marginTop="24dp"
+        android:src="@drawable/ic_leave"
+        android:layout_gravity="end|top"
+        android:visibility="gone"
+        android:elevation="10dp" />
+
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"

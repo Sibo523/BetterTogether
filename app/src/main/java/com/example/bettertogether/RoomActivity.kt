@@ -96,9 +96,10 @@ class RoomActivity : BaseActivity() {
 
                     invalidateOptionsMenu()
                     if (!isParticipant) {
-                        if(isPublic){ showJoinButton(roomId) }
-                        else{ showCodeInput(roomId) }
-                    }
+                        if(isPublic){ showJoinButton() }
+                        else{ showCodeInput() }
+                    } else{ showLeaveRoom() }
+
                     if(userRole == "banned" || userStatus == "banned"){
                         toast("You are banned!")
                         navigateTo(HomeActivity::class.java)
@@ -135,7 +136,7 @@ class RoomActivity : BaseActivity() {
         getRoom()
         showRoomDetails()
     }
-    private fun showJoinButton(roomId: String) {
+    private fun showJoinButton() {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE
         codeInput.visibility = View.GONE
@@ -144,7 +145,7 @@ class RoomActivity : BaseActivity() {
             joinRoom(roomId, null)
         }
     }
-    private fun showCodeInput(roomId: String) {
+    private fun showCodeInput() {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE
         codeInput.visibility = View.VISIBLE
@@ -157,6 +158,10 @@ class RoomActivity : BaseActivity() {
                 joinRoom(roomId, enteredCode)
             }
         }
+    }
+    private fun showLeaveRoom() {
+        leaveRoomItem.visibility = View.VISIBLE
+        leaveRoomItem.setOnClickListener { showLeaveRoomDialog() }
     }
     private fun joinSendsToLogin(){
         joinButton.setOnClickListener {
@@ -545,21 +550,6 @@ class RoomActivity : BaseActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.room_menu, menu)
-        val leaveRoomItem = menu.findItem(R.id.action_leave_room)
-        leaveRoomItem?.isVisible = isParticipant
-        return true
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_leave_room -> {
-                showLeaveRoomDialog()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
     private fun showLeaveRoomDialog() {
         AlertDialog.Builder(this)
             .setTitle("Leave Room")
@@ -573,7 +563,7 @@ class RoomActivity : BaseActivity() {
         val userId = currentUser?.uid ?: return
 
         getParticipantById(userId,roomId){ participantToRemove ->
-            if (participantToRemove == null) {
+            if (participantToRemove != null) {
                 toggleUserFromRoom(roomId, userId, false) { success ->
                     if (success) {
                         toggleRoomFromUser(userId, roomId, false) { success2 ->
