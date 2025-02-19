@@ -94,7 +94,6 @@ class RoomActivity : BaseActivity() {
                         getUserStatus(currentUser.uid) { status -> if(status != null){ userStatus = status } }
                     }
 
-                    invalidateOptionsMenu()
                     if (!isParticipant) {
                         if(isPublic){ showJoinButton() }
                         else{ showCodeInput() }
@@ -211,7 +210,8 @@ class RoomActivity : BaseActivity() {
                             addRoomToUser(userId, roomId, betSubject, isPublic) { success2 ->
                                 if (success2) {
                                     toast("User added successfully")
-                                    recreate()
+                                    finish()
+                                    startActivity(intent)
                                 }
                                 else{ toast("Failed to add room from user") }
                             }

@@ -68,15 +68,12 @@ class ExplorerActivity : BaseActivity() {
         tabRooms.setOnClickListener { activateTabRooms() }
 
         val searchView = view.findViewById<SearchView>(R.id.search_view)
-        // Make sure the internal search plate is clickable over the full area.
-        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
-        searchPlate?.apply {
-            isClickable = true
-            isFocusable = true
-            setOnClickListener {
-                searchView.requestFocus()
-            }
-        }
+//        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
+//        searchPlate?.apply {
+//            isClickable = true
+//            isFocusable = true
+//            setOnClickListener{ searchView.requestFocus() }
+//        }
         searchView.isIconified = false
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {

@@ -82,8 +82,7 @@ class LoginActivity : BaseActivity() {
     }
 
     // תוצאה מחלון Google Sign-In
-    private val signInLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val data: Intent? = result.data
                 val task = GoogleSignIn.getSignedInAccountFromIntent(data)
@@ -112,7 +111,6 @@ class LoginActivity : BaseActivity() {
             }
     }
 
-
     private fun checkAndCreateUser() {
         val user = auth.currentUser
         if (user != null) {
@@ -128,24 +126,16 @@ class LoginActivity : BaseActivity() {
                         "currentPoints" to 1000,
                         "rooms" to emptyList<Map<String, Any>>(),
                         "photoUrl" to (user.photoUrl?.toString() ?: ""),
-                        "role" to "client"
+                        "role" to "client",
+                        "lastLoginDate" to "2024-02-18",
+                        "loginStreak" to 3
                     )
                     userRef.set(userData)
-                        .addOnSuccessListener {
-                            Log.d("Firestore", "User document created successfully")
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("Firestore", "Error creating user document", exception)
-                        }
-                } else {
-                    Log.d("Firestore", "User document already exists")
-                }
-            }.addOnFailureListener { exception ->
-                Log.e("Firestore", "Error checking user document", exception)
-            }
-        } else {
-            Log.w("LoginActivity", "No user authenticated, cannot check or create Firestore document")
-        }
+                        .addOnSuccessListener{ Log.d("Firestore","User document created successfully") }
+                        .addOnFailureListener{ exception -> Log.e("Firestore","Error creating user document",exception) }
+                } else{ Log.d("Firestore", "User document already exists") }
+            }.addOnFailureListener{ exception -> Log.e("Firestore","Error checking user document",exception) }
+        } else{ Log.w("LoginActivity", "No user authenticated, cannot check or create Firestore document") }
     }
 
     private fun goToMainScreen() {

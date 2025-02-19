@@ -1,6 +1,8 @@
 package com.example.bettertogether
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,11 +12,17 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.app.AlertDialog
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridLayout
+import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.DocumentSnapshot
+
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HomeActivity : BaseActivity() {
     private lateinit var roomsSlider: RecyclerView
@@ -30,6 +38,8 @@ class HomeActivity : BaseActivity() {
     private var currentRoomId: String = ""
     private lateinit var betButton: Button
 
+    private val dailyRewards = listOf(100, 250, 400, 550, 750, 1000, 1500)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -39,8 +49,8 @@ class HomeActivity : BaseActivity() {
         betButton = findViewById(R.id.bet)
 
         betButton.setOnClickListener {
-            if (currentRoomId.isNotEmpty()) { openRoom(currentRoomId) }
-            else { toast("No event selected.") }
+            if(currentRoomId.isNotEmpty()){ openRoom(currentRoomId) }
+            else{ toast("No event selected.") }
         }
         eventsForSlideshow()
 
@@ -52,6 +62,7 @@ class HomeActivity : BaseActivity() {
         showPopularPublicRooms(roomsList,roomsSliderAdapter)
 
         setupCategoryClickListeners()
+        checkDailyReward()
     }
 
     private fun eventsForSlideshow() {
@@ -110,6 +121,86 @@ class HomeActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    private fun showDailyRewardDialog(pointsEarned: Int, streak: Int) {
+        val inflater = LayoutInflater.from(this)
+        val dialogView = inflater.inflate(R.layout.daily_reward_dialog, null)
+        val rewardGrid = dialogView.findViewById<GridLayout>(R.id.rewardGrid)
+        val rewardMessage = dialogView.findViewById<TextView>(R.id.rewardMessage)
+        val okButton = dialogView.findViewById<Button>(R.id.okButton)
+
+        val dailyRewards = listOf(100, 250, 400, 550, 750, 1000, 1500)
+
+        for (i in dailyRewards.indices) {
+            val rewardText = TextView(this)
+            rewardText.text = "${dailyRewards[i]}"
+            rewardText.textSize = 14f
+            rewardText.setPadding(12, 12, 12, 12)
+            rewardText.gravity = android.view.Gravity.CENTER
+            rewardText.setTypeface(null, Typeface.BOLD)
+            rewardText.setBackgroundResource(R.drawable.reward_box)
+
+
+            rewardText.setTextColor(Color.GRAY)
+            if (i == (streak % dailyRewards.size)) {          // אם זה היום הנוכחי, הדגש אותו
+                rewardText.setTextColor(Color.WHITE)
+                rewardText.backgroundTintList = ContextCompat.getColorStateList(this, R.color.purple_500)
+            } else if(i < (streak % dailyRewards.size)){      // הפחת שקיפות לימים הקודמים
+                rewardText.alpha = 0.5f
+            }
+
+            val params = GridLayout.LayoutParams()
+            params.setMargins(8, 8, 8, 8)
+            params.width = LinearLayout.LayoutParams.WRAP_CONTENT
+            params.height = LinearLayout.LayoutParams.WRAP_CONTENT
+            rewardText.layoutParams = params
+
+            rewardGrid.addView(rewardText)
+        }
+
+        rewardMessage.text = "You received $pointsEarned points!\n See you tomorow!"
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        okButton.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+    fun checkDailyReward() {
+        val userId = auth.currentUser?.uid ?: return
+        val userRef = db.collection("users").document(userId)
+        userRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val currentPoints = document.getLong("currentPoints") ?: 0
+                val lastLoginDate = document.getString("lastLoginDate") ?: "2000-01-01"
+                val loginStreak = document.getLong("loginStreak") ?: 0
+
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                if(today == lastLoginDate){ return@addOnSuccessListener }
+                val newStreak = if(isYesterday(lastLoginDate)) loginStreak+1 else 1
+                val rewardIndex = ((newStreak-1) % dailyRewards.size).toInt()
+                val rewardPoints = dailyRewards[rewardIndex]
+                val updatedPoints = currentPoints + rewardPoints
+                userRef.update(
+                    mapOf(
+                        "currentPoints" to updatedPoints,
+                        "lastLoginDate" to today,
+                        "loginStreak" to newStreak
+                    )
+                ).addOnSuccessListener{ showDailyRewardDialog(rewardPoints,rewardIndex) }
+                 .addOnFailureListener { toast("Failed to update daily rewards.") }
+            }
+        }.addOnFailureListener { toast("Error retrieving user data.") }
+    }
+    private fun isYesterday(lastLogin: String): Boolean {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val lastLoginDate = sdf.parse(lastLogin) ?: return false
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        return sdf.format(calendar.time) == sdf.format(lastLoginDate)
     }
 }
 
