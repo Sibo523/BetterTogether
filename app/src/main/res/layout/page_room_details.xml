@@ -125,52 +125,6 @@
                 android:textColor="@color/black"
                 android:textSize="14sp" />
 
-            <!-- Amenities title -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                android:text="Amenities"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-            <!-- Horizontal scroll for amenities icons -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                android:clipToPadding="false">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Repeat for each amenity icon, e.g. -->
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="xxxxxxxxxx"
-                        android:src="@drawable/star"
-                        app:tint="#8B97A2" />
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="xxxxxxxxxxxxx"
-                        android:src="@drawable/star"
-                        app:tint="#8B97A2" />
-
-                    <!-- ... etc. for each amenity ... -->
-                </LinearLayout>
-            </HorizontalScrollView>
-
             <!-- Room Paricipants Section -->
             <LinearLayout
                 android:layout_width="match_parent"

@@ -255,12 +255,9 @@ class UserProfileActivity : BaseActivity() {
             .addOnSuccessListener { querySnapshot ->
                 for (document in querySnapshot.documents) {
                     val roomId = document.id
-                    removeUserFromRoom(roomId, userId) { success ->
-                        if (success) {
-                            toast("User removed from room $roomId")
-                        } else {
-                            toast("Failed to remove user from room $roomId")
-                        }
+                    toggleUserFromRoom(roomId, userId, false) { success ->
+                        if(success){ toast("User removed from room $roomId") }
+                        else{ toast("Failed to remove user from room $roomId") }
                     }
                 }
             }

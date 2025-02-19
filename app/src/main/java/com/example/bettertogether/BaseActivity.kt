@@ -46,52 +46,6 @@ abstract class BaseActivity : AppCompatActivity() {
         scheduleBetNotifications() // Schedule bet notifications
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_NOTIFICATION_PERMISSION
-                )
-            }
-        }
-    }
-
-    private fun scheduleBetNotifications() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        if (DEBUG_MODE) {
-            // For debug: use a one-time work request with a 1-minute delay.
-            val betNotificationWork = OneTimeWorkRequestBuilder<BetNotificationWorker>()
-                .setInitialDelay(1, TimeUnit.MINUTES)
-                .setConstraints(constraints)
-                .build()
-            WorkManager.getInstance(this).enqueueUniqueWork(
-                "BetNotificationWork",
-                ExistingWorkPolicy.REPLACE,
-                betNotificationWork
-            )
-            Log.d("BaseActivity", "Scheduled debug notification work to run in 1 minute.")
-        } else {
-            // For production: use a periodic work request with a 1-day interval.
-            val betNotificationWork = PeriodicWorkRequestBuilder<BetNotificationWorker>(1, TimeUnit.DAYS)
-                .setConstraints(constraints)
-                .build()
-            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                "BetNotificationWork",
-                ExistingPeriodicWorkPolicy.KEEP,
-                betNotificationWork
-            )
-        }
-    }
-
     protected fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         if (bottomNav == null) return
@@ -125,15 +79,6 @@ abstract class BaseActivity : AppCompatActivity() {
             true
         }
     }
-
-    protected fun navigateToLogin() {
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        finish()
-    }
-
     protected fun navigateTo(targetActivity: Class<out AppCompatActivity>) {
         if (this::class.java != targetActivity) {
             val intent = Intent(this, targetActivity)
@@ -141,18 +86,68 @@ abstract class BaseActivity : AppCompatActivity() {
             finish()
         }
     }
-
+    protected fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
+    }
     protected open fun openRoom(roomId: String) {
         val intent = Intent(this, RoomActivity::class.java)
         intent.putExtra("roomId", roomId)
         startActivity(intent)
         finish()
     }
-
     protected fun openUser(userId: String) {
         val intent = Intent(this, UserProfileActivity::class.java)
         intent.putExtra("userId", userId)
         startActivity(intent)
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_NOTIFICATION_PERMISSION
+                )
+            }
+        }
+    }
+    private fun scheduleBetNotifications() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        if (DEBUG_MODE) {
+            // For debug: use a one-time work request with a 1-minute delay.
+            val betNotificationWork = OneTimeWorkRequestBuilder<BetNotificationWorker>()
+                .setInitialDelay(1, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+            WorkManager.getInstance(this).enqueueUniqueWork(
+                "BetNotificationWork",
+                ExistingWorkPolicy.REPLACE,
+                betNotificationWork
+            )
+            Log.d("BaseActivity", "Scheduled debug notification work to run in 1 minute.")
+        } else {
+            // For production: use a periodic work request with a 1-day interval.
+            val betNotificationWork = PeriodicWorkRequestBuilder<BetNotificationWorker>(1, TimeUnit.DAYS)
+                .setConstraints(constraints)
+                .build()
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "BetNotificationWork",
+                ExistingPeriodicWorkPolicy.KEEP,
+                betNotificationWork
+            )
+        }
     }
 
     // --- Helper methods below ---
@@ -170,9 +165,7 @@ abstract class BaseActivity : AppCompatActivity() {
                 if (document != null && document.exists()) {
                     val role = document.getString("role")
                     callback(role)
-                } else {
-                    callback(null)
-                }
+                } else { callback(null) }
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Failed to check role: ${exception.message}", Toast.LENGTH_SHORT).show()
@@ -180,12 +173,11 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
 
-    protected fun addRoomToUser(userId: String, roomId: String, betSubject: String, role: String, isPublic: Boolean, callback: (Boolean) -> Unit) {
+    protected fun addRoomToUser(userId: String, roomId: String, betSubject: String, isPublic: Boolean, callback: (Boolean) -> Unit) {
         val userRoomData = hashMapOf(
             "roomId" to roomId,
             "roomName" to betSubject,
             "joinedOn" to System.currentTimeMillis(),
-            "role" to role,
             "isPublic" to isPublic,
             "isActive" to true
         )
@@ -197,37 +189,30 @@ abstract class BaseActivity : AppCompatActivity() {
                 callback(false)
             }
     }
-
-    protected fun removeRoomFromUser(userId: String, roomId: String, callback: (Boolean) -> Unit) {
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener { userDocument ->
-                if (!userDocument.exists()) {
-                    toast("User document not found.")
-                    callback(false)
-                    return@addOnSuccessListener
-                }
-                val rooms = getUserActiveRooms(userDocument)
+    protected fun toggleRoomFromUser(userId:String, roomId:String, flag:Boolean, callback:(Boolean) -> Unit) {
+        val userRef = db.collection("users").document(userId)
+        userRef.get().addOnSuccessListener { userDocument ->
+            if (!userDocument.exists()) {
+                toast("User document not found.")
+                callback(false)
+                return@addOnSuccessListener
+            }
+            val rooms = getUserActiveRooms(userDocument)
+            if (rooms.isNotEmpty()) {
                 val updatedRooms = rooms.map { room ->
-                    if (room["roomId"] == roomId) {
-                        room.toMutableMap().apply { this["isActive"] = false }
-                    } else {
-                        room
-                    }
+                    if(room["roomId"] == roomId){ room.toMutableMap().apply { this["isActive"] = flag } }
+                    else{ room }
                 }
-                db.collection("users").document(userId)
-                    .update("rooms", updatedRooms)
+                userRef.update("rooms", updatedRooms)
                     .addOnSuccessListener { callback(true) }
-                    .addOnFailureListener { exception ->
-                        toast("Error updating user data: ${exception.message}")
-                        callback(false)
-                    }
+                    .addOnFailureListener { exception -> callback(false) }
+                }
             }
             .addOnFailureListener { exception ->
                 toast("Error retrieving user data: ${exception.message}")
                 callback(false)
             }
     }
-
     protected fun deleteRoom(roomId: String) {
         db.collection("rooms").document(roomId)
             .update("isActive", false)
@@ -235,15 +220,11 @@ abstract class BaseActivity : AppCompatActivity() {
             .addOnFailureListener { exception -> toast("Error deactivating room: ${exception.message}") }
         navigateTo(HomeActivity::class.java)
     }
-
     protected fun addUserToRoom(roomId: String, userId: String, participantData: Map<String, Comparable<*>?>, callback: (Boolean) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)
         roomRef.get().addOnSuccessListener { document ->
-            val updates = if (document.contains("participants")) {
-                mapOf("participants.$userId" to participantData)
-            } else {
-                mapOf("participants" to mapOf(userId to participantData))
-            }
+            val updates = if(document.contains("participants")){ mapOf("participants.$userId" to participantData) }
+            else { mapOf("participants" to mapOf(userId to participantData)) }
 
             roomRef.update(updates)
                 .addOnSuccessListener { callback(true) }
@@ -253,8 +234,7 @@ abstract class BaseActivity : AppCompatActivity() {
                 }
         }
     }
-
-    protected fun removeUserFromRoom(roomId: String, userId: String, callback: (Boolean) -> Unit) {
+    protected fun toggleUserFromRoom(roomId:String, userId:String, flag:Boolean, callback:(Boolean) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)
         roomRef.get().addOnSuccessListener { document ->
             if (!document.exists()) {
@@ -269,14 +249,14 @@ abstract class BaseActivity : AppCompatActivity() {
                 return@addOnSuccessListener
             }
             val updatedParticipants = roomParticipants.mapValues { (id, data) ->
-                if (id == userId) {
-                    data.toMutableMap().apply { this["isActive"] = false }
-                } else {
-                    data
-                }
+                if(id == userId){ data.toMutableMap().apply { this["isActive"] = flag } }
+                else { data }
             }
             roomRef.update("participants", updatedParticipants)
-                .addOnSuccessListener { callback(true) }
+                .addOnSuccessListener {
+                    if(roomParticipants.size <= 1){ deleteRoom(roomId) }
+                    callback(true)
+                }
                 .addOnFailureListener { exception ->
                     toast("Error updating room data: ${exception.message}")
                     callback(false)
@@ -287,31 +267,46 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-    protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
-        val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
-        return roomsParticipants.filterValues { it["isActive"] == true }
-    }
+    protected fun getParticipantById(userId: String, roomId: String, callback: (Map<String, Any>?) -> Unit) {
+        val roomRef = db.collection("rooms").document(roomId)
 
+        roomRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val participants = getActiveWithBannedParticipants(document)
+                callback(participants[userId])
+            } else {
+                toast("Room not found.")
+                callback(null)
+            }
+        }.addOnFailureListener { e ->
+            toast("Failed to fetch room details: ${e.message}")
+            callback(null)
+        }
+    }
+    protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val roomsParticipants = getActiveWithBannedParticipants(roomDoc)
+        return roomsParticipants.filterValues { it["role"]!="banned" }
+    }
+    protected fun getActiveWithBannedParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        return roomsParticipants.filterValues { it["isActive"] == true}
+    }
     protected fun getUserActiveRooms(userDoc: DocumentSnapshot): List<Map<String, Any>> {
         val roomIds = userDoc.get("rooms") as? List<Map<String, Any>> ?: emptyList()
         return roomIds.filter { it["isActive"] == true }
     }
-
     protected fun getUserActiveFriends(userDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
         val friends = userDoc.get("friends") as? Map<String, Map<String, Any>> ?: emptyMap()
         return friends.filterValues { it["isActive"] == true }
     }
-
     protected fun getUserActiveReceivedRequests(userDoc: DocumentSnapshot): Map<String, Any> {
         val receivedRequests = userDoc.get("receivedRequests") as? Map<String, Any> ?: emptyMap()
         return receivedRequests
     }
-
     protected fun getUserActiveSentRequests(userDoc: DocumentSnapshot): Map<String, Any> {
         val sentRequests = userDoc.get("sentRequests") as? Map<String, Any> ?: emptyMap()
         return sentRequests
     }
-
     protected fun getUserStatus(userId: String, callback: (String?) -> Unit) {
         val userRef = db.collection("users").document(userId)
         userRef.get()
@@ -346,7 +341,6 @@ abstract class BaseActivity : AppCompatActivity() {
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
-
     protected fun loadUserRooms(userId: String, docList: MutableList<DocumentSnapshot>, roomsAdapter: AdapterEvents) {
         db.collection("users").document(userId)
             .get()
@@ -369,7 +363,6 @@ abstract class BaseActivity : AppCompatActivity() {
             }
             .addOnFailureListener { exception -> toast("Error fetching user data: ${exception.message}") }
     }
-
     protected fun loadMyRooms(docList: MutableList<DocumentSnapshot>, roomsAdapter: AdapterEvents) {
         val user = auth.currentUser
         if (user == null) {
@@ -385,7 +378,6 @@ abstract class BaseActivity : AppCompatActivity() {
         val photoUrl = user.photoUrl
         loadImageFromURL(photoUrl.toString(), imageView)
     }
-
     protected fun loadImageFromURL(imageUrl: String, imageView: ImageView) {
         if (!isDestroyed && !isFinishing) {
             Glide.with(this)
@@ -397,7 +389,6 @@ abstract class BaseActivity : AppCompatActivity() {
             Log.w("BaseActivity", "Attempted to load image for a destroyed or finishing activity")
         }
     }
-
     protected fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }

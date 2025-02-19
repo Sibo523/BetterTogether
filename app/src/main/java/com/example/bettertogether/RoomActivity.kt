@@ -89,7 +89,7 @@ class RoomActivity : BaseActivity() {
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
                         isParticipant = roomsParticipants[currentUser.uid]?.get("isActive") == true
-                        userRole = roomsParticipants [currentUser.uid]?.get("role").toString()
+                        userRole = roomsParticipants[currentUser.uid]?.get("role").toString()
 
                         getUserStatus(currentUser.uid) { status -> if(status != null){ userStatus = status } }
                     }
@@ -203,7 +203,7 @@ class RoomActivity : BaseActivity() {
                     addUserToRoom(roomId, userId, participantData) { success ->
                         if (success) {
                             val betSubject = (document.getString("name") ?: "Unnamed Room")
-                            addRoomToUser(userId, roomId, betSubject, "participant", isPublic) { success2 ->
+                            addRoomToUser(userId, roomId, betSubject, isPublic) { success2 ->
                                 if (success2) {
                                     toast("User added successfully")
                                     recreate()
@@ -235,21 +235,7 @@ class RoomActivity : BaseActivity() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    betPoints = document.getLong("betPoints") ?: 0
-                    roomNameTextView.text = document.getString("name") ?: "N/A"
-                    roomTypeTextView.text = document.getString("betType") ?: "N/A"
-                    roomPointsTextView.text = document.getLong("betPoints")?.toString() ?: "N/A"
-                    roomDescriptionTextView.text = document.getString("description") ?: "N/A"
-                    roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
-
-                    val isPublic = document.getBoolean("isPublic") == true
-                    roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
-
-                    val roomsParticipants = getActiveParticipants(document)
-                    val numParticipants = roomsParticipants.size
-                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
-                    participantsCountTextView.text = "$numParticipants/$maxParticipants"
-
+                    var roomsParticipants = getActiveWithBannedParticipants(document)
                     var isRoomCreator = false
                     var hasAlreadyBet = false
                     var isRoomOwner = false
@@ -263,6 +249,22 @@ class RoomActivity : BaseActivity() {
                         val userRole = roomsParticipants[userId]?.get("role") as? String ?: "participant"
                         isRoomOwner = userRole == "owner"
                     }
+                    if(!isRoomOwner){ roomsParticipants = roomsParticipants.filterValues { it["role"]!="banned" } }
+
+                    betPoints = document.getLong("betPoints") ?: 0
+                    roomNameTextView.text = document.getString("name") ?: "N/A"
+                    roomTypeTextView.text = document.getString("betType") ?: "N/A"
+                    roomPointsTextView.text = document.getLong("betPoints")?.toString() ?: "N/A"
+                    roomDescriptionTextView.text = document.getString("description") ?: "N/A"
+                    roomExpirationTextView.text = document.getString("expiration") ?: "N/A"
+
+                    val isPublic = document.getBoolean("isPublic") == true
+                    roomIsPublicTextView.text = if (isPublic) "Public" else "Private"
+
+                    val numParticipants = roomsParticipants.size
+                    val maxParticipants = document.getLong("maxParticipants")?.toInt() ?: 10
+                    participantsCountTextView.text = "$numParticipants/$maxParticipants"
+
                     if(isRoomCreator){
                         closeBetButton.visibility = View.VISIBLE
                         closeBetButton.setOnClickListener{ showCloseBet() }
@@ -522,18 +524,27 @@ class RoomActivity : BaseActivity() {
     }
 
     private fun changeUserRole(userId: String, newRole: String) {
-        val roomRef = db.collection("rooms").document(roomId)
-        val participantField = "participants.$userId.role"
-
-        roomRef.update(participantField, newRole)
-            .addOnSuccessListener {
-                toast("User role updated to $newRole")
-                showRoomDetails()
-            }
-            .addOnFailureListener { e ->
-                toast("Failed to update role: ${e.message}")
-            }
+        getParticipantById(userId,roomId) { user ->
+            if (user != null) {
+                val isBetting = user["isBetting"] as? Boolean ?: false
+                val updatedUserRole = user["role"] as? String ?: ""
+                if (isBetting && newRole == "banned") {
+                    toast("Cannot ban a user who is currently betting.")
+                    return@getParticipantById
+                }
+                val roomUpdates = mutableMapOf<String, Any>("participants.$userId.role" to newRole)
+                if(newRole == "banned"){ toggleRoomFromUser(userId, roomId, false) {} }
+                else if(updatedUserRole == "banned"){ toggleRoomFromUser(userId,roomId,true){} }
+                db.collection("rooms").document(roomId).update(roomUpdates)
+                    .addOnSuccessListener {
+                        toast("User role updated to $newRole")
+                        showRoomDetails()
+                    }
+                    .addOnFailureListener { e -> toast("Failed to update role: ${e.message}") }
+            } else{ toast("User not found in the room.") }
+        }
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.room_menu, menu)
         val leaveRoomItem = menu.findItem(R.id.action_leave_room)
@@ -561,35 +572,20 @@ class RoomActivity : BaseActivity() {
         val currentUser = auth.currentUser
         val userId = currentUser?.uid ?: return
 
-        roomId?.let { roomId ->
-            // First, retrieve the current user and room data to ensure correct object removal
-            db.collection("rooms").document(roomId).get()
-                .addOnSuccessListener { document ->
-                    if (!document.exists()) {
-                        toast("Room not found.")
-                        return@addOnSuccessListener
-                    }
-                    val roomsParticipants = getActiveParticipants(document)
-                    val participantToRemove = roomsParticipants[userId]
-                    if (participantToRemove == null) {
-                        toast("User not found in participants.")
-                        return@addOnSuccessListener
-                    }
-                    removeUserFromRoom(roomId, userId){ success ->
-                        if (success) {
-                            removeRoomFromUser(userId, roomId){ success2 ->
-                                if (success2) {   // Now remove the room from the user's rooms array
-                                    if(roomsParticipants.size <= 1){ deleteRoom(roomId) } // Delete the room if no participants are left
-                                    toast("You have left the room")
-                                    navigateTo(RatingActivity::class.java)
-                                }
-                                else { toast("Failed to remove room from user") }
-                            }
-                        } else { toast("Failed to remove user from room") }
-                    }
+        getParticipantById(userId,roomId){ participantToRemove ->
+            if (participantToRemove == null) {
+                toggleUserFromRoom(roomId, userId, false) { success ->
+                    if (success) {
+                        toggleRoomFromUser(userId, roomId, false) { success2 ->
+                            if (success2) {   // Now remove the room from the user's rooms array
+                                toast("You have left the room")
+                                navigateTo(RatingActivity::class.java)
+                            } else{ toast("Failed to remove room from user") }
+                        }
+                    } else{ toast("Failed to remove user from room") }
                 }
-                .addOnFailureListener { exception -> toast("Error retrieving room data: ${exception.message}") }
-        } ?: run { toast("Room ID is missing.") }
+            } else{ toast("User not found in participants.") }
+        }
     }
 }
 

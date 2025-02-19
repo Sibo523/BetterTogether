@@ -227,7 +227,7 @@ class NewRoomActivity : BaseActivity() {
         db.collection("rooms")
             .add(roomData)
             .addOnSuccessListener { roomRef ->
-                addRoomToUser(userId,roomRef.id,betSubject,"owner",isPublic) { success ->
+                addRoomToUser(userId,roomRef.id,betSubject,isPublic) { success ->
                     if(success){
                         toast("Created room successfully")
                         openRoom(roomRef.id)

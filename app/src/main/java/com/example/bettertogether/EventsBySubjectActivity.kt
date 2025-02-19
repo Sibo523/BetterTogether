@@ -75,8 +75,7 @@ class AdapterEvents(
         val eventName = event.getString("name") ?: "Unnamed Event"
         val eventDate = event.getString("expiration") ?: "No Date"
         val eventImageUrl = event.getString("url") ?: ""
-        var roomsParticipants = event.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
-        roomsParticipants = roomsParticipants.filterValues { it["isActive"] == true }
+        var roomsParticipants = getActiveParticipants(event)
         val maxParticipants = event.getLong("maxParticipants")?.toInt() ?: 10
 
         holder.eventName.text = eventName
@@ -92,4 +91,8 @@ class AdapterEvents(
         }
     }
     override fun getItemCount(): Int = events.size
+    protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        return roomsParticipants.filterValues { it["isActive"] == true && it["role"]!="banned" }
+    }
 }

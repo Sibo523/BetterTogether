@@ -297,8 +297,7 @@ class AdapterRooms(
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         val roomDocument = rooms[position]
         val roomName = roomDocument.getString("name") ?: "Unnamed Room"
-        var roomsParticipants = roomDocument.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
-        roomsParticipants = roomsParticipants.filterValues { it["isActive"] == true }
+        var roomsParticipants = getActiveParticipants(roomDocument)
         val isPublic = roomDocument.getBoolean("isPublic") ?: false
         val maxParticipants = roomDocument.getLong("maxParticipants")?.toInt() ?: 10
 
@@ -311,6 +310,10 @@ class AdapterRooms(
         }
     }
     override fun getItemCount(): Int = rooms.size
+    protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
+        val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
+        return roomsParticipants.filterValues { it["isActive"] == true && it["role"]!="banned" }
+    }
 }
 
 // Adapter for handling pages (Explorer and Rooms)
