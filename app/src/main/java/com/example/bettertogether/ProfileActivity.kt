@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,7 +34,7 @@ class ProfileActivity : BaseActivity() {
     private lateinit var profileAgeEditText: EditText
     private lateinit var profileDobEditText: EditText
     private lateinit var profileMobileEditText: EditText
-    private lateinit var profileEmailEditText: EditText
+    private lateinit var profileEmailTextView: TextView
 
     // Imgur upload request code
     private val IMGUR_REQUEST_CODE = 101
@@ -59,7 +60,7 @@ class ProfileActivity : BaseActivity() {
         profileAgeEditText = findViewById(R.id.profile_age_value)
         profileDobEditText = findViewById(R.id.profile_dob_value)
         profileMobileEditText = findViewById(R.id.profile_mobile_value)
-        profileEmailEditText = findViewById(R.id.profile_email_value)
+        profileEmailTextView = findViewById(R.id.profile_email_value)
 
         // Set click listener on image edit icon to open gallery for image selection
         editImageButton.setOnClickListener { openGallery() }
@@ -82,17 +83,14 @@ class ProfileActivity : BaseActivity() {
             loadUserProfile(otherUserId)
             // Hide data edit button if viewing another user's profile
             editDataButton.visibility = android.view.View.GONE
-        } else {
-            loadCurrentUserProfile()
         }
+        else { loadCurrentUserProfile() }
 
         // Set sign out button listener
         findViewById<Button>(R.id.sign_out_button).setOnClickListener { signOut() }
     }
 
-    /**
-     * Enables or disables editing for profile data text fields.
-     */
+    // Enables or disables editing for profile data text fields.
     private fun setDataFieldsEnabled(enabled: Boolean) {
         profileBioEditText.isEnabled = enabled
         profileUsernameEditText.isEnabled = enabled
@@ -100,12 +98,9 @@ class ProfileActivity : BaseActivity() {
         profileAgeEditText.isEnabled = enabled
         profileDobEditText.isEnabled = enabled
         profileMobileEditText.isEnabled = enabled
-        profileEmailEditText.isEnabled = enabled
     }
 
-    /**
-     * Opens the gallery for image selection.
-     */
+    // Opens the gallery for image selection.
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, IMGUR_REQUEST_CODE)
@@ -119,9 +114,7 @@ class ProfileActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Uploads the selected image to Imgur.
-     */
+    // Uploads the selected image to Imgur.
     private fun uploadImageToImgur(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -156,9 +149,7 @@ class ProfileActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Updates Firestore document with the new image URL.
-     */
+    // Updates Firestore document with the new image URL.
     private fun updateUserPhoto(photoUrl: String) {
         db.collection("users").document(userId)
             .update("photoUrl", photoUrl)
@@ -193,9 +184,7 @@ class ProfileActivity : BaseActivity() {
             }
     }
 
-    /**
-     * Loads the profile image using Glide.
-     */
+    // Loads the profile image using Glide.
     private fun loadUserPhoto(photoUrl: String) {
         Glide.with(this)
             .load(photoUrl)
@@ -204,9 +193,7 @@ class ProfileActivity : BaseActivity() {
             .into(profileImageView)
     }
 
-    /**
-     * Saves updated profile data (bio, username, gender, age, DOB, mobile) to Firestore.
-     */
+    // Saves updated profile data (bio, username, gender, age, DOB, mobile) to Firestore.
     private fun saveProfileData() {
         val newBio = profileBioEditText.text.toString()
         val newUsername = profileUsernameEditText.text.toString()
@@ -214,7 +201,6 @@ class ProfileActivity : BaseActivity() {
         val newAge = profileAgeEditText.text.toString().toLongOrNull() ?: 0
         val newDob = profileDobEditText.text.toString()
         val newMobile = profileMobileEditText.text.toString()
-        val newEmail = profileEmailEditText.text.toString()
 
         if (!isLoggedIn) {
             toast("Please log in to update your profile.")
@@ -230,7 +216,6 @@ class ProfileActivity : BaseActivity() {
                 "age", newAge,
                 "dob", newDob,
                 "mobile", newMobile,
-                "email", newEmail
             )
             .addOnSuccessListener {
                 toast("Profile data updated successfully!")
@@ -243,9 +228,7 @@ class ProfileActivity : BaseActivity() {
             }
     }
 
-    /**
-     * Loads the current user's profile from Firestore.
-     */
+    // Loads the current user's profile from Firestore.
     private fun loadCurrentUserProfile() {
         if (!isLoggedIn) {
             toast("Please log in to see your profile.")
@@ -264,7 +247,7 @@ class ProfileActivity : BaseActivity() {
                         profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
                         profileDobEditText.setText(document.getString("dob") ?: "N/A")
                         profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
-                        profileEmailEditText.setText(document.getString("email") ?: "N/A")
+                        profileEmailTextView.text = document.getString("email") ?: "N/A"
                         val photoUrl = document.getString("photoUrl") ?: ""
                         loadUserPhoto(photoUrl)
                     } else {
@@ -277,9 +260,7 @@ class ProfileActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Loads another user's profile from Firestore.
-     */
+    // Loads another user's profile from Firestore.
     private fun loadUserProfile(userId: String) {
         db.collection("users").document(userId)
             .get()
@@ -292,7 +273,7 @@ class ProfileActivity : BaseActivity() {
                     profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
                     profileDobEditText.setText(document.getString("dob") ?: "N/A")
                     profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
-                    profileEmailEditText.setText(document.getString("email") ?: "N/A")
+                    profileEmailTextView.text = document.getString("email") ?: "N/A"
                     val photoUrl = document.getString("photoUrl") ?: ""
                     loadUserPhoto(photoUrl)
                 } else {
@@ -306,17 +287,43 @@ class ProfileActivity : BaseActivity() {
             }
     }
 
-    /**
-     * Signs out the user from Firebase and Google, then navigates to the login screen.
-     */
+    // Signs out the user from Firebase and Google, then navigates to the login screen.
+    private fun logout() {
+        auth.signOut()
+        val editor = sharedPreferences.edit()
+        editor.remove("userId")
+        editor.remove("userEmail")
+        editor.remove("userName")
+        editor.apply()
+
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
     private fun signOut() {
         auth.signOut()
-        val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
-        val googleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(this, googleSignInOptions)
+        val googleSignInClient = GoogleSignIn.getClient(
+            this,
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+        )
         googleSignInClient.signOut().addOnCompleteListener {
             googleSignInClient.revokeAccess().addOnCompleteListener {
-                toast("Signed out successfully!")
-                navigateToLogin()
+
+                // 3. ניקוי נתונים מקומיים
+                val editor = sharedPreferences.edit()
+                editor.remove("userId")
+                editor.remove("userEmail")
+                editor.remove("userName")
+                editor.apply()
+
+                // 4. הודעה למשתמש
+                toast("Logged out successfully!")
+
+                // 5. מעבר למסך ההתחברות
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // מוחק את כל המסכים הקודמים
+                startActivity(intent)
+                finish()
             }
         }
     }

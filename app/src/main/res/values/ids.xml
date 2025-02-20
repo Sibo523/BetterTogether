@@ -5,4 +5,5 @@
     <item name="events_recycler_view" type="id" />
     <item name="rating_recycler_view" type="id" />
     <item name="toolbar" type="id" />
+    <item name="txtDontHaveAccount" type="id" />
 </resources>

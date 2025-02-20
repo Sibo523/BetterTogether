@@ -2,6 +2,7 @@ package com.example.bettertogether
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.FrameLayout
@@ -18,7 +19,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.work.*
-import androidx.work.ListenableWorker.Result
 import java.util.concurrent.TimeUnit
 
 abstract class BaseActivity : AppCompatActivity() {
@@ -26,6 +26,7 @@ abstract class BaseActivity : AppCompatActivity() {
 
     protected lateinit var auth: FirebaseAuth
     protected lateinit var db: FirebaseFirestore
+    protected lateinit var sharedPreferences: SharedPreferences
 
     protected lateinit var userId: String
     protected var isLoggedIn: Boolean = false
@@ -46,9 +47,10 @@ abstract class BaseActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+        sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
 
         isLoggedIn = auth.currentUser != null
-        userId = auth.currentUser?.uid ?: "null"
+        userId = auth.currentUser?.uid ?: sharedPreferences.getString("userId",null) ?: ""
         leaveRoomItem = findViewById(R.id.action_leave_room)
 
         setupBottomNavigation()
