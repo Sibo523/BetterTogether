@@ -196,13 +196,7 @@ class ExplorerActivity : BaseActivity() {
         loadMyFriends(docList, usersAdapter)
     }
     protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
-        val user = auth.currentUser
-        if (user == null) {
-            toast("Please log in to see your friends.")
-            navigateToLogin()
-            return
-        }
-        db.collection("users").document(user.uid).get()
+        db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 if (!document.exists()) {
                     toast("User not found.")

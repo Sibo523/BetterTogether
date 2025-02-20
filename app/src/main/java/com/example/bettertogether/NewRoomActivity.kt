@@ -175,9 +175,8 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun submitForm() {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            toast("User not authenticated")
+        if (!isLoggedIn) {
+            toast("Log in")
             return
         }
 
@@ -191,50 +190,50 @@ class NewRoomActivity : BaseActivity() {
         val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
         val code = codeInput.text.toString()
         val eventSubject = eventSubjectInput.text.toString()
-        val userId = currentUser.uid
-        val userName = currentUser.displayName ?: currentUser.email ?: "Anonymous"
-        val userUrl = currentUser.photoUrl
-        val url = uploadedImageUrl.toString()
-
-        val participantsMap = hashMapOf(
-            userId to hashMapOf(
-                "name" to userName,
-                "role" to "owner",
-                "photoUrl" to userUrl,
-                "isBetting" to false,
-                "joinedOn" to System.currentTimeMillis(),
-                "isActive" to true
-            )
-        )
-        val roomData = hashMapOf(
-            "isEvent" to isEvent,
-            "isPublic" to isPublic,
-            "name" to betSubject,
-            "options" to pollOptions,
-            "betPoints" to betAmount,
-            "maxParticipants" to maxParticipants,
-            "description" to description,
-            "code" to code,
-            "eventSubject" to eventSubject,
-            "expiration" to selectedDate,
-            "betType" to selectedRadio,
-            "createdOn" to System.currentTimeMillis(),
-            "createdBy" to userId,
-            "url" to url,
-            "participants" to participantsMap,
-            "isActive" to true
-        )
-        db.collection("rooms")
-            .add(roomData)
-            .addOnSuccessListener { roomRef ->
-                addRoomToUser(userId,roomRef.id,betSubject,isPublic) { success ->
-                    if(success){
-                        toast("Created room successfully")
-                        openRoom(roomRef.id)
+        getUserName(userId) { userName ->
+            getUserPhotoUrl(userId) { userUrl ->
+                val url = uploadedImageUrl.toString()
+                val participantsMap = hashMapOf(
+                    userId to hashMapOf(
+                        "name" to userName,
+                        "role" to "owner",
+                        "photoUrl" to userUrl,
+                        "isBetting" to false,
+                        "joinedOn" to System.currentTimeMillis(),
+                        "isActive" to true
+                    )
+                )
+                val roomData = hashMapOf(
+                    "isEvent" to isEvent,
+                    "isPublic" to isPublic,
+                    "name" to betSubject,
+                    "options" to pollOptions,
+                    "betPoints" to betAmount,
+                    "maxParticipants" to maxParticipants,
+                    "description" to description,
+                    "code" to code,
+                    "eventSubject" to eventSubject,
+                    "expiration" to selectedDate,
+                    "betType" to selectedRadio,
+                    "createdOn" to System.currentTimeMillis(),
+                    "createdBy" to userId,
+                    "url" to url,
+                    "participants" to participantsMap,
+                    "isActive" to true
+                )
+                db.collection("rooms")
+                    .add(roomData)
+                    .addOnSuccessListener { roomRef ->
+                        addRoomToUser(userId, roomRef.id, betSubject, isPublic) { success ->
+                            if (success) {
+                                toast("Created room successfully")
+                                openRoom(roomRef.id)
+                            }
+                        }
                     }
-                }
+                    .addOnFailureListener { toast("Error adding room") }
             }
-            .addOnFailureListener { toast("Error adding room") }
+        }
     }
 
     private fun openGallery() {

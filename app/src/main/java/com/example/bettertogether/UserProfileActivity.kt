@@ -27,8 +27,7 @@ class UserProfileActivity : BaseActivity() {
     private lateinit var eventsSliderAdapter: AdapterEvents
     private val eventsList = mutableListOf<DocumentSnapshot>()
 
-    private lateinit var userId: String
-    private lateinit var currentUserId: String
+    private lateinit var hisUserId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +41,7 @@ class UserProfileActivity : BaseActivity() {
         changeStatusButton = findViewById(R.id.changeStatusButton)
         changeStatusButton.setOnClickListener { showStatusChangeDialog() }
 
-        userId = intent.getStringExtra("userId") ?: return finish()
-        currentUserId = auth.currentUser?.uid ?: return finish()
+        hisUserId = intent.getStringExtra("userId") ?: return finish()
 
         roomsSlider = findViewById(R.id.rooms_slider)
         roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -59,7 +57,7 @@ class UserProfileActivity : BaseActivity() {
     }
 
     private fun loadUserProfile() {
-        db.collection("users").document(userId).get()
+        db.collection("users").document(hisUserId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val userName = document.getString("displayName") ?: "Unknown"
@@ -106,7 +104,7 @@ class UserProfileActivity : BaseActivity() {
     }
 
     private fun checkFriendshipStatus() {
-        val userRef = db.collection("users").document(currentUserId)
+        val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val friends = getUserActiveFriends(document)
@@ -114,17 +112,17 @@ class UserProfileActivity : BaseActivity() {
                 val sentRequests = getUserActiveSentRequests(document)
 
                 when {
-                    friends.containsKey(userId) -> {
+                    friends.containsKey(hisUserId) -> {
                         friendStatusTextView.text = "You are friends"
                         actionButton.text = "Remove Friend"
                         actionButton.setOnClickListener { removeFriend() }
                     }
-                    receivedRequests.containsKey(userId) -> {
+                    receivedRequests.containsKey(hisUserId) -> {
                         friendStatusTextView.text = "Friend request received"
                         actionButton.text = "Accept Request"
                         actionButton.setOnClickListener { acceptFriendRequest() }
                     }
-                    sentRequests.containsKey(userId) -> {
+                    sentRequests.containsKey(hisUserId) -> {
                         friendStatusTextView.text = "Friend request sent"
                         actionButton.text = "Cancel Request"
                         actionButton.isEnabled = true
@@ -141,12 +139,12 @@ class UserProfileActivity : BaseActivity() {
     }
 
     private fun sendFriendRequest() {
-        val userRef = db.collection("users").document(currentUserId)
-        val otherUserRef = db.collection("users").document(userId)
+        val userRef = db.collection("users").document(userId)
+        val otherUserRef = db.collection("users").document(hisUserId)
 
         db.runBatch { batch ->
-            batch.update(userRef, "sentRequests.$userId", true)
-            batch.update(otherUserRef, "receivedRequests.$currentUserId", true)
+            batch.update(userRef, "sentRequests.$hisUserId", true)
+            batch.update(otherUserRef, "receivedRequests.$userId", true)
         }.addOnSuccessListener {
             toast("Friend request sent!")
 
@@ -159,8 +157,8 @@ class UserProfileActivity : BaseActivity() {
         }
     }
     private fun acceptFriendRequest() {
-        val userRef = db.collection("users").document(currentUserId)
-        val otherUserRef = db.collection("users").document(userId)
+        val userRef = db.collection("users").document(userId)
+        val otherUserRef = db.collection("users").document(hisUserId)
 
         db.runTransaction { transaction ->
             val userDoc = transaction.get(userRef)
@@ -175,11 +173,11 @@ class UserProfileActivity : BaseActivity() {
                 "isActive" to true
             )
 
-            transaction.update(userRef, "friends.$userId", newUserFriend)
-            transaction.update(otherUserRef, "friends.$currentUserId", newOtherUserFriend)
+            transaction.update(userRef, "friends.$hisUserId", newUserFriend)
+            transaction.update(otherUserRef, "friends.$userId", newOtherUserFriend)
 
-            transaction.update(userRef, "receivedRequests.$userId", FieldValue.delete())
-            transaction.update(otherUserRef, "sentRequests.$currentUserId", FieldValue.delete())
+            transaction.update(userRef, "receivedRequests.$hisUserId", FieldValue.delete())
+            transaction.update(otherUserRef, "sentRequests.$userId", FieldValue.delete())
         }.addOnSuccessListener {
             toast("You are now friends!")
             checkFriendshipStatus()
@@ -188,12 +186,12 @@ class UserProfileActivity : BaseActivity() {
         }
     }
     private fun cancelFriendRequest() {
-        val userRef = db.collection("users").document(currentUserId)
-        val otherUserRef = db.collection("users").document(userId)
+        val userRef = db.collection("users").document(userId)
+        val otherUserRef = db.collection("users").document(hisUserId)
 
         db.runBatch { batch ->
-            batch.update(userRef, "sentRequests.$userId", FieldValue.delete())
-            batch.update(otherUserRef, "receivedRequests.$currentUserId", FieldValue.delete())
+            batch.update(userRef, "sentRequests.$hisUserId", FieldValue.delete())
+            batch.update(otherUserRef, "receivedRequests.$userId", FieldValue.delete())
         }.addOnSuccessListener {
             toast("Friend request canceled!")
 
@@ -206,18 +204,18 @@ class UserProfileActivity : BaseActivity() {
         }
     }
     private fun removeFriend() {
-        val userRef = db.collection("users").document(currentUserId)
-        val otherUserRef = db.collection("users").document(userId)
+        val userRef = db.collection("users").document(userId)
+        val otherUserRef = db.collection("users").document(hisUserId)
 
-        val userUpdate = mapOf("friends.$userId.isActive" to false)
-        val otherUserUpdate = mapOf("friends.$currentUserId.isActive" to false)
+        val userUpdate = mapOf("friends.$hisUserId.isActive" to false)
+        val otherUserUpdate = mapOf("friends.$userId.isActive" to false)
 
         db.runBatch { batch ->
             batch.update(userRef, userUpdate)
             batch.update(otherUserRef, otherUserUpdate)
 
-            batch.update(userRef, "sentRequests.$userId", FieldValue.delete())
-            batch.update(otherUserRef, "receivedRequests.$currentUserId", FieldValue.delete())
+            batch.update(userRef, "sentRequests.$hisUserId", FieldValue.delete())
+            batch.update(otherUserRef, "receivedRequests.$userId", FieldValue.delete())
         }.addOnSuccessListener {
             toast("Friend deactivated.")
             checkFriendshipStatus()
@@ -238,24 +236,24 @@ class UserProfileActivity : BaseActivity() {
             .show()
     }
     private fun changeUserStatus(newRole: String) {
-        val userRef = db.collection("users").document(userId)
+        val userRef = db.collection("users").document(hisUserId)
 
         userRef.update("role", newRole)
             .addOnSuccessListener {
                 toast("User role updated to $newRole in users")
                 if (newRole == "banned") {
-                    removeUserFromAllRooms(userId)
+                    removeUserFromAllRooms(hisUserId)
                 }
             }
             .addOnFailureListener { e -> toast("Failed to update role in users: ${e.message}") }
     }
-    private fun removeUserFromAllRooms(userId: String) {
-        db.collection("rooms").whereEqualTo("participants.$userId.isActive", true)
+    private fun removeUserFromAllRooms(hisUserId: String) {
+        db.collection("rooms").whereEqualTo("participants.$hisUserId.isActive", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 for (document in querySnapshot.documents) {
                     val roomId = document.id
-                    toggleUserFromRoom(roomId, userId, false) { success ->
+                    toggleUserFromRoom(roomId, hisUserId, false) { success ->
                         if(success){ toast("User removed from room $roomId") }
                         else{ toast("Failed to remove user from room $roomId") }
                     }

@@ -10,11 +10,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -27,7 +24,6 @@ class ProfileActivity : BaseActivity() {
     private lateinit var profileImageView: ImageView
     private lateinit var editImageButton: ImageView
     private lateinit var profileNameTextView: TextView
-    private lateinit var profileEmailTextView: TextView
 
     // UI components for profile data
     private lateinit var editDataButton: Button
@@ -37,6 +33,7 @@ class ProfileActivity : BaseActivity() {
     private lateinit var profileAgeEditText: EditText
     private lateinit var profileDobEditText: EditText
     private lateinit var profileMobileEditText: EditText
+    private lateinit var profileEmailEditText: EditText
 
     // Imgur upload request code
     private val IMGUR_REQUEST_CODE = 101
@@ -53,7 +50,6 @@ class ProfileActivity : BaseActivity() {
         profileImageView = findViewById(R.id.profile_image)
         editImageButton = findViewById(R.id.edit_image_button)
         profileNameTextView = findViewById(R.id.profile_name)
-        profileEmailTextView = findViewById(R.id.profile_email_value)
 
         // Initialize profile data UI components
         editDataButton = findViewById(R.id.edit_data_button)
@@ -63,6 +59,7 @@ class ProfileActivity : BaseActivity() {
         profileAgeEditText = findViewById(R.id.profile_age_value)
         profileDobEditText = findViewById(R.id.profile_dob_value)
         profileMobileEditText = findViewById(R.id.profile_mobile_value)
+        profileEmailEditText = findViewById(R.id.profile_email_value)
 
         // Set click listener on image edit icon to open gallery for image selection
         editImageButton.setOnClickListener { openGallery() }
@@ -103,6 +100,7 @@ class ProfileActivity : BaseActivity() {
         profileAgeEditText.isEnabled = enabled
         profileDobEditText.isEnabled = enabled
         profileMobileEditText.isEnabled = enabled
+        profileEmailEditText.isEnabled = enabled
     }
 
     /**
@@ -159,33 +157,20 @@ class ProfileActivity : BaseActivity() {
     }
 
     /**
-     * Updates the FirebaseAuth user profile and Firestore document with the new image URL.
+     * Updates Firestore document with the new image URL.
      */
     private fun updateUserPhoto(photoUrl: String) {
-        val user = auth.currentUser ?: return
-        val profileUpdates = UserProfileChangeRequest.Builder()
-            .setPhotoUri(Uri.parse(photoUrl))
-            .build()
-
-        user.updateProfile(profileUpdates)
+        db.collection("users").document(userId)
+            .update("photoUrl", photoUrl)
             .addOnSuccessListener {
-                db.collection("users").document(user.uid)
-                    .update("photoUrl", photoUrl)
-                    .addOnSuccessListener {
-                        toast("Profile image updated!")
-                        loadUserPhoto(photoUrl)
-                    }
-                    .addOnFailureListener { exception ->
-                        toast("Failed to update Firestore: ${exception.message}")
-                    }
+                toast("Profile image updated!")
+                loadUserPhoto(photoUrl)
             }
             .addOnFailureListener { exception ->
-                toast("Failed to update profile: ${exception.message}")
+                toast("Failed to update Firestore: ${exception.message}")
             }
     }
     private fun updateUserPhotoInRooms(photoUrl: String) {
-        val user = auth.currentUser ?: return
-        val userId = user.uid
         val roomsCollection = db.collection("rooms")
         roomsCollection.whereGreaterThan("participants.$userId.joinedOn", 0).get()
             .addOnSuccessListener { querySnapshot ->
@@ -229,22 +214,23 @@ class ProfileActivity : BaseActivity() {
         val newAge = profileAgeEditText.text.toString().toLongOrNull() ?: 0
         val newDob = profileDobEditText.text.toString()
         val newMobile = profileMobileEditText.text.toString()
+        val newEmail = profileEmailEditText.text.toString()
 
-        val user: FirebaseUser? = auth.currentUser
-        if (user == null) {
+        if (!isLoggedIn) {
             toast("Please log in to update your profile.")
             navigateToLogin()
             return
         }
 
-        db.collection("users").document(user.uid)
+        db.collection("users").document(userId)
             .update(
                 "bio", newBio,
                 "username", newUsername,
                 "gender", newGender,
                 "age", newAge,
                 "dob", newDob,
-                "mobile", newMobile
+                "mobile", newMobile,
+                "email", newEmail
             )
             .addOnSuccessListener {
                 toast("Profile data updated successfully!")
@@ -258,36 +244,37 @@ class ProfileActivity : BaseActivity() {
     }
 
     /**
-     * Loads the current user's profile from FirebaseAuth and Firestore.
+     * Loads the current user's profile from Firestore.
      */
     private fun loadCurrentUserProfile() {
-        val user: FirebaseUser? = auth.currentUser
-        if (user == null) {
+        if (!isLoggedIn) {
             toast("Please log in to see your profile.")
             navigateToLogin()
             return
         }
-        profileNameTextView.text = user.displayName ?: "N/A"
-        profileEmailTextView.text = user.email ?: "N/A"
-        db.collection("users").document(user.uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    profileBioEditText.setText(document.getString("bio") ?: "")
-                    profileUsernameEditText.setText(document.getString("username") ?: "N/A")
-                    profileGenderEditText.setText(document.getString("gender") ?: "N/A")
-                    profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
-                    profileDobEditText.setText(document.getString("dob") ?: "N/A")
-                    profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
-                    val photoUrl = document.getString("photoUrl") ?: ""
-                    loadUserPhoto(photoUrl)
-                } else {
-                    toast("No additional user data found for your profile.")
+        getUserName(userId) { userName ->
+            profileNameTextView.text = userName
+            db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        profileBioEditText.setText(document.getString("bio") ?: "")
+                        profileUsernameEditText.setText(document.getString("username") ?: "N/A")
+                        profileGenderEditText.setText(document.getString("gender") ?: "N/A")
+                        profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
+                        profileDobEditText.setText(document.getString("dob") ?: "N/A")
+                        profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
+                        profileEmailEditText.setText(document.getString("email") ?: "N/A")
+                        val photoUrl = document.getString("photoUrl") ?: ""
+                        loadUserPhoto(photoUrl)
+                    } else {
+                        toast("No additional user data found for your profile.")
+                    }
                 }
-            }
-            .addOnFailureListener { exception ->
-                toast("Failed to fetch your user data: ${exception.message}")
-            }
+                .addOnFailureListener { exception ->
+                    toast("Failed to fetch your user data: ${exception.message}")
+                }
+        }
     }
 
     /**
@@ -299,13 +286,13 @@ class ProfileActivity : BaseActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     profileNameTextView.text = document.getString("displayName") ?: "N/A"
-                    profileEmailTextView.text = document.getString("email") ?: "N/A"
                     profileBioEditText.setText(document.getString("bio") ?: "")
                     profileUsernameEditText.setText(document.getString("username") ?: "N/A")
                     profileGenderEditText.setText(document.getString("gender") ?: "N/A")
                     profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
                     profileDobEditText.setText(document.getString("dob") ?: "N/A")
                     profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
+                    profileEmailEditText.setText(document.getString("email") ?: "N/A")
                     val photoUrl = document.getString("photoUrl") ?: ""
                     loadUserPhoto(photoUrl)
                 } else {

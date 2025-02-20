@@ -170,7 +170,7 @@ class HomeActivity : BaseActivity() {
         dialog.show()
     }
     fun checkDailyReward() {
-        val userId = auth.currentUser?.uid ?: return
+        if(!isLoggedIn){ return }
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {

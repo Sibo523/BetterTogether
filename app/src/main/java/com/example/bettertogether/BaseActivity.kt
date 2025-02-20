@@ -18,6 +18,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.work.*
+import androidx.work.ListenableWorker.Result
 import java.util.concurrent.TimeUnit
 
 abstract class BaseActivity : AppCompatActivity() {
@@ -25,6 +26,9 @@ abstract class BaseActivity : AppCompatActivity() {
 
     protected lateinit var auth: FirebaseAuth
     protected lateinit var db: FirebaseFirestore
+
+    protected lateinit var userId: String
+    protected var isLoggedIn: Boolean = false
 
     companion object {
         // Set DEBUG_MODE to true for debugging (notifications will be checked every 1 minute)
@@ -43,6 +47,8 @@ abstract class BaseActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
+        isLoggedIn = auth.currentUser != null
+        userId = auth.currentUser?.uid ?: "null"
         leaveRoomItem = findViewById(R.id.action_leave_room)
 
         setupBottomNavigation()
@@ -157,12 +163,10 @@ abstract class BaseActivity : AppCompatActivity() {
     // --- Helper methods below ---
 
     protected fun checkUserRole(callback: (String?) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
+        if(!isLoggedIn){
             callback(null)
             return
         }
-        val userId = currentUser.uid
         db.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
@@ -287,6 +291,7 @@ abstract class BaseActivity : AppCompatActivity() {
             callback(null)
         }
     }
+
     protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
         val roomsParticipants = getActiveWithBannedParticipants(roomDoc)
         return roomsParticipants.filterValues { it["role"]!="banned" }
@@ -311,16 +316,28 @@ abstract class BaseActivity : AppCompatActivity() {
         val sentRequests = userDoc.get("sentRequests") as? Map<String, Any> ?: emptyMap()
         return sentRequests
     }
+
     protected fun getUserStatus(userId: String, callback: (String?) -> Unit) {
-        val userRef = db.collection("users").document(userId)
-        userRef.get()
+        db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val status = document.getString("role") ?: "Unknown"
-                    callback(status)
-                } else {
-                    callback(null)
-                }
+                if(document.exists()){ callback(document.getString("role") ?: "Unknown") }
+                else { callback(null) }
+            }
+            .addOnFailureListener { callback(null) }
+    }
+    protected fun getUserName(userId:String, callback:(String?) -> Unit) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener{ document ->
+                if(document.exists()){ callback(document.getString("displayName") ?: "Unknown") }
+                else { callback(null) }
+            }
+            .addOnFailureListener { callback(null) }
+    }
+    protected fun getUserPhotoUrl(userId:String, callback:(String?) -> Unit) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener{ document ->
+                if(document.exists()){ callback(document.getString("photoUrl") ?: "Unknown") }
+                else { callback(null) }
             }
             .addOnFailureListener { callback(null) }
     }
@@ -368,20 +385,14 @@ abstract class BaseActivity : AppCompatActivity() {
             .addOnFailureListener { exception -> toast("Error fetching user data: ${exception.message}") }
     }
     protected fun loadMyRooms(docList: MutableList<DocumentSnapshot>, roomsAdapter: AdapterEvents) {
-        val user = auth.currentUser
-        if (user == null) {
+        if (!isLoggedIn) {
             toast("Please log in to see your rooms.")
             navigateToLogin()
             return
         }
-        loadUserRooms(user.uid, docList, roomsAdapter)
+        loadUserRooms(userId, docList, roomsAdapter)
     }
 
-    protected fun loadUserPhoto(imageView: ImageView) {
-        val user = auth.currentUser ?: return
-        val photoUrl = user.photoUrl
-        loadImageFromURL(photoUrl.toString(), imageView)
-    }
     protected fun loadImageFromURL(imageUrl: String, imageView: ImageView) {
         if (!isDestroyed && !isFinishing) {
             Glide.with(this)
