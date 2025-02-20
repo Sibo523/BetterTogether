@@ -40,7 +40,16 @@ class LoginActivity : BaseActivity() {
             goToMainScreen()
             return
         }
-
+        // Set background based on the time of day
+        if (isDayTime()) {
+            updateSubtitleText("Good morning!")
+            window.decorView.setBackgroundResource(R.drawable.good_morning_img) // Daytime background
+            Log.d("LoginActivityLog", "Set daytime background")
+        } else {
+            updateSubtitleText("Good night!")
+            window.decorView.setBackgroundResource(R.drawable.good_night_img) // Nighttime background
+            Log.d("LoginActivityLog", "Set nighttime background")
+        }
         emailInput = findViewById(R.id.email_input)
         passwordInput = findViewById(R.id.password_input)
         confirmPasswordInput = findViewById(R.id.confirm_password_input)
@@ -66,6 +75,19 @@ class LoginActivity : BaseActivity() {
             loginButton.setOnClickListener { loginWithEmail() }
         }
         googleSignInButton.setOnClickListener { setupGoogleSignIn() }
+    }
+
+    private fun isDayTime(): Boolean {
+        val calendar = Calendar.getInstance()
+        val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+        Log.d("LoginActivityLog", "Current hour of day: $hourOfDay")
+        return hourOfDay in 6..18 // 6 AM to 6 PM is considered day time
+    }
+    private fun updateSubtitleText(text: String) {
+        val subtitleTextView = findViewById<TextView>(R.id.subtitleText)
+        subtitleTextView.text = text
+        subtitleTextView.setTextColor(getColor(R.color.white))
+        Log.d("LoginActivityLog", "Subtitle updated to: $text")
     }
 
     private fun setupGoogleSignIn() {

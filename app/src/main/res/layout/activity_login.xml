@@ -87,6 +87,7 @@
         app:layout_constraintTop_toBottomOf="@id/errorMessageText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white"
         android:layout_marginTop="16dp"
         android:padding="12dp"/>
 
@@ -100,6 +101,7 @@
         app:layout_constraintTop_toBottomOf="@id/email_input"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white"
         android:layout_marginTop="16dp"
         android:padding="12dp"
         android:visibility="gone" />
@@ -114,6 +116,7 @@
         app:layout_constraintTop_toBottomOf="@id/full_name_input"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white"
         android:layout_marginTop="16dp"
         android:padding="12dp"/>
 
@@ -127,6 +130,7 @@
         app:layout_constraintTop_toBottomOf="@id/password_input"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white"
         android:layout_marginTop="16dp"
         android:padding="12dp"
         android:visibility="gone" />
@@ -150,7 +154,7 @@
         android:layout_height="wrap_content"
         android:text="Already have an account? Log in"
         android:textSize="14sp"
-        android:textColor="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintTop_toBottomOf="@id/btnLogin"
@@ -164,7 +168,7 @@
         android:layout_height="wrap_content"
         android:text="Dont have an account? Sign up!"
         android:textSize="14sp"
-        android:textColor="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintTop_toBottomOf="@id/btnLogin"
