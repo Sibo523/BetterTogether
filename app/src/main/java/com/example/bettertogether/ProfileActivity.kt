@@ -46,6 +46,11 @@ class ProfileActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+        if (!isLoggedIn) {
+            toast("Please log in to update your profile.")
+            navigateToLogin()
+            return
+        }
 
         // Initialize image UI components
         profileImageView = findViewById(R.id.profile_image)
@@ -71,9 +76,8 @@ class ProfileActivity : BaseActivity() {
                 isDataEditMode = true
                 setDataFieldsEnabled(true)
                 editDataButton.text = "Save Profile Data"
-            } else {
-                saveProfileData()
             }
+            else{ saveProfileData() }
         }
 
         // Load profile information:
@@ -201,12 +205,6 @@ class ProfileActivity : BaseActivity() {
         val newAge = profileAgeEditText.text.toString().toLongOrNull() ?: 0
         val newDob = profileDobEditText.text.toString()
         val newMobile = profileMobileEditText.text.toString()
-
-        if (!isLoggedIn) {
-            toast("Please log in to update your profile.")
-            navigateToLogin()
-            return
-        }
 
         db.collection("users").document(userId)
             .update(

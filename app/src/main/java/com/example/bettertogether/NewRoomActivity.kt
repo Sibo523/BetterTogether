@@ -40,7 +40,9 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var descriptionInput: EditText
     private lateinit var codeInput: EditText
     private lateinit var eventSubjectInput: EditText
-    private lateinit var radioGroup: RadioGroup
+    private lateinit var bet_type_radio: RadioGroup
+    private lateinit var even_option: RadioButton
+    private lateinit var ratio_option: RadioButton
     private lateinit var submitButton: Button
     private lateinit var uploadButton: Button
     private lateinit var pollOptionInput: EditText
@@ -59,13 +61,15 @@ class NewRoomActivity : BaseActivity() {
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
         roomNameText = findViewById(R.id.room_name)
-        betAmountInput = findViewById(R.id.form_number_input)
+        betAmountInput = findViewById(R.id.bet_amount_number)
         maxParticipantsInput = findViewById(R.id.max_participants_input)
         dateInput = findViewById(R.id.form_date_input)
         descriptionInput = findViewById(R.id.form_description_input)
         codeInput = findViewById(R.id.form_code_input)
         eventSubjectInput = findViewById(R.id.event_subject)
-        radioGroup = findViewById(R.id.form_radio_group)
+        bet_type_radio = findViewById(R.id.bet_type_radio)
+        even_option = findViewById(R.id.event_option)
+        ratio_option = findViewById(R.id.ratio_option)
         submitButton = findViewById(R.id.submit_button)
         uploadButton = findViewById(R.id.uploadButton)
 
@@ -94,6 +98,8 @@ class NewRoomActivity : BaseActivity() {
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
             eventSubjectInput.visibility = if(isChecked) View.VISIBLE else View.GONE
         }
+        ratio_option.setOnClickListener{ betAmountInput.visibility = View.GONE }
+        even_option.setOnClickListener{ betAmountInput.visibility = View.VISIBLE }
 
         uploadButton.setOnClickListener{ openGallery() }
 
@@ -127,8 +133,8 @@ class NewRoomActivity : BaseActivity() {
             pollOptionInput.error = "Add at least 2 options"
             return false
         }
-        if (betAmountInput.text.toString().isBlank()) {
-            betAmountInput.error = "Bet number cannot be empty"
+        if (even_option.isChecked && (betAmountInput.text.toString().isBlank() || (betAmountInput.text.toString().toIntOrNull() ?: 0) < 10)) {
+            betAmountInput.error = "Bet number cannot be empty for Even bet"
             return false
         }
         if (dateInput.text.toString().isBlank()) {
@@ -147,7 +153,7 @@ class NewRoomActivity : BaseActivity() {
             codeInput.error = "Code must be between 6 and 10 characters"
             return false
         }
-        if (radioGroup.checkedRadioButtonId == -1) {
+        if (!even_option.isChecked && !ratio_option.isChecked) {
             toast("Please select a ratio")
             return false
         }
@@ -176,18 +182,19 @@ class NewRoomActivity : BaseActivity() {
 
     private fun submitForm() {
         if (!isLoggedIn) {
-            toast("Log in")
+            toast("Please log in to create a room.")
+            navigateToLogin()
             return
         }
 
         val isPublic = checkbox_public.isChecked
         val isEvent = checkbox_event.isChecked
         val betSubject = roomNameText.text.toString()
-        val betAmount = betAmountInput.text.toString().toIntOrNull() ?: 10
+        val betAmount = betAmountInput.text.toString().toIntOrNull() ?: 0
         val maxParticipants = maxParticipantsInput.text.toString().toIntOrNull() ?: 10
         val selectedDate = dateInput.text.toString()
         val description = descriptionInput.text.toString()
-        val selectedRadio = findViewById<RadioButton>(radioGroup.checkedRadioButtonId)?.text?.toString()
+        val selectedRadio = findViewById<RadioButton>(bet_type_radio.checkedRadioButtonId)?.text?.toString()
         val code = codeInput.text.toString()
         val eventSubject = eventSubjectInput.text.toString()
         getUserName(userId) { userName ->
@@ -237,6 +244,11 @@ class NewRoomActivity : BaseActivity() {
     }
 
     private fun openGallery() {
+        if (!isLoggedIn) {
+            toast("Please log in to upload an image.")
+            navigateToLogin()
+            return
+        }
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 101)
     }

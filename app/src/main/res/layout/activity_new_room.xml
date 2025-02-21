@@ -58,13 +58,34 @@
                 android:layout_height="wrap_content"
                 android:visibility="visible"/>
 
+            <!-- Radio Group for Bet Type -->
+            <RadioGroup
+                android:id="@+id/bet_type_radio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/event_option"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Even Bet" />
+
+                <RadioButton
+                    android:id="@+id/ratio_option"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ratio Bet" />
+            </RadioGroup>
+
             <!-- Bet Number -->
             <EditText
-                android:id="@+id/form_number_input"
+                android:id="@+id/bet_amount_number"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Bet Number"
-                android:inputType="number" />
+                android:inputType="number"
+                android:visibility="gone" />
 
             <!-- Expiration Date -->
             <EditText
@@ -118,26 +139,6 @@
                 android:hint="Event Subject"
                 android:inputType="text"
                 android:visibility="gone" />
-
-            <!-- Radio Group for Bet Type -->
-            <RadioGroup
-                android:id="@+id/form_radio_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/radio_option1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Even Bet" />
-
-                <RadioButton
-                    android:id="@+id/radio_option2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ratio Bet" />
-            </RadioGroup>
 
             <!-- Upload Button -->
             <Button

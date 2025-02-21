@@ -343,6 +343,22 @@ abstract class BaseActivity : AppCompatActivity() {
             }
             .addOnFailureListener { callback(null) }
     }
+    protected fun getUserCurrentPoints(userId:String, callback:(Long) -> Unit) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener{ document ->
+                if(document.exists()){ callback(document.getLong("currentPoints") ?: 0) }
+                else{ callback(0) }
+            }
+            .addOnFailureListener { callback(0) }
+    }
+    protected fun getUserBetPoints(userId:String, callback:(Long) -> Unit) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener{ document ->
+                if(document.exists()){ callback(document.getLong("betPoints") ?: 0) }
+                else{ callback(0) }
+            }
+            .addOnFailureListener { callback(0) }
+    }
 
     protected fun showPopularPublicRooms(list: MutableList<DocumentSnapshot>, sliderAdapter: AdapterEvents) {
         db.collection("rooms")
