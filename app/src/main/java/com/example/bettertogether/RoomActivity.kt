@@ -84,7 +84,7 @@ class RoomActivity : BaseActivity() {
                         try {
                             val dateFormat = SimpleDateFormat("dd/M/yyyy", Locale.getDefault())
                             val expirationDate = dateFormat.parse(it)
-                            if(expirationDate!=null && expirationDate.before(Calendar.getInstance().time)){ deleteRoom(roomId) }
+                            if(expirationDate!=null && expirationDate.before(Calendar.getInstance().time)){ betNowButton.visibility = View.GONE }
                         } catch (e: Exception) { e.printStackTrace() }
                     }
 

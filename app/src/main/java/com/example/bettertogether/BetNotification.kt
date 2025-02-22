@@ -20,17 +20,14 @@ class BetNotificationWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    private val userId: String? = workerParams.inputData.getString("uid")
 
     override suspend fun doWork(): Result {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            Log.d("BetNotificationWorker", "No current user logged in.")
+        if (userId.isNullOrEmpty()) {
+            Log.d("BetNotificationWorker", "No userId provided in inputData.")
             return Result.failure()
         }
-
-        val userId = currentUser.uid
 
         try {
             // Retrieve user document

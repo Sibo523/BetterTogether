@@ -137,11 +137,15 @@ abstract class BaseActivity : AppCompatActivity() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        val inputData = Data.Builder()
+            .putString("uid", userId)
+            .build()
+
         if (DEBUG_MODE) {
-            // For debug: use a one-time work request with a 1-minute delay.
             val betNotificationWork = OneTimeWorkRequestBuilder<BetNotificationWorker>()
                 .setInitialDelay(1, TimeUnit.MINUTES)
                 .setConstraints(constraints)
+                .setInputData(inputData)  // הוספת נתוני קלט
                 .build()
             WorkManager.getInstance(this).enqueueUniqueWork(
                 "BetNotificationWork",
@@ -150,9 +154,9 @@ abstract class BaseActivity : AppCompatActivity() {
             )
             Log.d("BaseActivity", "Scheduled debug notification work to run in 1 minute.")
         } else {
-            // For production: use a periodic work request with a 1-day interval.
             val betNotificationWork = PeriodicWorkRequestBuilder<BetNotificationWorker>(1, TimeUnit.DAYS)
                 .setConstraints(constraints)
+                .setInputData(inputData)  // הוספת נתוני קלט
                 .build()
             WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "BetNotificationWork",
@@ -161,6 +165,7 @@ abstract class BaseActivity : AppCompatActivity() {
             )
         }
     }
+
 
     // --- Helper methods below ---
 
@@ -233,7 +238,6 @@ abstract class BaseActivity : AppCompatActivity() {
                     participantsMap.keys.forEach { userId ->
                         toggleRoomFromUser(userId,roomId,false){}
                     }
-
                     batch.update(roomRef, "isActive", false)
                     batch.commit()
                         .addOnSuccessListener {
