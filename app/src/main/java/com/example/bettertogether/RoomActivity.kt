@@ -2,8 +2,8 @@ package com.example.bettertogether
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import java.text.SimpleDateFormat
+import java.util.*
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -79,6 +79,15 @@ class RoomActivity : BaseActivity() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
+                    val expirationStr = document.getString("expiration")
+                    expirationStr?.let {
+                        try {
+                            val dateFormat = SimpleDateFormat("dd/M/yyyy", Locale.getDefault())
+                            val expirationDate = dateFormat.parse(it)
+                            if(expirationDate!=null && expirationDate.before(Calendar.getInstance().time)){ deleteRoom(roomId) }
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
+
                     pollOptions = document.get("options") as? List<String> ?: emptyList()
 
                     val isActive = document.getBoolean("isActive") == true
@@ -431,7 +440,6 @@ class RoomActivity : BaseActivity() {
         val roomsParticipants = getActiveParticipants(document)
         val winners = mutableMapOf<String, Long>()
         var totalPot = 0L
-
         for ((userId, userData) in roomsParticipants) {
             val betOption = userData["betOption"] as? String ?: continue
             val betAmount = userData["betAmount"] as? Long ?: continue
@@ -440,7 +448,6 @@ class RoomActivity : BaseActivity() {
                 winners[userId] = betAmount
             }
         }
-
         val totalWinningBet = winners.values.sum()
         if (totalWinningBet > 0) {
             for ((winnerId, winnerBet) in winners) {

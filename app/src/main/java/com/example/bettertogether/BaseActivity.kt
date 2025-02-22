@@ -224,12 +224,28 @@ abstract class BaseActivity : AppCompatActivity() {
             }
     }
     protected fun deleteRoom(roomId: String) {
-        db.collection("rooms").document(roomId)
-            .update("isActive", false)
-            .addOnSuccessListener { toast("Room was deactivated.") }
-            .addOnFailureListener { exception -> toast("Error deactivating room: ${exception.message}") }
-        navigateTo(HomeActivity::class.java)
+        val roomRef = db.collection("rooms").document(roomId)
+        roomRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val participantsMap = getActiveWithBannedParticipants(document)
+                    val batch = db.batch()
+                    participantsMap.keys.forEach { userId ->
+                        toggleRoomFromUser(userId,roomId,false){}
+                    }
+
+                    batch.update(roomRef, "isActive", false)
+                    batch.commit()
+                        .addOnSuccessListener {
+                            toast("Room was deactivated.")
+                            navigateTo(HomeActivity::class.java)
+                        }
+                        .addOnFailureListener{ exception -> toast("Error updating users' rooms: ${exception.message}") }
+                } else{ toast("Room not found.") }
+            }
+            .addOnFailureListener{ exception -> toast("Error fetching room: ${exception.message}") }
     }
+
     protected fun addUserToRoom(roomId: String, userId: String, participantData: Map<String, Comparable<*>?>, callback: (Boolean) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)
         roomRef.get().addOnSuccessListener { document ->
