@@ -12,7 +12,7 @@
         android:name=".BetterTogetherApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label=""
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BetterTogether">
@@ -34,16 +34,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".HomeActivity" />
-        <activity android:name=".NewRoomActivity"
-            android:exported="true">
-        </activity>
+        <activity
+            android:name=".NewRoomActivity"
+            android:exported="true" />
         <activity android:name=".ExplorerActivity" />
         <activity android:name=".RatingActivity" />
         <activity android:name=".RoomActivity" />
         <activity android:name=".UserProfileActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".EventsBySubjectActivity" />
+
+        <!-- BroadcastReceiver for daily reward notifications -->
+        <receiver android:name=".DailyRewardReceiver" />
+
     </application>
 </manifest>

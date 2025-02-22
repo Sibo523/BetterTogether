@@ -1,28 +1,30 @@
 package com.example.bettertogether
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.app.AlertDialog
-
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.GridLayout
-import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.DocumentSnapshot
-
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 class HomeActivity : BaseActivity() {
     private lateinit var roomsSlider: RecyclerView
@@ -38,33 +40,39 @@ class HomeActivity : BaseActivity() {
     private var currentRoomId: String = ""
     private lateinit var betButton: Button
 
+    // Daily rewards for each day in the streak.
     private val dailyRewards = listOf(100, 250, 400, 550, 750, 1000, 1500)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        // Slideshow ImageView
+        // Setup the slideshow ImageView and bet button.
         imgViaURL = findViewById(R.id.imgViaURL)
         betButton = findViewById(R.id.bet)
-
         betButton.setOnClickListener {
-            if(currentRoomId.isNotEmpty()){ openRoom(currentRoomId) }
-            else{ toast("No event selected.") }
+            if (currentRoomId.isNotEmpty()) {
+                openRoom(currentRoomId)
+            } else {
+                toast("No event selected.")
+            }
         }
         eventsForSlideshow()
 
-        // Rooms Slider
+        // Rooms Slider configuration.
         roomsSlider = findViewById(R.id.rooms_slider)
         roomsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        roomsSliderAdapter = AdapterEvents(roomsList){ room -> openRoom(room.id) }
+        roomsSliderAdapter = AdapterEvents(roomsList) { room -> openRoom(room.id) }
         roomsSlider.adapter = roomsSliderAdapter
-        showPopularPublicRooms(roomsList,roomsSliderAdapter)
+        showPopularPublicRooms(roomsList, roomsSliderAdapter)
 
         setupCategoryClickListeners()
+
+        // Check if a new daily reward is available and update if necessary.
         checkDailyReward()
     }
 
+    // Fetches event rooms for the slideshow.
     private fun eventsForSlideshow() {
         db.collection("rooms")
             .whereEqualTo("isEvent", true)
@@ -81,11 +89,18 @@ class HomeActivity : BaseActivity() {
                         eventRoomsMap[url] = roomId
                     }
                 }
-                if(imageUrls.isNotEmpty()){ startSlideshow() }
-                else{ toast("No images found in events.") }
+                if (imageUrls.isNotEmpty()) {
+                    startSlideshow()
+                } else {
+                    toast("No images found in events.")
+                }
             }
-            .addOnFailureListener { exception -> toast("Failed to fetch events: ${exception.message}") }
+            .addOnFailureListener { exception ->
+                toast("Failed to fetch events: ${exception.message}")
+            }
     }
+
+    // Starts the slideshow that cycles through event images.
     private fun startSlideshow() {
         mainHandler.post(object : Runnable {
             override fun run() {
@@ -93,7 +108,6 @@ class HomeActivity : BaseActivity() {
                     val imageUrl = imageUrls[currentImageIndex]
                     loadImageFromURL(imageUrl, imgViaURL)
                     currentRoomId = eventRoomsMap[imageUrl] ?: ""
-
                     currentImageIndex = (currentImageIndex + 1) % imageUrls.size
                 }
                 mainHandler.postDelayed(this, slideshowInterval)
@@ -101,6 +115,7 @@ class HomeActivity : BaseActivity() {
         })
     }
 
+    // Sets up click listeners for the subject category rows.
     private fun setupCategoryClickListeners() {
         val categoryRows = listOf(
             findViewById<LinearLayout>(R.id.sports_row),
@@ -123,14 +138,13 @@ class HomeActivity : BaseActivity() {
         }
     }
 
+    // Displays a dialog showing the daily reward details.
     private fun showDailyRewardDialog(pointsEarned: Int, streak: Int) {
         val inflater = LayoutInflater.from(this)
         val dialogView = inflater.inflate(R.layout.daily_reward_dialog, null)
         val rewardGrid = dialogView.findViewById<GridLayout>(R.id.rewardGrid)
         val rewardMessage = dialogView.findViewById<TextView>(R.id.rewardMessage)
         val okButton = dialogView.findViewById<Button>(R.id.okButton)
-
-        val dailyRewards = listOf(100, 250, 400, 550, 750, 1000, 1500)
 
         for (i in dailyRewards.indices) {
             val rewardText = TextView(this)
@@ -140,16 +154,13 @@ class HomeActivity : BaseActivity() {
             rewardText.gravity = android.view.Gravity.CENTER
             rewardText.setTypeface(null, Typeface.BOLD)
             rewardText.setBackgroundResource(R.drawable.reward_box)
-
-
             rewardText.setTextColor(Color.GRAY)
-            if (i == (streak % dailyRewards.size)) {          // אם זה היום הנוכחי, הדגש אותו
+            if (i == (streak % dailyRewards.size)) { // Highlight today's reward.
                 rewardText.setTextColor(Color.WHITE)
                 rewardText.backgroundTintList = ContextCompat.getColorStateList(this, R.color.purple_500)
-            } else if(i < (streak % dailyRewards.size)){      // הפחת שקיפות לימים הקודמים
+            } else if (i < (streak % dailyRewards.size)) { // Dim previous days.
                 rewardText.alpha = 0.5f
             }
-
             val params = GridLayout.LayoutParams()
             params.setMargins(8, 8, 8, 8)
             params.width = LinearLayout.LayoutParams.WRAP_CONTENT
@@ -159,7 +170,7 @@ class HomeActivity : BaseActivity() {
             rewardGrid.addView(rewardText)
         }
 
-        rewardMessage.text = "You received $pointsEarned points!\n See you tomorow!"
+        rewardMessage.text = "You received $pointsEarned points!\nSee you tomorrow!"
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
@@ -169,8 +180,10 @@ class HomeActivity : BaseActivity() {
         okButton.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
+
+    // Checks if the user is eligible for a new daily reward.
     fun checkDailyReward() {
-        if(!isLoggedIn){ return }
+        if (!isLoggedIn) { return }
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
@@ -179,9 +192,14 @@ class HomeActivity : BaseActivity() {
                 val loginStreak = document.getLong("loginStreak") ?: 0
 
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                if(today == lastLoginDate){ return@addOnSuccessListener }
-                val newStreak = if(isYesterday(lastLoginDate)) loginStreak+1 else 1
-                val rewardIndex = ((newStreak-1) % dailyRewards.size).toInt()
+                if (today == lastLoginDate) {
+                    // Today's reward has already been claimed.
+                    // Schedule notifications for tomorrow.
+                    scheduleDailyRewardNotifications()
+                    return@addOnSuccessListener
+                }
+                val newStreak = if (isYesterday(lastLoginDate)) loginStreak + 1 else 1
+                val rewardIndex = ((newStreak - 1) % dailyRewards.size).toInt()
                 val rewardPoints = dailyRewards[rewardIndex]
                 val updatedPoints = currentPoints + rewardPoints
                 userRef.update(
@@ -190,11 +208,16 @@ class HomeActivity : BaseActivity() {
                         "lastLoginDate" to today,
                         "loginStreak" to newStreak
                     )
-                ).addOnSuccessListener{ showDailyRewardDialog(rewardPoints,rewardIndex) }
-                 .addOnFailureListener { toast("Failed to update daily rewards.") }
+                ).addOnSuccessListener {
+                    showDailyRewardDialog(rewardPoints, rewardIndex)
+                    // After claiming today's reward, schedule notifications for the next cycle.
+                    scheduleDailyRewardNotifications()
+                }.addOnFailureListener { toast("Failed to update daily rewards.") }
             }
         }.addOnFailureListener { toast("Error retrieving user data.") }
     }
+
+    // Checks if the given date is yesterday relative to today.
     private fun isYesterday(lastLogin: String): Boolean {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val lastLoginDate = sdf.parse(lastLogin) ?: return false
@@ -202,36 +225,39 @@ class HomeActivity : BaseActivity() {
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         return sdf.format(calendar.time) == sdf.format(lastLoginDate)
     }
-}
 
-
-class AdapterPopularRooms(
-    private val rooms: List<Map<String, Any>>,
-    private val onRoomClick: (String) -> Unit
-) : RecyclerView.Adapter<AdapterPopularRooms.RoomViewHolder>() {
-    class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val roomName: TextView = view.findViewById(R.id.room_name)
-        val participantsCount: TextView = view.findViewById(R.id.participants_count)
-    }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_popular_room, parent, false)
-        return RoomViewHolder(view)
-    }
-    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        val room = rooms[position]
-        val roomName = room["name"] as? String ?: "Unnamed Room"
-        val participantsCount = room["participantsCount"] as? Int ?: 0
-        val maxParticipants = room["maxParticipants"] as? Int ?: 10 // Replace with a dynamic value if available
-
-        holder.roomName.text = roomName
-        holder.participantsCount.text = "$participantsCount/$maxParticipants"
-
-        holder.itemView.setOnClickListener {
-            val roomId = room["id"] as String
-            onRoomClick(roomId) // Trigger the callback with the room ID
+    // Schedules notifications for the next available reward times (tomorrow at 9:00 AM and 9:00 PM).
+    private fun scheduleDailyRewardNotifications() {
+        lifecycleScope.launch {
+            scheduleAlarmForTime(9, 0, 0)  // 9:00 AM notification.
+            scheduleAlarmForTime(21, 0, 1) // 9:00 PM notification.
         }
     }
-    override fun getItemCount(): Int {
-        return rooms.size
+
+    // Helper method that sets a repeating alarm at the specified time.
+    private fun scheduleAlarmForTime(hourOfDay: Int, minute: Int, requestCode: Int) {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hourOfDay)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            // If the specified time has already passed today, schedule for tomorrow.
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+        val intent = Intent(this, DailyRewardReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
     }
 }
