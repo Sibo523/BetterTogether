@@ -2,6 +2,7 @@ package com.example.bettertogether
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -39,7 +40,15 @@ class UserProfileActivity : BaseActivity() {
         friendStatusTextView = findViewById(R.id.friendStatusTextView)
         actionButton = findViewById(R.id.actionButton)
         changeStatusButton = findViewById(R.id.changeStatusButton)
-        changeStatusButton.setOnClickListener { showStatusChangeDialog() }
+
+        if(isLoggedIn) {
+            getUserStatus(userId) { status ->
+                if (status == "owner") {
+                    changeStatusButton.visibility = View.VISIBLE
+                    changeStatusButton.setOnClickListener { showStatusChangeDialog() }
+                }
+            }
+        }
 
         hisUserId = intent.getStringExtra("userId") ?: return finish()
 
@@ -104,6 +113,10 @@ class UserProfileActivity : BaseActivity() {
     }
 
     private fun checkFriendshipStatus() {
+        if(!isLoggedIn){
+            actionButton.setOnClickListener { navigateToLogin() }
+            return
+        }
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {

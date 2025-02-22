@@ -29,7 +29,7 @@ class RatingActivity : BaseActivity() {
 
         recyclerView = findViewById(R.id.rating_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = AdapterParticipants(topUsersList)
+        adapter = AdapterParticipants(topUsersList){ document -> openUser(document.id) }
         recyclerView.adapter = adapter
 
         loadTopUsers()
@@ -53,8 +53,10 @@ class RatingActivity : BaseActivity() {
     }
 }
 
-class AdapterParticipants(private val participants: List<DocumentSnapshot>) :
-    RecyclerView.Adapter<AdapterParticipants.ParticipantViewHolder>() {
+class AdapterParticipants(
+    private val participants: List<DocumentSnapshot>,
+    private val onUserClick: (DocumentSnapshot) -> Unit
+): RecyclerView.Adapter<AdapterParticipants.ParticipantViewHolder>() {
 
     class ParticipantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.participantName)
@@ -90,7 +92,9 @@ class AdapterParticipants(private val participants: List<DocumentSnapshot>) :
             .placeholder(R.drawable.ic_profile)
             .error(R.drawable.ic_profile)
             .into(holder.profileImageView)
-
+        holder.itemView.setOnClickListener {
+            onUserClick(document)
+        }
         // Assign rank (position + 1) to the rank TextView
         holder.rankTextView.text = (position + 1).toString()
     }

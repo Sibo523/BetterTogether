@@ -62,7 +62,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Change Status"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
 
         <!-- User Rooms Section -->
         <LinearLayout

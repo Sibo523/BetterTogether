@@ -56,8 +56,8 @@ class ExplorerActivity : BaseActivity() {
     private fun initExplorerView(view: View) {
         recyclerView = view.findViewById(R.id.explorer_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        roomsAdapter = AdapterRooms(filteredDocList) { document -> openRoom(document.id) }
-        usersAdapter = AdapterUsers(filteredDocList) { document -> openUser(document.id) }
+        roomsAdapter = AdapterRooms(filteredDocList){ document -> openRoom(document.id) }
+        usersAdapter = AdapterUsers(filteredDocList){ document -> openUser(document.id) }
         recyclerView.adapter = roomsAdapter
 
         tabUsers = view.findViewById(R.id.tab_users)
