@@ -9,6 +9,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="dark_gray">#4f4f4f</color>
+    <color name="dark_green">#2E7D32</color>
+
     <!-- New vibrant colors -->
     <color name="gradient_blue">#FF4A90E2</color>
     <color name="gradient_purple">#FFA14AE2</color>
