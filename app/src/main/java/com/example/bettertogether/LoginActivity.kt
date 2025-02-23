@@ -142,7 +142,7 @@ class LoginActivity : BaseActivity() {
                     val user = auth.currentUser
                     saveUserLocally(user!!)
                     goToMainScreen()
-                } else{ toast("User not found?") }
+                } else{ toast("User not found") }
             }
     }
     private fun registerWithEmail() {

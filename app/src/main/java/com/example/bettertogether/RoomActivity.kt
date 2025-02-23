@@ -47,6 +47,7 @@ class RoomActivity : BaseActivity() {
 
     private var isPublic: Boolean = false
     private var betType: String = ""
+    private var betPoints: Long = 0
     private var pollOptions: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -263,11 +264,11 @@ class RoomActivity : BaseActivity() {
                     if(!isRoomOwner){ roomsParticipants = roomsParticipants.filterValues { it["role"]!="banned" } }
 
                     betType = document.getString("betType") ?: "N/A"
+                    betPoints = document.getLong("betPoints") ?: 0
 
                     roomNameTextView.text = document.getString("name") ?: "N/A"
                     roomTypeTextView.text = betType
-
-                    roomPointsTextView.text = document.getLong("betPoints")?.toString() ?: "0"
+                    roomPointsTextView.text = betPoints.toString()
                     if(roomPointsTextView.text=="0"){ roomPointsTextView.text = usersBetAmount.toString() }
 
                     roomDescriptionTextView.text = document.getString("description") ?: "N/A"
@@ -320,11 +321,7 @@ class RoomActivity : BaseActivity() {
         }
         builder.setPositiveButton("Confirm") { _, _ ->
             if(selectedOption != null){
-                if(betType == "Even Bet"){
-                    getUserBetPoints(userId){ betPoints ->
-                        joinBet(selectedOption!!, betPoints)
-                    }
-                }
+                if(betType == "Even Bet"){ joinBet(selectedOption!!,betPoints) }
                 else if(betType == "Ratio Bet"){ showBetAmountInput(selectedOption!!) }
             }
             else{ toast("Please select an option.") }
@@ -411,30 +408,29 @@ class RoomActivity : BaseActivity() {
             .addOnFailureListener { toast("Error fetching room details.") }
     }
     private fun evenBetResults(document: DocumentSnapshot, winningOption: String) {
-        val roomsParticipants = getActiveParticipants(document)
+        var roomsParticipants = getActiveParticipants(document)
+        roomsParticipants = roomsParticipants.filter { (_, data) -> data["isBetting"] == true }
         val winners = roomsParticipants.filter { (_, data) -> data["betOption"] == winningOption }
-        val losers = roomsParticipants.filter { (_, data) -> data["betOption"] != winningOption }
+        val losers = roomsParticipants.filter { (_, data) -> data["betOption"] != winningOption}
         if (losers.isEmpty()) {
             toast("No losers found, cannot distribute winnings.")
             return
         }
-        getUserBetPoints(userId){ betPoints ->
-            val totalPot = roomsParticipants.size * betPoints
-            val rewardPerWinner = totalPot / losers.size
-            val batch = db.batch()
-            winners.forEach { (userId, _) ->
-                val userRef = db.collection("users").document(userId)
-                batch.update(userRef, "currentPoints", FieldValue.increment(rewardPerWinner.toDouble()))
-            }
-            val roomRef = db.collection("rooms").document(roomId)
-            batch.update(roomRef,"status","closed") // מעדכן שהחדר נסגר
-            batch.commit()
-                .addOnSuccessListener {
-                    toast("Bet closed. Winners received $rewardPerWinner points.")
-                    deleteRoom(roomId) // מוחק את החדר
-                }
-                .addOnFailureListener{ toast("Failed to process bet results.") }
+        val totalPot = roomsParticipants.size * betPoints
+        val rewardPerWinner = totalPot / losers.size
+        val batch = db.batch()
+        winners.forEach { (userId, _) ->
+            val userRef = db.collection("users").document(userId)
+            batch.update(userRef, "currentPoints", FieldValue.increment(rewardPerWinner.toDouble()))
         }
+        val roomRef = db.collection("rooms").document(roomId)
+        batch.update(roomRef,"status","closed") // מעדכן שהחדר נסגר
+        batch.commit()
+            .addOnSuccessListener {
+                toast("Bet closed. Winners received $rewardPerWinner points.")
+                deleteRoom(roomId) // מוחק את החדר
+            }
+            .addOnFailureListener{ toast("Failed to process bet results.") }
     }
     private fun ratioBetResults(document: DocumentSnapshot, winningOption: String) {
         val roomsParticipants = getActiveParticipants(document)
@@ -508,18 +504,17 @@ class RoomActivity : BaseActivity() {
             }
     }
     private fun sendMessage(messageText: String) {
-        var senderName = "Unknown"
-        getUserName(userId){ name -> if(name != null){ senderName = name } }
-
-        val message = Message(sender = senderName, message = messageText)
-        db.collection("rooms").document(roomId).collection("messages")
-            .add(message)
-            .addOnSuccessListener {
-                messageInput.text.clear()
-            }
-            .addOnFailureListener {
-                toast("Error sending message.")
-            }
+        getUserName(userId) { senderName ->
+            val message = Message(sender = senderName, message = messageText)
+            db.collection("rooms").document(roomId).collection("messages")
+                .add(message)
+                .addOnSuccessListener {
+                    messageInput.text.clear()
+                }
+                .addOnFailureListener {
+                    toast("Error sending message.")
+                }
+        }
     }
 
     private fun changeUserRole(userId: String, newRole: String) {

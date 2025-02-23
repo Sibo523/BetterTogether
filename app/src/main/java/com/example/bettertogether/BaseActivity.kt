@@ -166,7 +166,6 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-
     // --- Helper methods below ---
 
     protected fun checkUserRole(callback: (String?) -> Unit) {
@@ -347,13 +346,13 @@ abstract class BaseActivity : AppCompatActivity() {
             }
             .addOnFailureListener { callback(null) }
     }
-    protected fun getUserName(userId:String, callback:(String?) -> Unit) {
+    protected fun getUserName(userId:String, callback:(String) -> Unit) {
         db.collection("users").document(userId).get()
             .addOnSuccessListener{ document ->
                 if(document.exists()){ callback(document.getString("displayName") ?: "Unknown") }
-                else { callback(null) }
+                else { callback("Unknown") }
             }
-            .addOnFailureListener { callback(null) }
+            .addOnFailureListener { callback("Unknown") }
     }
     protected fun getUserPhotoUrl(userId:String, callback:(String?) -> Unit) {
         db.collection("users").document(userId).get()
