@@ -30,9 +30,14 @@ import androidx.appcompat.app.AlertDialog
 import java.io.ByteArrayOutputStream
 import android.graphics.Bitmap
 
+/**
+ * NewRoomActivity allows a user to create a new room (or event) with various options.
+ * The activity includes options to set room details, upload an image (via camera or gallery),
+ * and add multiple poll options.
+ */
 class NewRoomActivity : BaseActivity() {
 
-    // Declare views as class-level properties
+    // UI components declared at class level
     private lateinit var checkbox_public: CheckBox
     private lateinit var checkbox_event: CheckBox
     private lateinit var roomNameText: EditText
@@ -46,20 +51,26 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var even_option: RadioButton
     private lateinit var ratio_option: RadioButton
     private lateinit var submitButton: Button
-    private lateinit var uploadButton: Button   // Single button for both options
+    private lateinit var uploadButton: Button   // Single button that provides both gallery and camera options
     private lateinit var pollOptionInput: EditText
     private lateinit var addPollOptionButton: Button
     private lateinit var pollOptionsList: RecyclerView
+    // List holding poll options and its adapter
     private val pollOptions = mutableListOf<String>()
     private lateinit var pollOptionsAdapter: AdapterPollOptions
 
+    // This variable holds the uploaded image URL; initialized with a default placeholder value.
     var uploadedImageUrl: String? = "null.png"
 
+    /**
+     * onCreate() is called when the activity is first created.
+     * It initializes all UI components, sets click listeners, and handles view visibility.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_room)
 
-        // Initialize views
+        // Initialize UI components by finding them in the layout.
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
         roomNameText = findViewById(R.id.room_name)
@@ -82,10 +93,12 @@ class NewRoomActivity : BaseActivity() {
         pollOptionsList.layoutManager = LinearLayoutManager(this)
         pollOptionsList.adapter = pollOptionsAdapter
 
+        // Add new poll option when button is clicked.
         addPollOptionButton.setOnClickListener {
             val optionText = pollOptionInput.text.toString().trim()
             if (optionText.isNotEmpty()) {
-                pollOptions.add(0, optionText)  // Add the new option at the top
+                // Add the new poll option to the top of the list.
+                pollOptions.add(0, optionText)
                 pollOptionsAdapter.notifyItemInserted(0)
                 pollOptionsList.scrollToPosition(0)
                 pollOptionInput.text.clear()
@@ -94,23 +107,30 @@ class NewRoomActivity : BaseActivity() {
             }
         }
 
+        // Check user role to determine whether to display the event checkbox.
         checkUserRole { role ->
             checkbox_event.visibility = if (role == "owner") View.VISIBLE else View.GONE
         }
+
+        // Toggle visibility for the code input based on whether the room is public.
         checkbox_public.setOnCheckedChangeListener { _, isChecked ->
             codeInput.visibility = if (isChecked) View.GONE else View.VISIBLE
         }
+        // Toggle visibility for event subject input when event checkbox is changed.
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
             eventSubjectInput.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
+        // Toggle bet amount visibility based on selected bet type.
         ratio_option.setOnClickListener { betAmountInput.visibility = View.GONE }
         even_option.setOnClickListener { betAmountInput.visibility = View.VISIBLE }
 
-        // Set the single button to show image picker options
+        // Set the upload button to display image picker options.
         uploadButton.setOnClickListener { showImagePickerOptions() }
 
+        // Set the date input to show a date picker when clicked.
         dateInput.setOnClickListener { showDatePicker() }
 
+        // Set the submit button to validate and submit the form.
         submitButton.setOnClickListener {
             val allTexts = listOf(roomNameText.text.toString(), descriptionInput.text.toString()) + pollOptions
             checkBadWords(this, allTexts) { containsBadWords ->
@@ -123,19 +143,29 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Displays an AlertDialog that lets the user choose between taking a photo or choosing one from the gallery.
+     */
     private fun showImagePickerOptions() {
         val options = arrayOf("Take Photo", "Choose from Gallery")
         AlertDialog.Builder(this)
             .setTitle("Select Image Source")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> openCamera()   // Option to capture a new photo
-                    1 -> openGallery()  // Option to pick from gallery
+                    0 -> openCamera()   // Launch camera to capture a photo
+                    1 -> openGallery()  // Open gallery to pick an image
                 }
             }
             .show()
     }
 
+    /**
+     * Checks for bad words by sending the combined text to an external service.
+     *
+     * @param context The context from which the request is made.
+     * @param texts A list of strings to check for profanity.
+     * @param callback A callback function returning true if profanity is detected.
+     */
     private fun checkBadWords(context: Context, texts: List<String>, callback: (Boolean) -> Unit) {
         val combinedText = texts.joinToString(" ")
         val url = "https://www.purgomalum.com/service/containsprofanity?text=${combinedText}"
@@ -147,6 +177,12 @@ class NewRoomActivity : BaseActivity() {
         Volley.newRequestQueue(context).add(request)
     }
 
+    /**
+     * Validates form inputs before submission.
+     * Checks for empty fields, incorrect code lengths, and ensures minimum poll options.
+     *
+     * @return true if all inputs are valid; false otherwise.
+     */
     private fun validateInputs(): Boolean {
         if (roomNameText.text.toString().isBlank()) {
             roomNameText.error = "Bet subject cannot be empty"
@@ -192,6 +228,10 @@ class NewRoomActivity : BaseActivity() {
         return true
     }
 
+    /**
+     * Displays a DatePickerDialog to allow the user to select a date.
+     * The selected date is then set into the dateInput field.
+     */
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
@@ -204,6 +244,10 @@ class NewRoomActivity : BaseActivity() {
         datePicker.show()
     }
 
+    /**
+     * Submits the room creation form to Firestore.
+     * It first checks if the user is logged in, collects all form data, and then stores it in Firestore.
+     */
     private fun submitForm() {
         if (!isLoggedIn) {
             toast("Please log in to create a room.")
@@ -211,6 +255,7 @@ class NewRoomActivity : BaseActivity() {
             return
         }
 
+        // Collect form data from input fields.
         val isPublic = checkbox_public.isChecked
         val isEvent = checkbox_event.isChecked
         val betSubject = roomNameText.text.toString()
@@ -221,9 +266,12 @@ class NewRoomActivity : BaseActivity() {
         val selectedRadio = findViewById<RadioButton>(bet_type_radio.checkedRadioButtonId)?.text?.toString()
         val code = codeInput.text.toString()
         val eventSubject = eventSubjectInput.text.toString()
+
+        // Get user name and photo URL then create room data.
         getUserName(userId) { userName ->
             getUserPhotoUrl(userId) { userUrl ->
                 val url = uploadedImageUrl.toString()
+                // Build a map of participants with the current user as the owner.
                 val participantsMap = hashMapOf(
                     userId to hashMapOf(
                         "name" to userName,
@@ -234,6 +282,7 @@ class NewRoomActivity : BaseActivity() {
                         "isActive" to true
                     )
                 )
+                // Build room data to be stored in Firestore.
                 val roomData = hashMapOf(
                     "isEvent" to isEvent,
                     "isPublic" to isPublic,
@@ -252,6 +301,7 @@ class NewRoomActivity : BaseActivity() {
                     "participants" to participantsMap,
                     "isActive" to true
                 )
+                // Add the room to the Firestore "rooms" collection.
                 db.collection("rooms")
                     .add(roomData)
                     .addOnSuccessListener { roomRef ->
@@ -267,7 +317,10 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 
-    // Opens the gallery for image selection
+    /**
+     * Opens the gallery to allow the user to select an image.
+     * Checks that the user is logged in before proceeding.
+     */
     private fun openGallery() {
         if (!isLoggedIn) {
             toast("Please log in to upload an image.")
@@ -278,7 +331,10 @@ class NewRoomActivity : BaseActivity() {
         startActivityForResult(intent, 101)
     }
 
-    // Opens the camera to capture a new photo
+    /**
+     * Opens the camera to capture a new photo.
+     * Checks that the user is logged in before proceeding.
+     */
     private fun openCamera() {
         if (!isLoggedIn) {
             toast("Please log in to upload an image.")
@@ -289,15 +345,21 @@ class NewRoomActivity : BaseActivity() {
         startActivityForResult(intent, 102)
     }
 
+    /**
+     * Handles the results from activities started for result (gallery or camera).
+     * Depending on the request code, the appropriate image upload method is called.
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == 101 && resultCode == Activity.RESULT_OK) {
+            // Image selected from gallery.
             val selectedImageUri: Uri? = data?.data
             selectedImageUri?.let {
                 uploadImageToImgur(it)
             }
         } else if (requestCode == 102 && resultCode == Activity.RESULT_OK) {
+            // Image captured from camera as a Bitmap.
             val bitmap = data?.extras?.get("data") as? Bitmap
             bitmap?.let {
                 uploadImageToImgur(it)
@@ -305,7 +367,12 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 
-    // Upload image from gallery (using Uri)
+    /**
+     * Uploads an image (selected from the gallery) to Imgur.
+     * The image is converted to a Base64 string and sent via Retrofit.
+     *
+     * @param uri The Uri of the image selected from the gallery.
+     */
     private fun uploadImageToImgur(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -340,7 +407,12 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 
-    // Upload image from camera (using Bitmap)
+    /**
+     * Uploads an image (captured from the camera as a Bitmap) to Imgur.
+     * The Bitmap is compressed, converted to a Base64 string, and sent via Retrofit.
+     *
+     * @param bitmap The Bitmap image captured from the camera.
+     */
     private fun uploadImageToImgur(bitmap: Bitmap) {
         try {
             val stream = ByteArrayOutputStream()
@@ -377,17 +449,33 @@ class NewRoomActivity : BaseActivity() {
     }
 }
 
+/**
+ * AdapterPollOptions is a RecyclerView.Adapter that displays a list of poll options.
+ * Each item includes the option text and a remove button to delete the option.
+ */
 class AdapterPollOptions(
     private val options: MutableList<String>
 ) : RecyclerView.Adapter<AdapterPollOptions.PollOptionViewHolder>() {
+
+    /**
+     * PollOptionViewHolder holds references to the UI components in each poll option item.
+     */
     class PollOptionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val optionText: TextView = view.findViewById(R.id.option_text)
         val removeButton: ImageButton = view.findViewById(R.id.remove_option_button)
     }
+
+    /**
+     * Called when RecyclerView needs a new ViewHolder of the given type.
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PollOptionViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_poll_option, parent, false)
         return PollOptionViewHolder(view)
     }
+
+    /**
+     * Binds data (poll option text) to the ViewHolder and sets the remove button listener.
+     */
     override fun onBindViewHolder(holder: PollOptionViewHolder, position: Int) {
         holder.optionText.text = options[position]
         holder.removeButton.setOnClickListener {
@@ -395,5 +483,9 @@ class AdapterPollOptions(
             notifyDataSetChanged()
         }
     }
+
+    /**
+     * Returns the total number of poll options.
+     */
     override fun getItemCount(): Int = options.size
 }
