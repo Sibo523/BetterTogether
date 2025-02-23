@@ -87,13 +87,11 @@ class ProfileActivity : BaseActivity() {
 
         // Load profile information:
         val otherUserId = intent.getStringExtra("USER_ID_KEY")
-        if (!otherUserId.isNullOrBlank()) {
+        if(!otherUserId.isNullOrBlank()){
             loadUserProfile(otherUserId)
             // Hide data edit button if viewing another user's profile
             editDataButton.visibility = android.view.View.GONE
-        } else {
-            loadCurrentUserProfile()
-        }
+        } else{ loadCurrentUserProfile() }
 
         // Set sign out button listener
         findViewById<Button>(R.id.sign_out_button).setOnClickListener { signOut() }
@@ -173,17 +171,11 @@ class ProfileActivity : BaseActivity() {
                         toast("Image uploaded: $uploadedImageUrl")
                         updateUserPhoto(uploadedImageUrl!!)
                         updateUserPhotoInRooms(uploadedImageUrl!!)
-                    } else {
-                        toast("Image upload failed: ${response.message()}")
-                    }
+                    } else{ toast("Image upload failed: ${response.message()}") }
                 }
-                override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
-                    toast("Error: ${t.message}")
-                }
+                override fun onFailure(call:Call<ImgurResponse>,t:Throwable){ toast("Error: ${t.message}") }
             })
-        } catch (e: Exception) {
-            toast("Error uploading image: ${e.message}")
-        }
+        } catch(e:Exception){ toast("Error uploading image: ${e.message}") }
     }
 
     // Uploads the captured image (from camera) to Imgur.
@@ -308,12 +300,12 @@ class ProfileActivity : BaseActivity() {
                 .get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
-                        profileBioEditText.setText(document.getString("bio") ?: "")
-                        profileUsernameEditText.setText(document.getString("username") ?: "N/A")
-                        profileGenderEditText.setText(document.getString("gender") ?: "N/A")
-                        profileAgeEditText.setText(document.getLong("age")?.toString() ?: "N/A")
-                        profileDobEditText.setText(document.getString("dob") ?: "N/A")
-                        profileMobileEditText.setText(document.getString("mobile") ?: "N/A")
+                        profileBioEditText.setHint(document.getString("bio") ?: "")
+                        profileUsernameEditText.setHint(document.getString("username") ?: "N/A")
+                        profileGenderEditText.setHint(document.getString("gender") ?: "N/A")
+                        profileAgeEditText.setHint(document.getLong("age")?.toString() ?: "N/A")
+                        profileDobEditText.setHint(document.getString("dob") ?: "N/A")
+                        profileMobileEditText.setHint(document.getString("mobile") ?: "N/A")
                         profileEmailTextView.text = document.getString("email") ?: "N/A"
                         val photoUrl = document.getString("photoUrl") ?: ""
                         loadUserPhoto(photoUrl)
