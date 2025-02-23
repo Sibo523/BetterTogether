@@ -18,7 +18,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -27,6 +26,9 @@ import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import android.content.Context
+import androidx.appcompat.app.AlertDialog
+import java.io.ByteArrayOutputStream
+import android.graphics.Bitmap
 
 class NewRoomActivity : BaseActivity() {
 
@@ -44,7 +46,7 @@ class NewRoomActivity : BaseActivity() {
     private lateinit var even_option: RadioButton
     private lateinit var ratio_option: RadioButton
     private lateinit var submitButton: Button
-    private lateinit var uploadButton: Button
+    private lateinit var uploadButton: Button   // Single button for both options
     private lateinit var pollOptionInput: EditText
     private lateinit var addPollOptionButton: Button
     private lateinit var pollOptionsList: RecyclerView
@@ -57,7 +59,7 @@ class NewRoomActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_room)
 
-        // Initialize views once
+        // Initialize views
         checkbox_public = findViewById(R.id.form_checkbox_public)
         checkbox_event = findViewById(R.id.form_checkbox_event)
         roomNameText = findViewById(R.id.room_name)
@@ -79,51 +81,72 @@ class NewRoomActivity : BaseActivity() {
         pollOptionsAdapter = AdapterPollOptions(pollOptions)
         pollOptionsList.layoutManager = LinearLayoutManager(this)
         pollOptionsList.adapter = pollOptionsAdapter
+
         addPollOptionButton.setOnClickListener {
-            val optionText1 = pollOptionInput.text.toString().trim()
-            if (optionText1.isNotEmpty()) {
-                pollOptions.add(0, optionText1)             // הוספת האופציה בראש הרשימה
+            val optionText = pollOptionInput.text.toString().trim()
+            if (optionText.isNotEmpty()) {
+                pollOptions.add(0, optionText)  // Add the new option at the top
                 pollOptionsAdapter.notifyItemInserted(0)
-                pollOptionsList.scrollToPosition(0)       // גלילה למעלה כדי להציג את האופציה החדשה
+                pollOptionsList.scrollToPosition(0)
                 pollOptionInput.text.clear()
-            } else{ toast("Option cannot be empty") }
+            } else {
+                toast("Option cannot be empty")
+            }
         }
 
         checkUserRole { role ->
-            checkbox_event.visibility = if(role=="owner") View.VISIBLE else View.GONE
+            checkbox_event.visibility = if (role == "owner") View.VISIBLE else View.GONE
         }
         checkbox_public.setOnCheckedChangeListener { _, isChecked ->
-            codeInput.visibility = if(isChecked) View.GONE else View.VISIBLE
+            codeInput.visibility = if (isChecked) View.GONE else View.VISIBLE
         }
         checkbox_event.setOnCheckedChangeListener { _, isChecked ->
-            eventSubjectInput.visibility = if(isChecked) View.VISIBLE else View.GONE
+            eventSubjectInput.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        ratio_option.setOnClickListener{ betAmountInput.visibility = View.GONE }
-        even_option.setOnClickListener{ betAmountInput.visibility = View.VISIBLE }
+        ratio_option.setOnClickListener { betAmountInput.visibility = View.GONE }
+        even_option.setOnClickListener { betAmountInput.visibility = View.VISIBLE }
 
-        uploadButton.setOnClickListener{ openGallery() }
+        // Set the single button to show image picker options
+        uploadButton.setOnClickListener { showImagePickerOptions() }
 
-        dateInput.setOnClickListener{ showDatePicker() }
+        dateInput.setOnClickListener { showDatePicker() }
 
-        submitButton.setOnClickListener{
+        submitButton.setOnClickListener {
             val allTexts = listOf(roomNameText.text.toString(), descriptionInput.text.toString()) + pollOptions
-            checkBadWords(this,allTexts) { containsBadWords ->
-                if (containsBadWords) { toast("Your input contains inappropriate language.") }
-                else if(validateInputs()){ submitForm() }
+            checkBadWords(this, allTexts) { containsBadWords ->
+                if (containsBadWords) {
+                    toast("Your input contains inappropriate language.")
+                } else if (validateInputs()) {
+                    submitForm()
+                }
             }
         }
     }
 
-    private fun checkBadWords(context: Context,texts: List<String>, callback: (Boolean) -> Unit) {
+    private fun showImagePickerOptions() {
+        val options = arrayOf("Take Photo", "Choose from Gallery")
+        AlertDialog.Builder(this)
+            .setTitle("Select Image Source")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()   // Option to capture a new photo
+                    1 -> openGallery()  // Option to pick from gallery
+                }
+            }
+            .show()
+    }
+
+    private fun checkBadWords(context: Context, texts: List<String>, callback: (Boolean) -> Unit) {
         val combinedText = texts.joinToString(" ")
         val url = "https://www.purgomalum.com/service/containsprofanity?text=${combinedText}"
 
         val request = StringRequest(Request.Method.GET, url,
             { response -> callback(response.toBoolean()) },
-            { error -> callback(false) }) // במקרה של שגיאה מחזירים false
+            { _ -> callback(false) })
 
         Volley.newRequestQueue(context).add(request)
     }
+
     private fun validateInputs(): Boolean {
         if (roomNameText.text.toString().isBlank()) {
             roomNameText.error = "Bet subject cannot be empty"
@@ -133,7 +156,8 @@ class NewRoomActivity : BaseActivity() {
             pollOptionInput.error = "Add at least 2 options"
             return false
         }
-        if (even_option.isChecked && (betAmountInput.text.toString().isBlank() || (betAmountInput.text.toString().toIntOrNull() ?: 0) < 10)) {
+        if (even_option.isChecked && (betAmountInput.text.toString().isBlank() ||
+                    (betAmountInput.text.toString().toIntOrNull() ?: 0) < 10)) {
             betAmountInput.error = "Bet number cannot be empty for Even bet"
             return false
         }
@@ -243,6 +267,7 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 
+    // Opens the gallery for image selection
     private fun openGallery() {
         if (!isLoggedIn) {
             toast("Please log in to upload an image.")
@@ -252,6 +277,18 @@ class NewRoomActivity : BaseActivity() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 101)
     }
+
+    // Opens the camera to capture a new photo
+    private fun openCamera() {
+        if (!isLoggedIn) {
+            toast("Please log in to upload an image.")
+            navigateToLogin()
+            return
+        }
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(intent, 102)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -260,8 +297,15 @@ class NewRoomActivity : BaseActivity() {
             selectedImageUri?.let {
                 uploadImageToImgur(it)
             }
+        } else if (requestCode == 102 && resultCode == Activity.RESULT_OK) {
+            val bitmap = data?.extras?.get("data") as? Bitmap
+            bitmap?.let {
+                uploadImageToImgur(it)
+            }
         }
     }
+
+    // Upload image from gallery (using Uri)
     private fun uploadImageToImgur(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -287,7 +331,42 @@ class NewRoomActivity : BaseActivity() {
                         Toast.makeText(this@NewRoomActivity, "Upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
                     }
                 }
+                override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
+                    Toast.makeText(this@NewRoomActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                }
+            })
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error uploading image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    // Upload image from camera (using Bitmap)
+    private fun uploadImageToImgur(bitmap: Bitmap) {
+        try {
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            val imageBytes = stream.toByteArray()
+            val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+
+            val body = mapOf("image" to base64Image)
+
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://api.imgur.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+            val imgurApi = retrofit.create(ImgurApi::class.java)
+
+            val call = imgurApi.uploadImage("Client-ID f41b5381b69da09", body)
+            call.enqueue(object : Callback<ImgurResponse> {
+                override fun onResponse(call: Call<ImgurResponse>, response: Response<ImgurResponse>) {
+                    if (response.isSuccessful) {
+                        uploadedImageUrl = response.body()?.data?.link
+                        Toast.makeText(this@NewRoomActivity, "Uploaded: $uploadedImageUrl", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(this@NewRoomActivity, "Upload failed: ${response.message()}", Toast.LENGTH_LONG).show()
+                    }
+                }
                 override fun onFailure(call: Call<ImgurResponse>, t: Throwable) {
                     Toast.makeText(this@NewRoomActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
                 }
@@ -297,7 +376,6 @@ class NewRoomActivity : BaseActivity() {
         }
     }
 }
-
 
 class AdapterPollOptions(
     private val options: MutableList<String>
@@ -317,7 +395,5 @@ class AdapterPollOptions(
             notifyDataSetChanged()
         }
     }
-    override fun getItemCount(): Int {
-        return options.size
-    }
+    override fun getItemCount(): Int = options.size
 }
