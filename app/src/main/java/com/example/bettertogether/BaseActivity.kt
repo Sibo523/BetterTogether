@@ -116,7 +116,7 @@ abstract class BaseActivity : AppCompatActivity() {
         intent.putExtra("userId", userId)
         startActivity(intent)
     }
-
+    // Request notification permission
     private fun requestNotificationPermissionIfNeeded() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
@@ -132,6 +132,8 @@ abstract class BaseActivity : AppCompatActivity() {
             }
         }
     }
+
+    // Schedule bet notifications
     private fun scheduleBetNotifications() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -145,7 +147,7 @@ abstract class BaseActivity : AppCompatActivity() {
             val betNotificationWork = OneTimeWorkRequestBuilder<BetNotificationWorker>()
                 .setInitialDelay(1, TimeUnit.MINUTES)
                 .setConstraints(constraints)
-                .setInputData(inputData)  // הוספת נתוני קלט
+                .setInputData(inputData)  // set input data
                 .build()
             WorkManager.getInstance(this).enqueueUniqueWork(
                 "BetNotificationWork",
@@ -156,7 +158,7 @@ abstract class BaseActivity : AppCompatActivity() {
         } else {
             val betNotificationWork = PeriodicWorkRequestBuilder<BetNotificationWorker>(1, TimeUnit.DAYS)
                 .setConstraints(constraints)
-                .setInputData(inputData)  // הוספת נתוני קלט
+                .setInputData(inputData)  // set input data
                 .build()
             WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "BetNotificationWork",
@@ -203,6 +205,8 @@ abstract class BaseActivity : AppCompatActivity() {
                 callback(false)
             }
     }
+
+    // Toggle room from user
     protected fun toggleRoomFromUser(userId:String, roomId:String, flag:Boolean, callback:(Boolean) -> Unit) {
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { userDocument ->
@@ -227,6 +231,7 @@ abstract class BaseActivity : AppCompatActivity() {
                 callback(false)
             }
     }
+    // Delete room
     protected fun deleteRoom(roomId: String) {
         val roomRef = db.collection("rooms").document(roomId)
         roomRef.get()
@@ -296,6 +301,7 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
+    // Get room by ID
     protected fun getParticipantById(userId: String, roomId: String, callback: (Map<String, Any>?) -> Unit) {
         val roomRef = db.collection("rooms").document(roomId)
 

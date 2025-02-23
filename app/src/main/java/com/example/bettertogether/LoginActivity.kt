@@ -91,7 +91,7 @@ class LoginActivity : BaseActivity() {
     }
 
     private fun setupGoogleSignIn() {
-        auth.signOut() // לוודא שהמשתמש לא מחובר לפני ההתחברות
+        auth.signOut() // make sure the user is signed out before trying to sign in
         val googleSignInClient = GoogleSignIn.getClient(
             this,
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -170,8 +170,8 @@ class LoginActivity : BaseActivity() {
                         val profileUpdates = userProfileChangeRequest { displayName = fullName }
                         user.updateProfile(profileUpdates).addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful) {
-                                saveUserLocally(user)   // ✅ שומר את השם הנכון מקומית
-                                checkAndCreateUser(user)  // ✅ שומר את המשתמש ב-Firestore עם השם החדש
+                                saveUserLocally(user)   // save user data locally
+                                checkAndCreateUser(user)  // save user data in Firestore
                                 goToMainScreen()
                             } else{ toast("Error updating profile: ${updateTask.exception?.message}") }
                         }
@@ -180,6 +180,8 @@ class LoginActivity : BaseActivity() {
             }
     }
 
+
+    //if the user is not in the database, we will add him
     private fun checkAndCreateUser(user: FirebaseUser) {
         val userRef = db.collection("users").document(user.uid)
         userRef.get().addOnSuccessListener { document ->
@@ -199,6 +201,8 @@ class LoginActivity : BaseActivity() {
             }
         }
     }
+
+    //save the user data locally for future use and to keep the user logged in
     private fun saveUserLocally(user: FirebaseUser) {
         val editor = sharedPreferences.edit()
         editor.putString("userId", user.uid)
@@ -207,6 +211,7 @@ class LoginActivity : BaseActivity() {
         editor.apply()
     }
 
+    //move to the main screen
     private fun goToMainScreen() {
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)

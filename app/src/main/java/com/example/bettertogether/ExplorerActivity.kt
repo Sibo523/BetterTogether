@@ -87,6 +87,7 @@ class ExplorerActivity : BaseActivity() {
             }
         })
     }
+
     private fun activateTabUsers() {
         isUsersTabActive = true
         tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
@@ -138,6 +139,8 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching users: ${exception.message}")
             }
     }
+
+    // Filter documents by name
     private fun filterDocs(query: String?) {
         val searchQuery = query?.trim() ?: ""
         filteredDocList.clear()
@@ -173,6 +176,7 @@ class ExplorerActivity : BaseActivity() {
         tabMyRooms.setOnClickListener { activateTabMyRooms() }
         tabMyFriends.setOnClickListener { activateTabMyFriends() }
     }
+
     private fun activateTabMyRooms() {
         isUsersTabActive = false
         tabMyRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -195,6 +199,8 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadMyFriends(docList, usersAdapter)
     }
+
+    // Load rooms where the current user is a participant
     protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
@@ -211,7 +217,7 @@ class ExplorerActivity : BaseActivity() {
                     usersAdapter.notifyDataSetChanged()
                     return@addOnSuccessListener
                 }
-
+                // Fetch friends from Firestore
                 db.collection("users")
                     .whereIn(FieldPath.documentId(), friendIds)
                     .get()

@@ -34,6 +34,8 @@ class UserProfileActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_profile)
 
+        //initialize views
+
         profileImageView = findViewById(R.id.profileImageView)
         userNameTextView = findViewById(R.id.userNameTextView)
         userPointsTextView = findViewById(R.id.userPointsTextView)
@@ -64,8 +66,9 @@ class UserProfileActivity : BaseActivity() {
 
         loadUserProfile()
     }
-
+    //load user profile
     private fun loadUserProfile() {
+        //get user info
         db.collection("users").document(hisUserId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -111,7 +114,7 @@ class UserProfileActivity : BaseActivity() {
                 finish()
             }
     }
-
+    //check friendship status
     private fun checkFriendshipStatus() {
         if(!isLoggedIn){
             actionButton.setOnClickListener { navigateToLogin() }
@@ -150,7 +153,7 @@ class UserProfileActivity : BaseActivity() {
             }
         }
     }
-
+    //send friend request
     private fun sendFriendRequest() {
         val userRef = db.collection("users").document(userId)
         val otherUserRef = db.collection("users").document(hisUserId)
@@ -169,6 +172,8 @@ class UserProfileActivity : BaseActivity() {
             toast("Error sending request: ${e.message}")
         }
     }
+
+    //accept friend request
     private fun acceptFriendRequest() {
         val userRef = db.collection("users").document(userId)
         val otherUserRef = db.collection("users").document(hisUserId)
@@ -198,6 +203,8 @@ class UserProfileActivity : BaseActivity() {
             toast("Error accepting request: ${e.message}")
         }
     }
+
+    //cancel friend request
     private fun cancelFriendRequest() {
         val userRef = db.collection("users").document(userId)
         val otherUserRef = db.collection("users").document(hisUserId)
@@ -216,6 +223,7 @@ class UserProfileActivity : BaseActivity() {
             toast("Error canceling request: ${e.message}")
         }
     }
+    //remove friend
     private fun removeFriend() {
         val userRef = db.collection("users").document(userId)
         val otherUserRef = db.collection("users").document(hisUserId)
@@ -236,7 +244,7 @@ class UserProfileActivity : BaseActivity() {
             toast("Error deactivating friend: ${e.message}")
         }
     }
-
+    //show status change dialog
     private fun showStatusChangeDialog() {
         val roles = arrayOf("client", "warned client", "muted client", "banned", "owner")
         AlertDialog.Builder(this)
@@ -248,9 +256,10 @@ class UserProfileActivity : BaseActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
+    //change user status
     private fun changeUserStatus(newRole: String) {
         val userRef = db.collection("users").document(hisUserId)
-
+        //update user role and remove from all rooms if banned
         userRef.update("role", newRole)
             .addOnSuccessListener {
                 toast("User role updated to $newRole in users")
@@ -260,6 +269,7 @@ class UserProfileActivity : BaseActivity() {
             }
             .addOnFailureListener { e -> toast("Failed to update role in users: ${e.message}") }
     }
+    //remove user from all rooms if banned
     private fun removeUserFromAllRooms(hisUserId: String) {
         db.collection("rooms").whereEqualTo("participants.$hisUserId.isActive", true)
             .get()

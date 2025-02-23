@@ -145,7 +145,7 @@ class HomeActivity : BaseActivity() {
         val rewardGrid = dialogView.findViewById<GridLayout>(R.id.rewardGrid)
         val rewardMessage = dialogView.findViewById<TextView>(R.id.rewardMessage)
         val okButton = dialogView.findViewById<Button>(R.id.okButton)
-
+        // Create a grid of TextViews to display the daily rewards.
         for (i in dailyRewards.indices) {
             val rewardText = TextView(this)
             rewardText.text = "${dailyRewards[i]}"
@@ -217,7 +217,7 @@ class HomeActivity : BaseActivity() {
         }.addOnFailureListener { toast("Error retrieving user data.") }
     }
 
-    // Checks if the given date is yesterday relative to today.
+    // Checks if the given date is yesterday relative to today. Returns true if it is.
     private fun isYesterday(lastLogin: String): Boolean {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val lastLoginDate = sdf.parse(lastLogin) ?: return false
