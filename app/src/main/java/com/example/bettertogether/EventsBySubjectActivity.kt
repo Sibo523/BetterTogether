@@ -38,6 +38,7 @@ class EventsBySubjectActivity : BaseActivity() {
         loadEvents(subject)
     }
 
+    //load events from firestore according to the subject
     private fun loadEvents(subject: String) {
         db.collection("rooms")
             .whereEqualTo("isEvent", true)
@@ -50,7 +51,7 @@ class EventsBySubjectActivity : BaseActivity() {
                 eventsAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener {
-                // הודעת שגיאה
+                // Error loading events
             }
     }
 }
@@ -91,6 +92,8 @@ class AdapterEvents(
         }
     }
     override fun getItemCount(): Int = events.size
+
+    //get active participants from the event make sure they are not banned
     protected fun getActiveParticipants(roomDoc: DocumentSnapshot): Map<String, Map<String, Any>> {
         val roomsParticipants = roomDoc.get("participants") as? Map<String, Map<String, Any>> ?: emptyMap()
         return roomsParticipants.filterValues { it["isActive"] == true && it["role"]!="banned" }
