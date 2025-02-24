@@ -1,0 +1,23 @@
+@startuml
+start
+:User launches the app;
+:User selects "Search Rooms";
+:User enters search criteria;
+if (Room found?) then (Yes)
+  :Display list of rooms;
+  :User selects a room from the list;
+  :Load room details;
+  if (User has not placed a bet?) then (No bet)
+    :User chooses "Place a Bet";
+    :Enter bet details;
+    :Submit bet;
+    :Update bet status in room;
+  else (Bet already placed)
+    :Display current bet status;
+  endif
+  :Open room (display chat and room info);
+else (No)
+  :Display "No rooms found" message;
+endif
+stop
+@enduml

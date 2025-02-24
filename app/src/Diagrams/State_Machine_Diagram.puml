@@ -1,53 +1,13 @@
 @startuml
-[*] --> LoginActivity : Open app
+[*] --> Viewing_Profile
 
-state LoginActivity {
-    [*] --> CheckAuth
-    CheckAuth --> HomeActivity : Authenticated
-    CheckAuth --> GoogleSignIn : Not authenticated
-    state GoogleSignIn {
-        [*] --> PromptSignIn
-        PromptSignIn --> AuthResult : User signs in
-        AuthResult --> HomeActivity : Auth successful
-        AuthResult --> LoginActivity : Auth failed
-    }
-}
+Viewing_Profile --> Editing_Profile : Click "Edit"
+Editing_Profile --> Saving_Profile : Click "Save"
+Saving_Profile --> Viewing_Profile : Save successful
+Saving_Profile --> Editing_Profile : Save failed (retry)
+Editing_Profile --> Viewing_Profile : Cancel edit
 
-state HomeActivity {
-    [*] --> Idle
-    Idle --> ProfileActivity : Profile button
-    Idle --> RoomsActivity : Rooms button
-    Idle --> ExplorerActivity : Explore button
-    Idle --> NewRoomActivity : Create Room button
-    Idle --> RoomActivity : Join Room button
-}
-
-state ProfileActivity {
-    [*] --> DisplayProfile
-    DisplayProfile --> Idle : User views profile
-}
-
-state RoomsActivity {
-    [*] --> LoadRooms
-    LoadRooms --> DisplayRooms : Rooms loaded
-}
-
-state ExplorerActivity {
-    [*] --> LoadAllRooms
-    LoadAllRooms --> DisplayFilteredRooms : Rooms loaded
-}
-
-state NewRoomActivity {
-    [*] --> InputRoomDetails
-    InputRoomDetails --> ValidateInputs : Submit form
-    ValidateInputs --> ConfirmCreation : Validation successful
-    ValidateInputs --> InputRoomDetails : Validation failed
-}
-
-state RoomActivity {
-    [*] --> FetchRoomDetails
-    FetchRoomDetails --> SetupChat
-    SetupChat --> ChatInterface : Chat ready
-}
-
+Viewing_Profile --> Updating_Photo : Click Photo Edit Icon
+Updating_Photo --> Viewing_Profile : Photo updated successfully
+Updating_Photo --> Updating_Photo : Retry on failure
 @enduml
