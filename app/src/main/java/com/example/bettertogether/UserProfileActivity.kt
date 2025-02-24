@@ -41,6 +41,7 @@ class UserProfileActivity : BaseActivity() {
         userPointsTextView = findViewById(R.id.userPointsTextView)
         friendStatusTextView = findViewById(R.id.friendStatusTextView)
         actionButton = findViewById(R.id.actionButton)
+
         changeStatusButton = findViewById(R.id.changeStatusButton)
 
         if(isLoggedIn) {
@@ -63,7 +64,10 @@ class UserProfileActivity : BaseActivity() {
         eventsSlider.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         eventsSliderAdapter = AdapterEvents(eventsList) { event -> openRoom(event.id) }
         eventsSlider.adapter = eventsSliderAdapter
-
+        if(userId == hisUserId){
+            actionButton.visibility = View.GONE
+            friendStatusTextView.visibility = View.GONE
+        }
         loadUserProfile()
     }
     //load user profile
@@ -102,8 +106,9 @@ class UserProfileActivity : BaseActivity() {
                             }
                             .addOnFailureListener{ exception -> toast("Error fetching rooms: ${exception.message}") }
                     }
-
-                    checkFriendshipStatus()
+                    if(userId != hisUserId){
+                        checkFriendshipStatus()
+                    }
                 } else {
                     toast("User not found.")
                     finish()
@@ -155,6 +160,7 @@ class UserProfileActivity : BaseActivity() {
     }
     //send friend request
     private fun sendFriendRequest() {
+
         val userRef = db.collection("users").document(userId)
         val otherUserRef = db.collection("users").document(hisUserId)
 
