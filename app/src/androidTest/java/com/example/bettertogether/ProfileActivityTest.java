@@ -59,9 +59,10 @@ public class ProfileActivityTest {
     public void tearDown() {
         Intents.release();
     }
-
+    // Test for the edit data button to change the text in the fields and click the edit button
     @Test
     public void testEditProfileData_validInputs_savesData() {
+        // Launch the activity manually and enter input
         try (ActivityScenario<ProfileActivity> scenario = ActivityScenario.launch(ProfileActivity.class)) {
             onView(withId(R.id.edit_data_button)).perform(click());
             onView(withId(R.id.profile_bio)).perform(replaceText("New Bio"));
@@ -71,10 +72,9 @@ public class ProfileActivityTest {
             onView(withId(R.id.profile_dob_value)).perform(replaceText("01/01/1994"));
             onView(withId(R.id.profile_mobile_value)).perform(replaceText("1234567890"));
             onView(withId(R.id.edit_data_button)).perform(click());
-            //onView(withId(R.id.edit_data_button)).check(matches(withText("Edit Profile Data")));
         }
     }
-    //
+    // Test for the edit image button to open the gallery intent
     @Test
     public void testEditProfileImage_opensGalleryIntent() {
         try (ActivityScenario<ProfileActivity> scenario = ActivityScenario.launch(ProfileActivity.class)) {

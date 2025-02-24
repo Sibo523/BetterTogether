@@ -20,8 +20,12 @@ import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 import com.bumptech.glide.Glide
 
 import android.content.Context
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.core.content.ContextCompat
 
 class RoomActivity : BaseActivity() {
     private lateinit var roomNameTextView: TextView            // -----  details  -----
@@ -478,7 +482,7 @@ class RoomActivity : BaseActivity() {
     @SuppressLint("NotifyDataSetChanged")
     private fun setupChat() {
         val messages = mutableListOf<Message>()
-        val chatAdapter = AdapterChat(messages)
+        val chatAdapter = AdapterChat(messages,userId)
 
         chatRecyclerView.layoutManager = LinearLayoutManager(this)
         chatRecyclerView.adapter = chatAdapter
@@ -505,15 +509,11 @@ class RoomActivity : BaseActivity() {
     }
     private fun sendMessage(messageText: String) {
         getUserName(userId) { senderName ->
-            val message = Message(sender = senderName, message = messageText)
+            val message = Message(sender=senderName, senderId=userId, message=messageText)
             db.collection("rooms").document(roomId).collection("messages")
                 .add(message)
-                .addOnSuccessListener {
-                    messageInput.text.clear()
-                }
-                .addOnFailureListener {
-                    toast("Error sending message.")
-                }
+                .addOnSuccessListener{ messageInput.text.clear() }
+                .addOnFailureListener{ toast("Error sending message.") }
         }
     }
 
@@ -625,14 +625,18 @@ class AdapterParticipantsPager(
 
 data class Message(
     val sender: String = "",
+    val senderId: String = "",
     val message: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )
-class AdapterChat(private val messages: List<Message>) :
-    RecyclerView.Adapter<AdapterChat.ChatViewHolder>() {
+class AdapterChat(
+    private val messages: List<Message>,
+    private val currentUserId: String  // יש להעביר את שם המשתמש הנוכחי
+) : RecyclerView.Adapter<AdapterChat.ChatViewHolder>() {
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val senderTextView: TextView = itemView.findViewById(R.id.sender_text)
         val messageTextView: TextView = itemView.findViewById(R.id.message_text)
+        val messageContainer: LinearLayout = itemView.findViewById(R.id.messageContainer)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -643,10 +647,25 @@ class AdapterChat(private val messages: List<Message>) :
         val message = messages[position]
         holder.senderTextView.text = message.sender
         holder.messageTextView.text = message.message
+        val layoutParams = holder.messageContainer.layoutParams as FrameLayout.LayoutParams
+        if (message.senderId == currentUserId) {
+            layoutParams.gravity = Gravity.END
+            holder.messageContainer.layoutParams = layoutParams
+            holder.messageContainer.background = ContextCompat.getDrawable(
+                holder.itemView.context,
+                R.drawable.bg_chat_sender
+            )
+        } else {
+            layoutParams.gravity = Gravity.START
+            holder.messageContainer.layoutParams = layoutParams
+            holder.messageContainer.background = ContextCompat.getDrawable(
+                holder.itemView.context,
+                R.drawable.bg_chat_receiver
+            )
+        }
     }
-    override fun getItemCount(): Int {
-        return messages.size
-    }
+
+    override fun getItemCount(): Int = messages.size
 }
 
 class AdapterRoomPager(private val context: Context) : RecyclerView.Adapter<AdapterRoomPager.ViewHolder>() {

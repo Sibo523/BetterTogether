@@ -65,7 +65,7 @@
                             android:layout_gravity="bottom|end"
                             android:src="@drawable/ic_edit"
                             android:contentDescription="Edit Profile Image"
-                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                            android:background="@drawable/circle_background"/>
                     </FrameLayout>
 
                     <!-- Profile Name -->
@@ -79,7 +79,7 @@
                             android:id="@+id/profile_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TODOOOOOOOOOOOOOOOOOOOOO"
+                            android:text="Username"
                             android:textAlignment="center"
                             android:textSize="20sp"
                             android:fontFamily="@font/poppinsmedium"

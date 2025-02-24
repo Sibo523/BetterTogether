@@ -38,9 +38,11 @@ public class NewRoomActivityTest {
         onView(ViewMatchers.withId(R.id.form_code_input))
                 .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
 
+        // Click the checkbox
         onView(ViewMatchers.withId(R.id.form_checkbox_public))
                 .perform(ViewActions.click());
 
+        // Check visibility again
         onView(ViewMatchers.withId(R.id.form_code_input))
                 .check(ViewAssertions.matches(ViewMatchers.withEffectiveVisibility(ViewMatchers.Visibility.GONE)));
     }
