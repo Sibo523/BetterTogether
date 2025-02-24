@@ -54,6 +54,9 @@ class RoomActivity : BaseActivity() {
     private var betPoints: Long = 0
     private var pollOptions: List<String> = emptyList()
 
+    /**
+     * Initializes the room activity, sets up UI components, and loads room details.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
@@ -80,6 +83,10 @@ class RoomActivity : BaseActivity() {
             }
         })
     }
+
+    /**
+     * Fetches room details from Firestore and updates the UI.
+     */
     private fun getRoom() {
         db.collection("rooms").document(roomId).get()
             .addOnSuccessListener { document ->
@@ -127,6 +134,9 @@ class RoomActivity : BaseActivity() {
             }
     }
 
+    /**
+     * Sets up the UI elements for room details.
+     */
     private fun initRoomDetailsView(view: View) {
         roomNameTextView = view.findViewById(R.id.roomNameText)
         roomTypeTextView = view.findViewById(R.id.roomTypeText)
@@ -146,6 +156,10 @@ class RoomActivity : BaseActivity() {
         getRoom()
         showRoomDetails()
     }
+
+    /**
+     * Displays a dialog for selecting a bet option.
+     */
     private fun showJoinButton() {
         betNowButton.visibility = View.GONE
         joinButton.visibility = View.VISIBLE

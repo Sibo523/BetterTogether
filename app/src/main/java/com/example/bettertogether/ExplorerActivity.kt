@@ -37,21 +37,32 @@ import android.content.Context
 import com.bumptech.glide.Glide
 
 class ExplorerActivity : BaseActivity() {
+
+    // List of full document snapshots from Firestore.
+    private val docList = mutableListOf<DocumentSnapshot>()
+    // List of documents filtered by search criteria.
+    private val filteredDocList = mutableListOf<DocumentSnapshot>()
+
+    // UI components for the explorer view.
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomsAdapter: AdapterRooms
     private lateinit var usersAdapter: AdapterUsers
-    private lateinit var yourRoomsAdapter: AdapterEvents
-    private val docList = mutableListOf<DocumentSnapshot>() // Store entire document snapshots
-    private val filteredDocList = mutableListOf<DocumentSnapshot>() // Filtered list for search
-
     private lateinit var tabUsers: TextView
     private lateinit var tabRooms: TextView
     private lateinit var indicator: View
+
+    // UI components for the Rooms view.
+    private lateinit var yourRoomsAdapter: AdapterEvents
     private lateinit var tabMyRooms: TextView
     private lateinit var tabMyFriends: TextView
     private lateinit var indicatorMy: View
+
     private var isUsersTabActive = false
 
+    /**
+     * onCreate initializes the activity by setting the content view and configuring the ViewPager2.
+     * It registers a callback to initialize the explorer or rooms view depending on the page selected.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_explorer)
@@ -74,6 +85,12 @@ class ExplorerActivity : BaseActivity() {
         })
     }
 
+    /**
+     * initExplorerView sets up the explorer page.
+     *
+     * It configures the RecyclerView with AdapterRooms and AdapterUsers, sets up the tabs,
+     * and attaches a SearchView listener to filter the documents based on user input.
+     */
     private fun initExplorerView(view: View) {
         recyclerView = view.findViewById(R.id.explorer_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -89,14 +106,7 @@ class ExplorerActivity : BaseActivity() {
         tabRooms.setOnClickListener { activateTabRooms() }
 
         val searchView = view.findViewById<SearchView>(R.id.search_view)
-//        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
-//        searchPlate?.apply {
-//            isClickable = true
-//            isFocusable = true
-//            setOnClickListener{ searchView.requestFocus() }
-//        }
         searchView.isIconified = false
-
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 filterDocs(query)
@@ -109,6 +119,11 @@ class ExplorerActivity : BaseActivity() {
         })
     }
 
+    /**
+     * activateTabUsers updates the UI for the "Users" tab.
+     * It sets the appropriate text colors and indicator animation, switches the RecyclerView adapter,
+     * and loads all users from Firestore.
+     */
     private fun activateTabUsers() {
         isUsersTabActive = true
         tabUsers.setTextColor(resources.getColor(android.R.color.white, null))
@@ -120,6 +135,12 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = usersAdapter
         loadAllUsers()
     }
+
+    /**
+     * activateTabRooms updates the UI for the "Rooms" tab.
+     * It adjusts text colors and indicator animation, sets the adapter for rooms,
+     * and loads all active rooms from Firestore.
+     */
     private fun activateTabRooms() {
         isUsersTabActive = false
         tabRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -131,6 +152,12 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = roomsAdapter
         loadAllRooms()
     }
+
+    /**
+     * loadAllRooms queries Firestore for active rooms.
+     * It clears the current document list, adds the new documents, updates the filtered list,
+     * and notifies the AdapterRooms adapter.
+     */
     private fun loadAllRooms() {
         db.collection("rooms")
             .whereEqualTo("isActive", true)
@@ -146,6 +173,11 @@ class ExplorerActivity : BaseActivity() {
                 toast("Error fetching rooms: ${exception.message}")
             }
     }
+
+    /**
+     * loadAllUsers queries Firestore for all users.
+     * It updates the document lists and notifies the AdapterUsers adapter.
+     */
     private fun loadAllUsers() {
         db.collection("users")
             .get()
@@ -161,7 +193,12 @@ class ExplorerActivity : BaseActivity() {
             }
     }
 
-    // Filter documents by name
+    /**
+     * filterDocs filters the complete document list based on the provided search query.
+     * It updates the filteredDocList and notifies the current adapter.
+     *
+     * @param query The search query input by the user.
+     */
     private fun filterDocs(query: String?) {
         val searchQuery = query?.trim() ?: ""
         filteredDocList.clear()
@@ -181,6 +218,12 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter?.notifyDataSetChanged()
     }
 
+    /**
+     * initRoomsView sets up the Rooms page in the ViewPager.
+     *
+     * It configures the RecyclerView with AdapterEvents and AdapterUsers,
+     * and initializes tabs for "My Rooms" and "My Friends".
+     */
     private fun initRoomsView(view: View) {
         recyclerView = view.findViewById(R.id.rooms_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -198,6 +241,12 @@ class ExplorerActivity : BaseActivity() {
         tabMyFriends.setOnClickListener { activateTabMyFriends() }
     }
 
+    /**
+     * activateTabMyRooms activates the "My Rooms" tab.
+     *
+     * It updates the UI styling, switches the adapter to display events,
+     * and triggers loading of the user's rooms.
+     */
     private fun activateTabMyRooms() {
         isUsersTabActive = false
         tabMyRooms.setTextColor(resources.getColor(android.R.color.white, null))
@@ -209,6 +258,13 @@ class ExplorerActivity : BaseActivity() {
         recyclerView.adapter = yourRoomsAdapter
         loadMyRooms(docList, yourRoomsAdapter)
     }
+
+    /**
+     * activateTabMyFriends activates the "My Friends" tab.
+     *
+     * It updates the UI styling, switches the adapter to display users,
+     * and loads the current user's friends.
+     */
     private fun activateTabMyFriends() {
         isUsersTabActive = true
         tabMyFriends.setTextColor(resources.getColor(android.R.color.white, null))
@@ -221,7 +277,15 @@ class ExplorerActivity : BaseActivity() {
         loadMyFriends(docList, usersAdapter)
     }
 
-    // Load rooms where the current user is a participant
+    /**
+     * loadMyFriends loads the current user's friends from Firestore.
+     *
+     * It retrieves the current user's document, extracts the active friends list,
+     * and then queries Firestore to fetch detailed friend profiles.
+     *
+     * @param docList The list to update with friend documents.
+     * @param usersAdapter The adapter to notify once data is loaded.
+     */
     protected fun loadMyFriends(docList: MutableList<DocumentSnapshot>, usersAdapter: AdapterUsers) {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
@@ -238,7 +302,7 @@ class ExplorerActivity : BaseActivity() {
                     usersAdapter.notifyDataSetChanged()
                     return@addOnSuccessListener
                 }
-                // Fetch friends from Firestore
+                // Fetch friends from Firestore based on friend IDs.
                 db.collection("users")
                     .whereIn(FieldPath.documentId(), friendIds)
                     .get()

@@ -84,6 +84,10 @@ class UserProfileActivity : BaseActivity() {
 
     private lateinit var hisUserId: String
 
+    /**
+     * Initializes the activity, loads UI components, sets up RecyclerViews,
+     * and retrieves the user's profile data from Firestore.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_profile)
@@ -124,7 +128,10 @@ class UserProfileActivity : BaseActivity() {
         }
         loadUserProfile()
     }
-    //load user profile
+
+    /**
+     * Loads the user's profile data, including name, points, profile picture, rooms, and events.
+     */
     private fun loadUserProfile() {
         //get user info
         db.collection("users").document(hisUserId).get()
@@ -173,7 +180,10 @@ class UserProfileActivity : BaseActivity() {
                 finish()
             }
     }
-    //check friendship status
+
+    /**
+     * Checks the friendship status between the logged-in user and the target user.
+     */
     private fun checkFriendshipStatus() {
         if(!isLoggedIn){
             actionButton.setOnClickListener { navigateToLogin() }
@@ -304,7 +314,10 @@ class UserProfileActivity : BaseActivity() {
             toast("Error deactivating friend: ${e.message}")
         }
     }
-    //show status change dialog
+
+    /**
+     * Displays a dialog allowing an admin to change the status of the target user.
+     */
     private fun showStatusChangeDialog() {
         val roles = arrayOf("client", "warned client", "muted client", "banned", "owner")
         AlertDialog.Builder(this)
@@ -316,7 +329,12 @@ class UserProfileActivity : BaseActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-    //change user status
+
+    /**
+     * Changes the user's role in Firestore.
+     * If the new role is "banned", the user is removed from all rooms.
+     * @param newRole The new role to assign.
+     */
     private fun changeUserStatus(newRole: String) {
         val userRef = db.collection("users").document(hisUserId)
         //update user role and remove from all rooms if banned

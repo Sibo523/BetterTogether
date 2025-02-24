@@ -55,27 +55,33 @@ class LoginActivity : BaseActivity() {
     private lateinit var loginButton: Button
     private lateinit var googleSignInButton: com.google.android.gms.common.SignInButton
 
+    /**
+     * onCreate sets up the activity's layout and initializes UI elements.
+     * It checks if a user is already authenticated and sets up click listeners for login,
+     * registration toggling, and Google Sign-In.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // אם המשתמש מחובר, נעביר אותו ישירות למסך הראשי
+        // If the user is already signed in, save their data and go directly to the main screen.
         val currentUser = auth.currentUser
         if (currentUser != null) {
             saveUserLocally(currentUser)
             goToMainScreen()
             return
         }
-        // Set background based on the time of day
+        // Set background based on time of day.
         if (isDayTime()) {
             updateSubtitleText("Good morning!")
-            window.decorView.setBackgroundResource(R.drawable.good_morning_img) // Daytime background
+            window.decorView.setBackgroundResource(R.drawable.good_morning_img)
             Log.d("LoginActivityLog", "Set daytime background")
         } else {
             updateSubtitleText("Good night!")
-            window.decorView.setBackgroundResource(R.drawable.good_night_img) // Nighttime background
+            window.decorView.setBackgroundResource(R.drawable.good_night_img)
             Log.d("LoginActivityLog", "Set nighttime background")
         }
+        // Initialize UI elements.
         emailInput = findViewById(R.id.email_input)
         passwordInput = findViewById(R.id.password_input)
         confirmPasswordInput = findViewById(R.id.confirm_password_input)
@@ -85,15 +91,16 @@ class LoginActivity : BaseActivity() {
         txtDontHaveAccount = findViewById(R.id.txtDontHaveAccount)
         txtAlreadyHaveAccount = findViewById(R.id.txtAlreadyHaveAccount)
 
+        // Set click listeners.
         loginButton.setOnClickListener { loginWithEmail() }
-        txtDontHaveAccount.setOnClickListener{
+        txtDontHaveAccount.setOnClickListener {
             fullNameInput.visibility = View.VISIBLE
             confirmPasswordInput.visibility = View.VISIBLE
             txtDontHaveAccount.visibility = View.GONE
             txtAlreadyHaveAccount.visibility = View.VISIBLE
             loginButton.setOnClickListener { registerWithEmail() }
         }
-        txtAlreadyHaveAccount.setOnClickListener{
+        txtAlreadyHaveAccount.setOnClickListener {
             fullNameInput.visibility = View.GONE
             confirmPasswordInput.visibility = View.GONE
             txtDontHaveAccount.visibility = View.VISIBLE
@@ -103,12 +110,23 @@ class LoginActivity : BaseActivity() {
         googleSignInButton.setOnClickListener { setupGoogleSignIn() }
     }
 
+    /**
+     * isDayTime checks the current hour and returns true if it's between 6 AM and 6 PM.
+     *
+     * @return Boolean indicating if it is daytime.
+     */
     private fun isDayTime(): Boolean {
         val calendar = Calendar.getInstance()
         val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
         Log.d("LoginActivityLog", "Current hour of day: $hourOfDay")
-        return hourOfDay in 6..18 // 6 AM to 6 PM is considered day time
+        return hourOfDay in 6..18
     }
+
+    /**
+     * updateSubtitleText updates the subtitle text in the UI and sets its color.
+     *
+     * @param text The new subtitle text.
+     */
     private fun updateSubtitleText(text: String) {
         val subtitleTextView = findViewById<TextView>(R.id.subtitleText)
         subtitleTextView.text = text
@@ -116,8 +134,12 @@ class LoginActivity : BaseActivity() {
         Log.d("LoginActivityLog", "Subtitle updated to: $text")
     }
 
+    /**
+     * setupGoogleSignIn configures Google Sign-In by signing out any current user,
+     * creating a GoogleSignInClient, and launching the sign-in intent.
+     */
     private fun setupGoogleSignIn() {
-        auth.signOut() // make sure the user is signed out before trying to sign in
+        auth.signOut() // Ensure the user is signed out before signing in.
         val googleSignInClient = GoogleSignIn.getClient(
             this,
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -128,6 +150,11 @@ class LoginActivity : BaseActivity() {
         val signInIntent = googleSignInClient.signInIntent
         signInLauncher.launch(signInIntent)
     }
+
+    /**
+     * signInLauncher processes the result of the Google Sign-In intent.
+     * On a successful sign-in, it retrieves the ID token and calls firebaseAuthWithGoogle.
+     */
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val data: Intent? = result.data
@@ -140,6 +167,14 @@ class LoginActivity : BaseActivity() {
             }
         }
     }
+
+    /**
+     * firebaseAuthWithGoogle authenticates the user with Firebase using a Google ID token.
+     * On successful authentication, it saves user data, creates a Firestore record if needed,
+     * and navigates to the main screen.
+     *
+     * @param idToken The Google ID token.
+     */
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
@@ -155,6 +190,11 @@ class LoginActivity : BaseActivity() {
             }
     }
 
+    /**
+     * loginWithEmail authenticates a user using email and password.
+     *
+     * It validates input fields and, on successful login, saves user data locally and navigates to the main screen.
+     */
     private fun loginWithEmail() {
         val email = emailInput.text.toString().trim()
         val password = passwordInput.text.toString().trim()
@@ -168,9 +208,18 @@ class LoginActivity : BaseActivity() {
                     val user = auth.currentUser
                     saveUserLocally(user!!)
                     goToMainScreen()
-                } else{ toast("User not found") }
+                } else {
+                    toast("User not found")
+                }
             }
     }
+
+    /**
+     * registerWithEmail registers a new user using email, password, and full name.
+     *
+     * It validates inputs, creates a user with FirebaseAuth, updates the user profile,
+     * saves user data both locally and in Firestore, and navigates to the main screen.
+     */
     private fun registerWithEmail() {
         val email = emailInput.text.toString().trim()
         val password = passwordInput.text.toString().trim()
@@ -196,18 +245,27 @@ class LoginActivity : BaseActivity() {
                         val profileUpdates = userProfileChangeRequest { displayName = fullName }
                         user.updateProfile(profileUpdates).addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful) {
-                                saveUserLocally(user)   // save user data locally
-                                checkAndCreateUser(user)  // save user data in Firestore
+                                saveUserLocally(user)
+                                checkAndCreateUser(user)
                                 goToMainScreen()
-                            } else{ toast("Error updating profile: ${updateTask.exception?.message}") }
+                            } else {
+                                toast("Error updating profile: ${updateTask.exception?.message}")
+                            }
                         }
                     }
-                } else { toast("Registration failed: ${task.exception?.message}") }
+                } else {
+                    toast("Registration failed: ${task.exception?.message}")
+                }
             }
     }
 
-
-    //if the user is not in the database, we will add him
+    /**
+     * checkAndCreateUser checks if the user exists in Firestore.
+     * If not, it creates a new document with default values such as email, display name,
+     * creation time, and initial points.
+     *
+     * @param user The FirebaseUser object.
+     */
     private fun checkAndCreateUser(user: FirebaseUser) {
         val userRef = db.collection("users").document(user.uid)
         userRef.get().addOnSuccessListener { document ->
@@ -228,7 +286,11 @@ class LoginActivity : BaseActivity() {
         }
     }
 
-    //save the user data locally for future use and to keep the user logged in
+    /**
+     * saveUserLocally saves the user data in SharedPreferences for persistence.
+     *
+     * @param user The FirebaseUser object.
+     */
     private fun saveUserLocally(user: FirebaseUser) {
         val editor = sharedPreferences.edit()
         editor.putString("userId", user.uid)
@@ -237,7 +299,9 @@ class LoginActivity : BaseActivity() {
         editor.apply()
     }
 
-    //move to the main screen
+    /**
+     * goToMainScreen navigates the user to the HomeActivity and finishes the current LoginActivity.
+     */
     private fun goToMainScreen() {
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
