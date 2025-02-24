@@ -1,3 +1,18 @@
+/**
+ * EventsBySubjectActivity displays event rooms filtered by a selected subject.
+ *
+ * Upon launch, the activity retrieves the "subject" extra from the Intent and sets it as the title.
+ * It then queries Firestore to load events where:
+ * - "isEvent" is true.
+ * - "eventSubject" matches the provided subject.
+ * - "isActive" is true.
+ *
+ * The retrieved event documents are shown using the AdapterEvents adapter,
+ * which displays each event’s image, name, date, and the number of participants.
+ *
+ * Glide is used to load event images.
+ *
+*/
 package com.example.bettertogether
 
 import android.os.Bundle

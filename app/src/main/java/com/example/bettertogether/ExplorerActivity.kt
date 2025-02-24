@@ -1,3 +1,24 @@
+/**
+ * ExplorerActivity allows users to browse and search for available rooms and users.
+ *
+ * This activity uses a ViewPager2 to display two pages:
+ * 1. Explorer page – where users can search for rooms and users via a SearchView.
+ * 2. Rooms page – which displays event rooms (rooms created by the user).
+ *
+ * The activity implements two tabs on the explorer page:
+ * - "Users" tab: displays a list of users using AdapterUsers.
+ * - "Rooms" tab: displays a list of active rooms using AdapterRooms.
+ *
+ * Key functionalities include:
+ * - Loading rooms and users from Firestore.
+ * - Filtering results based on search criteria.
+ * - Toggling between user and room views.
+ *
+ * Adapters:
+ * - AdapterRooms: Displays room items.
+ * - AdapterUsers: Displays user items.
+ *
+*/
 package com.example.bettertogether
 
 import android.os.Bundle

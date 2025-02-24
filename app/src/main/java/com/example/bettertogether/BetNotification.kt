@@ -1,3 +1,27 @@
+/**
+ * BetNotificationWorker is a CoroutineWorker that checks for expired bets and sends notifications to users.
+ *
+ * Functionality Overview:
+ * - doWork():
+ *     - Retrieves the user document from Firestore using the provided user ID.
+ *     - Iterates over the list of rooms linked to the user.
+ *     - For each room, attempts to determine the expiration time using:
+ *         1) A numeric "betEndTime" field.
+ *         2) A string-based "expiration" field (parsed to milliseconds).
+ *     - Compares the expiration time with the current system time.
+ *         - If the bet has ended (i.e., current time is past expiration), sends a notification with the bet description.
+ *     - In debug mode, reschedules the work to run again in 1 minute.
+ *
+ * - parseExpirationToMillis(expirationString: String?): Long?
+ *     - Helper function that converts an expiration date string (formatted as "dd/MM/yyyy") into milliseconds.
+ *     - Returns null if the input string is null, blank, or cannot be parsed.
+ *
+ * - sendNotification(roomId: String, message: String)
+ *     - Builds and dispatches a local notification to alert the user that a bet has ended.
+ *     - Creates a notification channel for Android O and above if necessary.
+ *     - Uses a unique notification ID based on the hash of the roomId.
+ */
+
 package com.example.bettertogether
 
 import android.app.NotificationChannel

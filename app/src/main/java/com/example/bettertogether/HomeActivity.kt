@@ -1,3 +1,54 @@
+/**
+ * HomeActivity displays the main screen of the app, featuring a slideshow of event images,
+ * a horizontal slider for popular public rooms, category-based navigation, and daily reward management.
+ *
+ * Functionality Overview:
+ *
+ * - onCreate(savedInstanceState: Bundle?):
+ *     - Sets the activity layout.
+ *     - Initializes UI components including the slideshow ImageView, bet button, and rooms slider.
+ *     - Configures the bet button to open a room if an event is selected.
+ *     - Initiates fetching of event rooms for the slideshow.
+ *     - Sets up the horizontal rooms slider to display popular public rooms.
+ *     - Attaches click listeners to subject category rows for navigation to subject-specific events.
+ *     - Checks for and processes daily reward eligibility.
+ *
+ * - eventsForSlideshow():
+ *     - Queries Firestore for event rooms that are active.
+ *     - Populates lists of image URLs and maps each URL to its corresponding room ID.
+ *     - Starts the slideshow if images are available; otherwise, displays a notification.
+ *
+ * - startSlideshow():
+ *     - Uses a Handler to cycle through event images at a fixed interval (8 seconds).
+ *     - Loads each image into the slideshow ImageView and updates the current room ID.
+ *
+ * - setupCategoryClickListeners():
+ *     - Iterates over predefined category rows (e.g., sports and other subjects).
+ *     - Sets click listeners on each category to launch an activity that displays events for that subject.
+ *
+ * - showDailyRewardDialog(pointsEarned: Int, streak: Int):
+ *     - Inflates and configures a dialog layout to display daily reward details.
+ *     - Displays a grid of reward amounts, highlighting the current day's reward based on the user’s streak.
+ *     - Shows a message with the points earned and waits for user acknowledgment.
+ *
+ * - checkDailyReward():
+ *     - Retrieves the user's document from Firestore to check the current points, last login date, and login streak.
+ *     - Determines if today's reward has already been claimed.
+ *     - If eligible, calculates the new login streak and reward amount, updates the user data, and shows the reward dialog.
+ *     - Schedules notifications for the next reward cycle.
+ *
+ * - isYesterday(lastLogin: String): Boolean
+ *     - Helper method to verify if the provided last login date corresponds to yesterday.
+ *
+ * - scheduleDailyRewardNotifications():
+ *     - Initiates scheduling of two daily alarms (at 9:00 AM and 9:00 PM) for daily reward notifications.
+ *
+ * - scheduleAlarmForTime(hourOfDay: Int, minute: Int, requestCode: Int):
+ *     - Sets up a repeating alarm via AlarmManager to trigger at the specified time daily.
+ *     - Uses a PendingIntent linked to a broadcast receiver (DailyRewardReceiver) to deliver the alarm.
+ */
+
+
 package com.example.bettertogether
 
 import android.app.AlarmManager

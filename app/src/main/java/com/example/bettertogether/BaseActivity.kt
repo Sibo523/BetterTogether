@@ -1,3 +1,63 @@
+/**
+ * BaseActivity is an abstract class that provides common functionality for activities in the BetterTogether app.
+ *
+ * Overview of functionality:
+ * - Layout & Initialization:
+ *   - setContentView(layoutResID: Int): Inflates the base layout, initializes Firebase Auth, Firestore,
+ *     shared preferences, bottom navigation, notification permissions, and schedules bet notifications.
+ *
+ * - Navigation:
+ *   - setupBottomNavigation(): Configures and manages the bottom navigation bar with appropriate activity switching.
+ *   - navigateTo(targetActivity: Class<out AppCompatActivity>): Navigates to a specified activity.
+ *   - navigateToLogin(): Redirects the user to the login activity.
+ *   - openRoom(roomId: String): Opens the RoomActivity for a given room identifier.
+ *   - openUser(userId: String): Opens the UserProfileActivity for the specified user.
+ *
+ * - Notifications:
+ *   - requestNotificationPermissionIfNeeded(): Requests notification permission on Android Tiramisu (API 33) and above.
+ *   - scheduleBetNotifications(): Schedules bet notifications using WorkManager. Uses a one-minute delay in debug mode
+ *     and a daily schedule in production.
+ *
+ * - User & Room Management:
+ *   - checkUserRole(callback: (String?) -> Unit): Retrieves and returns the user role from Firestore.
+ *   - addRoomToUser(userId: String, roomId: String, betSubject: String, isPublic: Boolean, callback: (Boolean) -> Unit):
+ *       Links a room to a user's record.
+ *   - toggleRoomFromUser(userId: String, roomId: String, flag: Boolean, callback: (Boolean) -> Unit):
+ *       Toggles a room's active state in the user's list.
+ *   - deleteRoom(roomId: String): Deactivates a room and updates associated user records.
+ *   - addUserToRoom(roomId: String, userId: String, participantData: Map<String, Comparable<*>?>, callback: (Boolean) -> Unit):
+ *       Adds a user as a participant in a room.
+ *   - toggleUserFromRoom(roomId: String, userId: String, flag: Boolean, callback: (Boolean) -> Unit):
+ *       Toggles a user's active status within a room. If the room becomes empty, it is deleted.
+ *
+ * - Data Retrieval Helpers:
+ *   - getParticipantById(userId: String, roomId: String, callback: (Map<String, Any>?) -> Unit):
+ *       Retrieves participant data for a specific user in a room.
+ *   - getActiveParticipants(roomDoc: DocumentSnapshot): Returns active (non-banned) participants from a room.
+ *   - getActiveWithBannedParticipants(roomDoc: DocumentSnapshot): Returns active participants including banned ones.
+ *   - getUserActiveRooms(userDoc: DocumentSnapshot): Extracts active rooms from a user's Firestore document.
+ *   - getUserActiveFriends(userDoc: DocumentSnapshot): Retrieves active friends from a user's record.
+ *   - getUserActiveReceivedRequests(userDoc: DocumentSnapshot): Retrieves active received friend requests.
+ *   - getUserActiveSentRequests(userDoc: DocumentSnapshot): Retrieves active sent friend requests.
+ *   - getUserStatus(userId: String, callback: (String?) -> Unit): Fetches the user's status.
+ *   - getUserName(userId: String, callback: (String) -> Unit): Retrieves the user's display name.
+ *   - getUserPhotoUrl(userId: String, callback: (String?) -> Unit): Retrieves the user's photo URL.
+ *   - getUserCurrentPoints(userId: String, callback: (Long) -> Unit): Retrieves the user's current points.
+ *   - getUserBetPoints(userId: String, callback: (Long) -> Unit): Retrieves the user's bet points.
+ *
+ * - Room Loading & UI Helpers:
+ *   - showPopularPublicRooms(list: MutableList<DocumentSnapshot>, sliderAdapter: AdapterEvents):
+ *       Loads and displays popular public rooms sorted by the number of active participants.
+ *   - loadUserRooms(userId: String, docList: MutableList<DocumentSnapshot>, roomsAdapter: AdapterEvents):
+ *       Loads rooms associated with a specific user.
+ *   - loadMyRooms(docList: MutableList<DocumentSnapshot>, roomsAdapter: AdapterEvents):
+ *       Loads the current user's rooms, ensuring the user is logged in.
+ *   - loadImageFromURL(imageUrl: String, imageView: ImageView):
+ *       Loads an image from a URL into an ImageView using Glide, with placeholders and error handling.
+ *   - toast(message: String): Displays a short Toast message for user feedback.
+ */
+
+
 package com.example.bettertogether
 
 import android.Manifest

@@ -1,3 +1,57 @@
+/**
+ * UserProfileActivity displays a user's profile along with their associated rooms and events.
+ * It supports various friend management operations (sending, accepting, canceling, and removing friend requests)
+ * as well as administrative status changes if the logged-in user is an owner.
+ *
+ * Functionality Overview:
+ *
+ * - onCreate(savedInstanceState: Bundle?):
+ *     - Initializes UI components for the profile (image, name, points, friendship status, etc.).
+ *     - Configures horizontal sliders (RecyclerViews) to display the user's active rooms and event rooms.
+ *     - If the current user is an owner, shows a button to change the status of the viewed user.
+ *     - Loads the target user's (hisUserId) profile data.
+ *
+ * - loadUserProfile():
+ *     - Retrieves the target user's profile from Firestore using hisUserId.
+ *     - Updates UI elements with the user's display name, points, and profile image.
+ *     - Loads the user's active rooms and events into their respective sliders.
+ *     - Initiates a check of the friendship status if the current user is not viewing their own profile.
+ *
+ * - checkFriendshipStatus():
+ *     - Checks the relationship between the logged-in user and the target user by reading friend lists
+ *       and friend request fields from Firestore.
+ *     - Updates the UI (friendStatusTextView and actionButton) to reflect the current friendship state.
+ *
+ * - sendFriendRequest():
+ *     - Sends a friend request by updating the "sentRequests" field for the current user and
+ *       the "receivedRequests" field for the target user in Firestore.
+ *     - Updates the UI to indicate that a friend request has been sent.
+ *
+ * - acceptFriendRequest():
+ *     - Accepts a received friend request by updating the "friends" fields for both users using a Firestore transaction.
+ *     - Removes the corresponding friend request entries after successful acceptance.
+ *
+ * - cancelFriendRequest():
+ *     - Cancels a pending friend request by deleting the appropriate fields from both users' documents.
+ *     - Updates the UI to reflect the cancellation.
+ *
+ * - removeFriend():
+ *     - Deactivates an existing friendship by setting the friendship's "isActive" flag to false.
+ *     - Also clears any existing friend request data between the users.
+ *
+ * - showStatusChangeDialog():
+ *     - Displays an AlertDialog that lets an owner choose a new role for the target user from a predefined list.
+ *
+ * - changeUserStatus(newRole: String):
+ *     - Updates the target user's role in Firestore.
+ *     - If the new role is "banned", triggers the removal of the user from all active rooms.
+ *
+ * - removeUserFromAllRooms(hisUserId: String):
+ *     - Retrieves all rooms where the target user is active.
+ *     - Iterates through the rooms and toggles the user's active status to false.
+ */
+
+
 package com.example.bettertogether
 
 import android.content.Context

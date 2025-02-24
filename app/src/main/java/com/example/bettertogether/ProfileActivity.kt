@@ -1,3 +1,66 @@
+/**
+ * ProfileActivity displays and manages the user's profile, allowing for viewing and editing of profile information,
+ * uploading profile images via camera or gallery to Imgur, and signing out.
+ *
+ * Functionality Overview:
+ * - onCreate(savedInstanceState: Bundle?):
+ *     - Initializes UI components for profile image and data.
+ *     - Checks user login status and loads either the current user's profile or another user's profile (if provided).
+ *     - Sets click listeners for editing profile image (via camera or gallery) and profile data.
+ *     - Configures the sign-out button.
+ *
+ * - showImagePickerOptions():
+ *     - Displays an AlertDialog with options to take a new photo or choose one from the gallery.
+ *
+ * - setDataFieldsEnabled(enabled: Boolean):
+ *     - Enables or disables editing for profile data text fields.
+ *
+ * - openGallery():
+ *     - Launches an intent to pick an image from the device gallery.
+ *
+ * - openCamera():
+ *     - Launches an intent to capture a new image using the device camera.
+ *
+ * - onActivityResult(requestCode: Int, resultCode: Int, data: Intent?):
+ *     - Handles the result from image selection or capture.
+ *     - For a successful result, calls the appropriate image upload method based on the request code.
+ *
+ * - uploadImageToImgur(uri: Uri):
+ *     - Reads image data from the provided URI, encodes it in Base64, and uploads it to Imgur using Retrofit.
+ *     - On successful upload, updates the user's profile photo in Firestore and in associated rooms.
+ *
+ * - uploadImageToImgur(bitmap: Bitmap):
+ *     - Compresses the captured bitmap, encodes it in Base64, and uploads it to Imgur using Retrofit.
+ *     - On success, updates the user's profile photo in Firestore and in associated rooms.
+ *
+ * - updateUserPhoto(photoUrl: String):
+ *     - Updates the user's photo URL in their Firestore document.
+ *     - Refreshes the displayed profile image using Glide.
+ *
+ * - updateUserPhotoInRooms(photoUrl: String):
+ *     - Updates the user's photo URL in all rooms where they are a participant.
+ *
+ * - loadUserPhoto(photoUrl: String):
+ *     - Loads and displays the profile image using Glide, with placeholder and error drawables.
+ *
+ * - saveProfileData():
+ *     - Saves updated profile details (bio, username, gender, age, date of birth, mobile) to Firestore.
+ *     - Exits edit mode upon successful update.
+ *
+ * - loadCurrentUserProfile():
+ *     - Retrieves and displays the current user's profile data from Firestore.
+ *     - Updates UI components such as text fields and profile image.
+ *
+ * - loadUserProfile(userId: String):
+ *     - Loads and displays another user's profile data from Firestore.
+ *     - Hides editing controls if viewing someone else's profile.
+ *
+ * - signOut():
+ *     - Signs the user out of Firebase and Google.
+ *     - Clears locally stored user data and navigates back to the login screen.
+ */
+
+
 package com.example.bettertogether
 
 import android.app.Activity

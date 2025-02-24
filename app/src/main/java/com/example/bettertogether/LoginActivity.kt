@@ -1,3 +1,29 @@
+/**
+ * LoginActivity handles user authentication and registration.
+ *
+ * This activity manages:
+ * - Email/password login.
+ * - Email/password registration (revealing additional fields when needed).
+ * - Google Sign-In integration using FirebaseAuth.
+ *
+ * On launch:
+ * - If a user is already authenticated, the activity saves user data locally,
+ *   then navigates directly to the main screen.
+ * - The background image is set based on the time of day (e.g., "Good morning!" or "Good night!").
+ *
+ * UI Elements include:
+ * - EditTexts for email, password, confirm password, and full name.
+ * - Buttons for login and Google sign-in.
+ * - TextViews to toggle between login and registration modes.
+ *
+ * Key methods:
+ * - loginWithEmail(): Authenticates an existing user.
+ * - registerWithEmail(): Registers a new user and updates the user profile.
+ * - setupGoogleSignIn() & firebaseAuthWithGoogle(): Handle Google Sign-In.
+ * - goToMainScreen(): Navigates to the HomeActivity after successful login.
+ *
+ * Additionally, user data is saved locally (via SharedPreferences) and in firestore
+ */
 package com.example.bettertogether
 
 import android.content.Intent
