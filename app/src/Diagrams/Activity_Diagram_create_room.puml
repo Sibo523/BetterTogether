@@ -1,0 +1,20 @@
+@startuml
+start
+:User launches the app;
+:User selects "Create Room";
+:User enters room details (name, description, betting options, etc.);
+:User sets room type (public/private);
+if (Room is private?) then (Yes)
+  :User enters access code;
+endif
+:User submits the form;
+:System validates room details;
+if (Validation successful?) then (Yes)
+  :Room is created;
+  :Display success message;
+  :Navigate to the room screen;
+else (No)
+  :Display error message;
+endif
+stop
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+actor User
+actor "Other User" as Friend
+
+participant "Profile Service" as PS
+participant "Friend Request Service" as FRS
+
+User -> PS: Enters search keywords
+PS --> User: Returns list of matching profiles
+User -> PS: Selects a profile to view
+PS --> User: Displays selected profile details
+User -> FRS: Sends friend request to selected profile
+FRS --> User: Confirms friend request sent
+Friend -> FRS: Accepts friend request
+FRS --> Friend: Confirms acceptance
+FRS --> User: Notifies that friend request was accepted
+User -> Friend: Friendship established (updates friend list)
+@enduml

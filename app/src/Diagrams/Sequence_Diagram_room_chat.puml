@@ -1,0 +1,11 @@
+@startuml
+actor User
+
+participant "Room Activity" as RA
+participant "Chat Service" as CS
+
+User -> RA: Types chat message
+RA -> CS: Sends message (asynchronously)
+CS --> RA: Confirms message receipt
+RA -> User: Updates chat view with new message
+@enduml
